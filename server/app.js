@@ -5,7 +5,6 @@ const cors = require('cors')
 const express = require('express')
 const helmet = require('helmet')
 const morgan = require('morgan')
-const paymentsRouter = require('./routes/payments')
 const adminRouter = require('./routes/admin')
 const bookingsRouter = require('./routes/bookings')
 const workersRouter = require('./routes/workers')
@@ -14,7 +13,6 @@ const chatbotRouter = require('./routes/chatbot')
 const contactRouter = require('./routes/contact')
 const uploadsRouter = require('./routes/uploads')
 const { isFirebaseAdminConfigured } = require('./services/firebaseAdmin')
-const { hasRazorpayKeys } = require('./services/razorpay')
 
 const app = express()
 
@@ -44,12 +42,11 @@ app.get('/health', (req, res) => {
     ok: true,
     service: 'home-electric-services-api',
     firebaseAdmin: isFirebaseAdminConfigured,
-    razorpay: hasRazorpayKeys,
+    payments: 'direct-upi',
     timestamp: new Date().toISOString(),
   })
 })
 
-app.use('/api/payments', paymentsRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/bookings', bookingsRouter)
 app.use('/api/workers', workersRouter)

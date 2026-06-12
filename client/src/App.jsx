@@ -33,6 +33,7 @@ const StaticPage = lazy(() => import('./pages/StaticPage'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const ManageBookings = lazy(() => import('./admin/ManageBookings'))
+const ManagePayments = lazy(() => import('./admin/ManagePayments'))
 const ManageCustomers = lazy(() => import('./admin/ManageCustomers'))
 const ManageWorkers = lazy(() => import('./admin/ManageWorkers'))
 const ManageServices = lazy(() => import('./admin/ManageServices'))
@@ -104,7 +105,7 @@ export default function App() {
           <Route
             path="/booking"
             element={
-              <PrivateRoute roles={['user', 'admin']}>
+              <PrivateRoute roles={['user']}>
                 <Booking />
               </PrivateRoute>
             }
@@ -112,7 +113,7 @@ export default function App() {
           <Route
             path="/checkout"
             element={
-              <PrivateRoute roles={['user', 'admin']}>
+              <PrivateRoute roles={['user']}>
                 <Booking />
               </PrivateRoute>
             }
@@ -120,7 +121,7 @@ export default function App() {
           <Route
             path="/book/:serviceId"
             element={
-              <PrivateRoute roles={['user', 'admin']}>
+              <PrivateRoute roles={['user']}>
                 <Booking />
               </PrivateRoute>
             }
@@ -209,6 +210,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="bookings" element={<ManageBookings />} />
+            <Route path="payments" element={<ManagePayments />} />
             <Route path="customers" element={<ManageCustomers />} />
             <Route path="workers" element={<ManageWorkers />} />
             <Route path="services" element={<ManageServices />} />

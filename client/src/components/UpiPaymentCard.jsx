@@ -92,12 +92,12 @@ export default function UpiPaymentCard({
             <p className="text-sm font-black text-gray-950 dark:text-white">Accepted UPI apps</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {paymentApps.map(({ name, Icon, color, bg }) => (
-                <div key={name} className={`flex items-center gap-3 rounded-lg border border-gray-100 p-3 ${bg} dark:border-white/10 dark:bg-white/5`}>
+                <a key={name} href={upiUri} className={`flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition hover:-translate-y-0.5 hover:shadow-sm ${bg} dark:border-white/10 dark:bg-white/5`}>
                   <span className={`grid h-10 w-10 place-items-center rounded-lg bg-white ${color}`}>
                     <Icon size={25} />
                   </span>
                   <span className="text-sm font-black text-gray-900 dark:text-white">{name}</span>
-                </div>
+                </a>
               ))}
             </div>
           </div>

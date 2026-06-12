@@ -1,11 +1,42 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
+import { doc, getDoc } from 'firebase/firestore'
 import PaymentReceipt from '../components/PaymentReceipt'
-import { mockBookings } from '../data/catalog'
+import { db, isFirebaseConfigured } from '../firebase/config'
 
 export default function ReceiptPage() {
   const { bookingId } = useParams()
-  const booking = mockBookings.find((item) => item.bookingId === bookingId || item.id === bookingId)
+  const [booking, setBooking] = useState(null)
+  const [loading, setLoading] = useState(Boolean(db && isFirebaseConfigured))
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadReceipt() {
+      if (!bookingId || !db || !isFirebaseConfigured) {
+        setLoading(false)
+        return
+      }
+      setLoading(true)
+      const snap = await getDoc(doc(db, 'bookings', bookingId)).catch(() => null)
+      if (!cancelled) {
+        setBooking(snap?.exists() ? { id: snap.id, ...snap.data() } : null)
+        setLoading(false)
+      }
+    }
+    loadReceipt()
+    return () => {
+      cancelled = true
+    }
+  }, [bookingId])
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold text-gray-950 dark:text-white">Loading receipt...</h1>
+      </main>
+    )
+  }
 
   if (!booking) {
     return (

@@ -7,7 +7,9 @@ import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 export default function AdminDashboard() {
   const { items: bookings, loading } = useFirestoreCollection('bookings', [], 'createdAt')
   const { items: workers } = useFirestoreCollection('workers', [], 'createdAt')
-  const revenue = bookings.reduce((sum, booking) => sum + Number(booking.totalAmount ?? booking.amount ?? 0), 0)
+  const revenue = bookings
+    .filter((booking) => booking.paymentStatus === 'paid')
+    .reduce((sum, booking) => sum + Number(booking.totalAmount ?? booking.amount ?? 0), 0)
   const pending = bookings.filter((booking) => booking.status === 'pending').length
   const completed = bookings.filter((booking) => booking.status === 'completed').length
 

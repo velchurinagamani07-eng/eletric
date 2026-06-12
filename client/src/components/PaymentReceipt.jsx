@@ -3,11 +3,15 @@ import { QRCodeSVG } from 'qrcode.react'
 import { settings } from '../data/catalog'
 import { generateReceiptPDF } from '../utils/generatePDF'
 import { currency, fullAddress } from '../utils/format'
+import { UPI_ID, isPaidStatus, paymentStatusLabel } from '../utils/upiPayment'
 
 const statusClasses = {
   paid: 'bg-emerald-100 text-emerald-700',
   success: 'bg-emerald-100 text-emerald-700',
+  pending_verification: 'bg-yellow-100 text-yellow-700',
   pending: 'bg-yellow-100 text-yellow-700',
+  awaiting_payment: 'bg-yellow-100 text-yellow-700',
+  rejected: 'bg-red-100 text-red-700',
   failed: 'bg-red-100 text-red-700',
 }
 
@@ -16,9 +20,9 @@ export default function PaymentReceipt({ booking }) {
 
   const receiptUrl = typeof window !== 'undefined' ? window.location.href : `https://homeelectricservices.in/receipt/${booking.bookingId || booking.id}`
   const paymentStatus = booking.paymentStatus || booking.status || 'pending'
-  const statusLabel = paymentStatus === 'success' ? 'PAID' : paymentStatus.toUpperCase()
-  const issueDate = booking.createdAt ? String(booking.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)
-  const paymentDate = booking.paymentId ? issueDate : '-'
+  const statusLabel = isPaidStatus(paymentStatus) ? 'PAID' : paymentStatusLabel(paymentStatus).toUpperCase()
+  const issueDate = formatDate(booking.createdAt || new Date().toISOString())
+  const paymentDate = isPaidStatus(paymentStatus) ? formatDate(booking.paidAt || booking.approvedAt || booking.paymentDate || booking.createdAt) : '-'
   const warrantyUntil = booking.date ? new Date(`${booking.date}T00:00:00`) : new Date()
   warrantyUntil.setMonth(warrantyUntil.getMonth() + 3)
 
@@ -32,7 +36,7 @@ export default function PaymentReceipt({ booking }) {
         <button type="button" className="btn-secondary" onClick={() => window.print()}>
           <Printer size={17} /> Print
         </button>
-        <button type="button" className="btn-primary" onClick={() => generateReceiptPDF(booking)}>
+        <button type="button" className="btn-primary" disabled={!isPaidStatus(paymentStatus)} onClick={() => generateReceiptPDF(booking)}>
           <Download size={17} /> Download PDF
         </button>
         <a className="btn-secondary" href={`https://wa.me/?text=${whatsappText}`} target="_blank" rel="noreferrer">
@@ -73,9 +77,10 @@ export default function PaymentReceipt({ booking }) {
           />
           <InfoBlock
             rows={[
-              ['Payment Method', booking.paymentMethod || 'Razorpay / Cash'],
-              ['Transaction ID', booking.paymentId || 'Pending'],
+              ['Payment Method', booking.paymentMethod || 'UPI'],
+              ['UTR Number', booking.utrNumber || booking.paymentId || 'Pending'],
               ['Payment Date', paymentDate],
+              ['UPI ID', booking.upiId || UPI_ID],
             ]}
           />
         </section>
@@ -149,6 +154,7 @@ export default function PaymentReceipt({ booking }) {
               <QRCodeSVG value={receiptUrl} size={112} />
             </div>
             <p className="mt-2 text-xs font-semibold text-gray-500">Scan to verify</p>
+            <p className="mt-1 text-[11px] font-semibold text-gray-400">QR reference: {booking.bookingId || booking.id}</p>
           </div>
         </section>
 
@@ -159,6 +165,15 @@ export default function PaymentReceipt({ booking }) {
       </article>
     </section>
   )
+}
+
+function formatDate(value) {
+  if (!value) return '-'
+  if (typeof value.toDate === 'function') return value.toDate().toISOString().slice(0, 10)
+  if (typeof value.toMillis === 'function') return new Date(value.toMillis()).toISOString().slice(0, 10)
+  if (value instanceof Date) return value.toISOString().slice(0, 10)
+  const parsed = Date.parse(value)
+  return Number.isNaN(parsed) ? String(value).slice(0, 10) : new Date(parsed).toISOString().slice(0, 10)
 }
 
 function InfoBlock({ rows }) {

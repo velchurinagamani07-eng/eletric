@@ -4,7 +4,7 @@ Production-oriented full-stack web app for Home Electric Services in Tuni, owned
 
 Built for:
 - `client/`: React + Vite + Tailwind + Framer Motion, deployable to Vercel.
-- `server/`: Express + Firebase Admin + Razorpay, deployable to Render.
+- `server/`: Express + Firebase Admin, deployable to Render.
 
 ## Local Setup
 
@@ -20,25 +20,18 @@ npm install
 npm run dev
 ```
 
-Copy `client/.env.example` to `client/.env` and `server/.env.example` to `server/.env`, then set Firebase, Razorpay, ImgBB, Anthropic, and deployment URLs.
-
-The frontend works in demo mode without Firebase keys. Use these demo login emails:
-- `customer@homeelectric.local`
-- `worker@homeelectric.local`
-- `admin@homeelectric.local`
-
-Any password works in demo mode.
+Copy `client/.env.example` to `client/.env` and `server/.env.example` to `server/.env`, then set Firebase, ImgBB, UPI, Anthropic, and deployment URLs. Authentication is Firebase-only.
 
 Primary contact number: `+91 9493745479`.
 Build credit: `WayzenTech 9398724704`.
 
 ## Key Features
 
-- User panel: booking flow, coupons, Razorpay checkout integration, receipts, PDF export, profile and booking history.
-- Worker panel: assigned jobs, status updates, 50KB target image compression, ImgBB upload integration, history charts, notifications.
+- User panel: booking flow, coupons, direct UPI QR payment, screenshot/UTR verification, receipts, PDF export, profile and booking history.
+- Worker panel: assigned jobs, status updates, WebP image compression, ImgBB upload integration, history charts, notifications.
 - Admin panel: bookings, workers, services, coupons, banners, analytics, notifications, settings and AI service description endpoint.
 - SEO/PWA: Helmet metadata, sitemap, robots, structured data, lazy images, Vite PWA service worker.
-- Backend: token middleware, admin middleware, payment order/signature routes, booking completion coupon automation, notifications and chatbot route.
+- Backend: token middleware, admin middleware, booking completion coupon automation, notifications and chatbot route.
 
 ## Deployment
 

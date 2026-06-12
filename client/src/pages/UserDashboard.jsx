@@ -1,14 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
+import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore'
 import { Download, Edit3, FileText, Gift, LayoutDashboard, LogOut, UserRound } from 'lucide-react'
-import { coupons, mockBookings, statusColors } from '../data/catalog'
+import { coupons, statusColors } from '../data/catalog'
 import PaymentReceipt from '../components/PaymentReceipt'
+import UpiPaymentCard from '../components/UpiPaymentCard'
 import { useAuthStore } from '../store/authStore'
 import { currency, fullAddress } from '../utils/format'
 import { generateBookingsPDF, generateReceiptPDF } from '../utils/generatePDF'
 import { saveProfilePhotoURL } from '../utils/firebaseUploads'
 import ImageUploader from '../components/ImageUploader'
+import { db, isFirebaseConfigured } from '../firebase/config'
+import { PAYMENT_METHOD, UPI_ID, isPaidStatus, paymentStatusLabel } from '../utils/upiPayment'
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -22,20 +26,109 @@ export default function UserDashboard({ initialTab = 'overview' }) {
   const [activeTab, setActiveTab] = useState(initialTab)
   const [status, setStatus] = useState('all')
   const [selectedReceipt, setSelectedReceipt] = useState(null)
+  const [bookings, setBookings] = useState([])
+  const [loadingBookings, setLoadingBookings] = useState(Boolean(db && isFirebaseConfigured))
+  const [resubmitBooking, setResubmitBooking] = useState(null)
+  const [utrNumber, setUtrNumber] = useState('')
+  const [screenshotURL, setScreenshotURL] = useState('')
+  const [submittingPayment, setSubmittingPayment] = useState(false)
   const user = useAuthStore((state) => state.user)
   const updateProfileLocal = useAuthStore((state) => state.updateProfileLocal)
   const logout = useAuthStore((state) => state.logout)
 
-  const bookings = useMemo(
-    () => mockBookings.filter((booking) => booking.userId === (user?.uid || 'demo-customer') || user?.role === 'admin'),
-    [user],
-  )
+  useEffect(() => {
+    if (!user?.uid || !db || !isFirebaseConfigured) {
+      Promise.resolve().then(() => {
+        setBookings([])
+        setLoadingBookings(false)
+      })
+      return undefined
+    }
+
+    Promise.resolve().then(() => setLoadingBookings(true))
+    const ref =
+      user.role === 'admin' || user.role === 'superadmin'
+        ? collection(db, 'bookings')
+        : query(collection(db, 'bookings'), where('userId', '==', user.uid))
+    const unsubscribe = onSnapshot(
+      ref,
+      (snapshot) => {
+        setBookings(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })))
+        setLoadingBookings(false)
+      },
+      () => {
+        setBookings([])
+        setLoadingBookings(false)
+      },
+    )
+    return unsubscribe
+  }, [user?.role, user?.uid])
 
   const filteredBookings = status === 'all' ? bookings : bookings.filter((booking) => booking.status === status)
   const completed = bookings.filter((booking) => booking.status === 'completed').length
   const totalSpent = bookings
-    .filter((booking) => booking.paymentStatus === 'success')
+    .filter((booking) => isPaidStatus(booking.paymentStatus))
     .reduce((sum, booking) => sum + booking.amount, 0)
+
+  const submitResubmission = async () => {
+    if (!resubmitBooking) return
+    const normalizedUtr = utrNumber.trim()
+    if (!/^\d{10,22}$/.test(normalizedUtr)) {
+      toast.error('Enter a valid 10 to 22 digit UTR number.')
+      return
+    }
+    if (!screenshotURL) {
+      toast.error('Upload the payment screenshot.')
+      return
+    }
+
+    setSubmittingPayment(true)
+    try {
+      const bookingId = resubmitBooking.bookingId || resubmitBooking.id
+      const paymentPayload = {
+        bookingId,
+        userId: user?.uid,
+        amount: Number(resubmitBooking.totalAmount ?? resubmitBooking.amount ?? 0),
+        customerName: resubmitBooking.customer || user?.name || 'Customer',
+        utrNumber: normalizedUtr,
+        screenshotURL,
+        paymentMethod: PAYMENT_METHOD,
+        paymentStatus: 'pending_verification',
+        upiId: UPI_ID,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }
+      const paymentRef = await addDoc(collection(db, 'payments'), paymentPayload)
+      await addDoc(collection(db, 'notifications'), {
+        userId: 'admin',
+        role: 'admin',
+        title: 'UPI payment resubmitted',
+        body: `${paymentPayload.customerName} resubmitted UPI proof for booking ${bookingId}.`,
+        type: 'payment_pending_verification',
+        bookingId,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      }).catch(() => {})
+      await updateDoc(doc(db, 'bookings', bookingId), {
+        paymentId: paymentRef.id,
+        paymentMethod: PAYMENT_METHOD,
+        paymentStatus: 'pending_verification',
+        utrNumber: normalizedUtr,
+        screenshotURL,
+        paymentRejectionReason: '',
+        paymentSubmittedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+      setResubmitBooking(null)
+      setUtrNumber('')
+      setScreenshotURL('')
+      toast.success('Payment proof resubmitted.')
+    } catch (err) {
+      toast.error(err.message || 'Unable to resubmit payment proof.')
+    } finally {
+      setSubmittingPayment(false)
+    }
+  }
 
   if (selectedReceipt) {
     return (
@@ -45,6 +138,27 @@ export default function UserDashboard({ initialTab = 'overview' }) {
         </button>
         <PaymentReceipt booking={selectedReceipt} />
       </div>
+    )
+  }
+
+  if (resubmitBooking) {
+    return (
+      <main className="bg-gray-50 py-10 dark:bg-gray-950">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <button type="button" className="btn-secondary mb-5" onClick={() => setResubmitBooking(null)}>
+            Back to dashboard
+          </button>
+          <UpiPaymentCard
+            booking={resubmitBooking}
+            utrNumber={utrNumber}
+            screenshotURL={screenshotURL}
+            submitting={submittingPayment}
+            onUtrChange={setUtrNumber}
+            onScreenshotUpload={setScreenshotURL}
+            onSubmit={submitResubmission}
+          />
+        </div>
+      </main>
     )
   }
 
@@ -120,13 +234,20 @@ export default function UserDashboard({ initialTab = 'overview' }) {
                     </div>
                   </div>
                   <div className="divide-y divide-gray-100 dark:divide-white/10">
-                    {filteredBookings.map((booking) => (
+                    {loadingBookings ? (
+                      <p className="p-6 text-center text-sm font-semibold text-gray-500">Loading bookings...</p>
+                    ) : filteredBookings.length === 0 ? (
+                      <p className="p-6 text-center text-sm font-semibold text-gray-500">No bookings found.</p>
+                    ) : filteredBookings.map((booking) => (
                       <article key={booking.id} className="p-4">
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className="font-bold text-gray-950 dark:text-white">{booking.serviceName}</h3>
                               <span className={`badge ${statusColors[booking.status]}`}>{booking.status}</span>
+                              <span className={`badge ${paymentStatusClass(booking.paymentStatus)}`}>
+                                {paymentStatusLabel(booking.paymentStatus)}
+                              </span>
                             </div>
                             <p className="mt-2 text-sm text-gray-500">
                               {booking.bookingId} | {booking.date} | {booking.timeSlot}
@@ -135,14 +256,24 @@ export default function UserDashboard({ initialTab = 'overview' }) {
                             {booking.workerName && (
                               <p className="mt-1 text-sm font-semibold text-blue-600">Assigned worker: {booking.workerName}</p>
                             )}
+                            {booking.paymentRejectionReason && (
+                              <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-bold text-red-600">
+                                Payment rejected: {booking.paymentRejectionReason}
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <button type="button" className="btn-secondary" onClick={() => setSelectedReceipt(booking)}>
+                            <button type="button" className="btn-secondary" disabled={!isPaidStatus(booking.paymentStatus)} onClick={() => setSelectedReceipt(booking)}>
                               View receipt
                             </button>
-                            <button type="button" className="btn-primary" onClick={() => generateReceiptPDF(booking)}>
+                            <button type="button" className="btn-primary" disabled={!isPaidStatus(booking.paymentStatus)} onClick={() => generateReceiptPDF(booking)}>
                               Download PDF
                             </button>
+                            {booking.paymentStatus === 'rejected' && (
+                              <button type="button" className="btn-secondary" onClick={() => setResubmitBooking(booking)}>
+                                Resubmit Payment
+                              </button>
+                            )}
                           </div>
                         </div>
                       </article>
@@ -154,7 +285,7 @@ export default function UserDashboard({ initialTab = 'overview' }) {
               {activeTab === 'receipts' && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {bookings
-                    .filter((booking) => booking.paymentStatus === 'success')
+                    .filter((booking) => isPaidStatus(booking.paymentStatus))
                     .map((booking) => (
                       <div key={booking.id} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900">
                         <p className="font-bold text-gray-950 dark:text-white">{booking.bookingId}</p>
@@ -235,4 +366,11 @@ export default function UserDashboard({ initialTab = 'overview' }) {
       </main>
     </>
   )
+}
+
+function paymentStatusClass(status) {
+  if (isPaidStatus(status)) return 'bg-emerald-100 text-emerald-800'
+  if (status === 'rejected') return 'bg-red-100 text-red-800'
+  if (status === 'pending_verification') return 'bg-amber-100 text-amber-800'
+  return 'bg-gray-100 text-gray-700'
 }

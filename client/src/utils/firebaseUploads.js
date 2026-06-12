@@ -11,7 +11,7 @@ import {
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { auth, db, isFirebaseConfigured, storage } from '../firebase/config'
 import { apiFetch, getApiBaseUrl, getFirebaseIdToken } from './apiClient'
-import { uploadToImgBB } from './uploadToImgBB'
+import { compressAndUploadToImgBB } from './compressToWebP'
 
 export function slugify(value) {
   return String(value || '')
@@ -74,10 +74,14 @@ export async function uploadImageToImgBB({
   file,
   folder = 'uploads',
   onProgress,
+  maxWidth = 1200,
+  maxSizeKB = 280,
 }) {
-  const result = await uploadToImgBB(file, {
+  const result = await compressAndUploadToImgBB(file, {
     name: `${folder}-${Date.now()}-${safeFileName(file.name).replace(/\.[^.]+$/, '')}`,
     onProgress,
+    maxWidth,
+    maxSizeKB,
   })
   return result.url
 }
@@ -98,6 +102,8 @@ export async function saveService({
         file,
         folder: `services-${serviceId}-${index}`,
         onProgress,
+        maxWidth: 1200,
+        maxSizeKB: 200,
       })
       images.push(url)
     }
@@ -158,6 +164,8 @@ export async function saveCategory({
       file: iconFile,
       folder: `categories-${categoryId}-icon`,
       onProgress,
+      maxWidth: 400,
+      maxSizeKB: 80,
     })
   }
 
@@ -166,6 +174,8 @@ export async function saveCategory({
       file: bannerFile,
       folder: `categories-${categoryId}-banner`,
       onProgress,
+      maxWidth: 1920,
+      maxSizeKB: 280,
     })
   }
 
@@ -222,6 +232,8 @@ export async function saveBanner({
       file: imageFile,
       folder: `banners-${folder}-${bannerId}`,
       onProgress,
+      maxWidth: 1920,
+      maxSizeKB: 280,
     })
   }
 
@@ -261,6 +273,8 @@ export async function uploadProfilePhoto({
     file,
     folder: `profiles-${userId}`,
     onProgress,
+    maxWidth: 400,
+    maxSizeKB: 80,
   })
   if (canUseFirestore()) {
     await updateDoc(doc(db, 'users', userId), {

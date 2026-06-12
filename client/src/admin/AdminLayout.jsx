@@ -9,6 +9,7 @@ import {
   Layers3,
   Bot,
   PackageSearch,
+  CreditCard,
   SearchCheck,
   Settings,
   ShieldCheck,
@@ -22,6 +23,7 @@ import {
 const links = [
   { label: 'Dashboard', to: '/admin/dashboard', icon: Gauge },
   { label: 'Bookings', to: '/admin/bookings', icon: ClipboardList },
+  { label: 'Payment Verifications', to: '/admin/payments', icon: CreditCard },
   { label: 'Customers', to: '/admin/customers', icon: UserRound },
   { label: 'Workers', to: '/admin/workers', icon: Users },
   { label: 'Services', to: '/admin/services', icon: Wrench },

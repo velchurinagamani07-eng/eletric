@@ -126,11 +126,16 @@ service cloud.firestore {
         || (isWorker() && resource.data.workerUID == request.auth.uid)
         || (isOwner(resource.data.userId)
           && isActive()
-          && resource.data.status in ['pending', 'paid']
+          && resource.data.status in ['pending', 'confirmed']
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'paymentStatus',
             'paymentId',
-            'razorpayOrderId',
+            'paymentMethod',
+            'utrNumber',
+            'screenshotURL',
+            'paymentSubmittedAt',
+            'paymentRejectionReason',
+            'upiId',
             'status',
             'updatedAt'
           ]));
@@ -153,7 +158,11 @@ service cloud.firestore {
 
     match /payments/{id} {
       allow read: if isAdmin() || isOwner(resource.data.userId);
-      allow create: if signedIn();
+      allow create: if signedIn()
+        && isActive()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.paymentMethod == 'UPI'
+        && request.resource.data.paymentStatus == 'pending_verification';
       allow update, delete: if isAdmin();
     }
 

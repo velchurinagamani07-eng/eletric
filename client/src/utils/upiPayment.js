@@ -1,4 +1,4 @@
-export const UPI_ID = 'dileepmanepalli14@okhdfcbank'
+export const UPI_ID = import.meta.env.VITE_UPI_ID || 'dileepmanepalli14@okhdfcbank'
 export const PAYMENT_METHOD = 'UPI'
 
 export function buildUpiPaymentUri({

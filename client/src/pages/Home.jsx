@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import FestivalBanner from '../components/Banners/FestivalBanner'
 import PromoBanner from '../components/Banners/PromoBanner'
-import HeroBanner from '../components/HeroBanner'
+import HeroSlider from '../components/HeroSlider'
 import ServiceCard from '../components/ServiceCard'
 import { settings, testimonials } from '../data/catalog'
 import { useServiceCategories, useServices } from '../hooks/useServices'
@@ -83,8 +83,49 @@ export default function Home() {
       </Helmet>
 
       <PromoBanner />
-      <HeroBanner />
+      <HeroSlider />
       <FestivalBanner />
+
+      <section className="border-y border-slate-100 bg-white py-4 dark:border-white/10 dark:bg-gray-950">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 text-center sm:px-6 lg:grid-cols-4">
+          {[
+            ['500+ Happy Customers', CheckCircle2],
+            ['3 Month Warranty', ShieldCheck],
+            ['Same-Day Service', CalendarCheck],
+            ['Verified Workers', UserCheck],
+          ].map(([label, Icon]) => (
+            <div key={label} className="flex items-center justify-center gap-2 border-slate-100 py-2 text-sm font-black text-navy-900 dark:text-white lg:border-r last:lg:border-r-0">
+              <Icon className="text-amber-500" size={18} /> {label}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-white py-14 dark:bg-gray-950">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <p className="eyebrow">What we do</p>
+          <h2 className="section-title">Our Services</h2>
+          <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {liveCategories.slice(0, 12).map((category) => (
+              <Link
+                key={category.id}
+                to={`/services?category=${category.id}`}
+                className="rounded-lg border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg dark:border-white/10 dark:bg-gray-900"
+              >
+                {category.imageURL ? (
+                  <img src={category.imageURL} alt="" className="aspect-square w-full rounded-lg object-cover" loading="lazy" />
+                ) : (
+                  <span className="grid aspect-square w-full place-items-center rounded-lg bg-amber-100 text-2xl font-black text-amber-700">
+                    {category.name?.slice(0, 1) || 'E'}
+                  </span>
+                )}
+                <p className="mt-3 text-sm font-black text-navy-900 dark:text-white">{category.name}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-500">Book now</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="bg-gray-50 py-14 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">

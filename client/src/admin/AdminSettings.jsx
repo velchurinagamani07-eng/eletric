@@ -40,7 +40,11 @@ export default function AdminSettings({ initialSection = 'company' }) {
     let alive = true
     getDoc(doc(db, 'settings', 'hero'))
       .then((snap) => {
-        if (alive && snap.exists()) setHeroForm((current) => ({ ...current, ...snap.data(), images: snap.data().images || [] }))
+        if (alive && snap.exists()) {
+          const data = snap.data()
+          const slideImages = Array.isArray(data.slides) ? data.slides.map((slide) => slide.imageURL).filter(Boolean) : []
+          setHeroForm((current) => ({ ...current, ...data, images: data.images || slideImages || [], slides: data.slides || [] }))
+        }
       })
       .catch(() => {})
     return () => {
@@ -90,6 +94,11 @@ export default function AdminSettings({ initialSection = 'company' }) {
           doc(db, 'settings', 'hero'),
           {
             ...heroForm,
+            slides: (heroForm.images || []).slice(0, 8).map((imageURL, index) => ({
+              id: `hero-slide-${index + 1}`,
+              imageURL,
+              altText: `${settings.companyName} hero slide ${index + 1}`,
+            })),
             customers: Number(heroForm.customers || 500),
             workers: Number(heroForm.workers || 50),
             updatedAt: serverTimestamp(),
@@ -273,12 +282,12 @@ export default function AdminSettings({ initialSection = 'company' }) {
             <div className="mt-5">
               <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Hero images</span>
               <ImageUploader
-                label="Upload up to 4 hero images"
+                label="Upload up to 8 hero images"
                 multiple
-                maxFiles={4}
+                maxFiles={8}
                 currentImageUrl={heroForm.images || []}
                 folder="settings-hero"
-                onUploadComplete={(urls) => updateHero('images', urls.slice(0, 4))}
+                onUploadComplete={(urls) => updateHero('images', urls.slice(0, 8))}
               />
             </div>
             <button type="submit" className="btn-primary mt-5" disabled={saving}><Save size={17} /> Save Hero</button>

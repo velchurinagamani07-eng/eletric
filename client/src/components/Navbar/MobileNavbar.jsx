@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bolt, Home, Menu, PackageSearch, ShoppingCart, UserRound, Wrench, X } from 'lucide-react'
+import { Bolt, CalendarDays, Home, Menu, PackageSearch, ShoppingCart, UserRound, Wrench, X } from 'lucide-react'
 import { settings } from '../../data/catalog'
 import { useAuthStore } from '../../store/authStore'
 import { useCartStore } from '../../store/cartStore'
@@ -9,8 +9,8 @@ import { useCartStore } from '../../store/cartStore'
 const tabs = [
   { label: 'Home', to: '/', icon: Home },
   { label: 'Services', to: '/services', icon: Wrench },
-  { label: 'Products', to: '/products', icon: PackageSearch },
   { label: 'Cart', to: '/cart', icon: ShoppingCart, badge: true },
+  { label: 'Bookings', to: '/dashboard/bookings', icon: CalendarDays },
   { label: 'Profile', to: '/dashboard/profile', icon: UserRound },
 ]
 

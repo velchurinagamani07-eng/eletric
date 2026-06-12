@@ -26,6 +26,12 @@ export default function PrivateRoute({ children, roles, role }) {
   }
 
   if (allowedRoles?.length && !allowedRoles.includes(user.role)) {
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      return <Navigate to="/admin/dashboard" replace />
+    }
+    if (user.role === 'worker') {
+      return <Navigate to="/worker/dashboard" replace />
+    }
     return <Navigate to="/" replace />
   }
 

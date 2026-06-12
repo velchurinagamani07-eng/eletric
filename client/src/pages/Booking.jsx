@@ -5,14 +5,13 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, CreditCard, Home, MapPin, Tag } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, CreditCard, MapPin, Tag } from 'lucide-react'
 import CouponInput from '../components/CouponInput'
 import UpiPaymentCard from '../components/UpiPaymentCard'
 import { timeSlots } from '../data/catalog'
 import { useAuthStore } from '../store/authStore'
 import { currency, nextBookingId, todayISO } from '../utils/format'
 import { PAYMENT_METHOD, UPI_ID } from '../utils/upiPayment'
-import ImageUploader from '../components/ImageUploader'
 import { db, isFirebaseConfigured } from '../firebase/config'
 import { useServices } from '../hooks/useServices'
 
@@ -20,8 +19,7 @@ const steps = [
   'Service',
   'Address',
   'Date & Time',
-  'Coupon',
-  'Summary',
+  'Review',
   'Payment',
 ]
 
@@ -50,7 +48,6 @@ export default function Booking() {
   const [utrNumber, setUtrNumber] = useState('')
   const [paymentScreenshotURL, setPaymentScreenshotURL] = useState('')
   const [submittingPayment, setSubmittingPayment] = useState(false)
-  const [referencePhotos, setReferencePhotos] = useState([])
   const user = useAuthStore((state) => state.user)
 
   const selectedService = useMemo(
@@ -101,7 +98,6 @@ export default function Booking() {
       subtotalAmount: selectedService.basePrice,
       discountAmount: discount,
       couponCode: coupon?.code || '',
-      referencePhotos,
       paymentId: '',
       paymentMethod: PAYMENT_METHOD,
       paymentStatus: 'awaiting_payment',
@@ -133,8 +129,9 @@ export default function Booking() {
 
   const submitPaymentProof = async () => {
     if (!paymentBooking) return
-    if (!utrNumber.trim()) {
-      toast.error('Enter the UTR / transaction number.')
+    const normalizedUtr = utrNumber.trim()
+    if (!/^\d{10,22}$/.test(normalizedUtr)) {
+      toast.error('Enter a valid 10 to 22 digit UTR number.')
       return
     }
     if (!paymentScreenshotURL) {
@@ -151,7 +148,7 @@ export default function Booking() {
         userId: user?.uid,
         amount: Number(paymentBooking.totalAmount ?? paymentBooking.amount ?? 0),
         customerName: paymentBooking.customer || user?.name || 'Customer',
-        utrNumber: utrNumber.trim(),
+        utrNumber: normalizedUtr,
         screenshotURL: paymentScreenshotURL,
         paymentMethod: PAYMENT_METHOD,
         paymentStatus: 'pending_verification',
@@ -160,11 +157,21 @@ export default function Booking() {
         updatedAt: serverTimestamp(),
       }
       const paymentRef = await addDoc(collection(db, 'payments'), paymentPayload)
+      await addDoc(collection(db, 'notifications'), {
+        userId: 'admin',
+        role: 'admin',
+        title: 'UPI payment submitted',
+        body: `${paymentPayload.customerName} submitted UPI proof for booking ${bookingId}.`,
+        type: 'payment_pending_verification',
+        bookingId,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      }).catch(() => {})
       await updateDoc(doc(db, 'bookings', bookingId), {
         paymentId: paymentRef.id,
         paymentMethod: PAYMENT_METHOD,
         paymentStatus: 'pending_verification',
-        utrNumber: utrNumber.trim(),
+        utrNumber: normalizedUtr,
         screenshotURL: paymentScreenshotURL,
         paymentSubmittedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -174,7 +181,7 @@ export default function Booking() {
         paymentId: paymentRef.id,
         paymentMethod: PAYMENT_METHOD,
         paymentStatus: 'pending_verification',
-        utrNumber: utrNumber.trim(),
+        utrNumber: normalizedUtr,
         screenshotURL: paymentScreenshotURL,
       })
       toast.success('Payment proof submitted for admin verification.')
@@ -311,22 +318,9 @@ export default function Booking() {
                     ))}
                   </div>
                   <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-4 dark:border-white/10">
-                    <div className="mb-3">
-                      <h3 className="font-bold text-gray-950 dark:text-white">Reference photos</h3>
-                      <p className="mt-1 text-sm text-gray-500">Upload up to 3 photos to help the electrician prepare.</p>
-                    </div>
-                    <ImageUploader
-                      label="Upload reference photos"
-                      multiple
-                      maxFiles={3}
-                      currentImageUrl={referencePhotos}
-                      folder={`booking-reference-${user?.uid || 'guest'}`}
-                      onUploadComplete={(urls) => {
-                        const nextUrls = urls.slice(0, 3)
-                        if (urls.length > 3) toast.error('You can upload up to 3 reference photos.')
-                        setReferencePhotos(nextUrls)
-                      }}
-                    />
+                    <p className="text-sm font-semibold leading-6 text-gray-600 dark:text-gray-300">
+                      Need to share issue photos? Use support after booking. This booking step only captures the visit schedule.
+                    </p>
                   </div>
                 </div>
               )}
@@ -334,22 +328,7 @@ export default function Booking() {
               {step === 3 && (
                 <div>
                   <h2 className="flex items-center gap-2 text-2xl font-extrabold text-gray-950 dark:text-white">
-                    <Tag className="text-emerald-600" /> Apply coupon
-                  </h2>
-                  <div className="mt-5 max-w-xl">
-                    <CouponInput amount={selectedService.basePrice} onApply={(nextCoupon, nextDiscount) => {
-                      setCoupon(nextCoupon)
-                      setDiscount(nextDiscount)
-                    }} />
-                  </div>
-                  <p className="mt-4 text-sm text-gray-500">Coupons are validated against active offers on your account.</p>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div>
-                  <h2 className="flex items-center gap-2 text-2xl font-extrabold text-gray-950 dark:text-white">
-                    <Home className="text-amber-600" /> Summary
+                    <Tag className="text-emerald-600" /> Review & coupon
                   </h2>
                   <div className="mt-5 grid gap-4 lg:grid-cols-2">
                     <div className="rounded-lg border border-gray-100 p-4 dark:border-white/10">
@@ -362,6 +341,14 @@ export default function Booking() {
                       <p className="mt-1 font-bold text-gray-950 dark:text-white">{date}</p>
                       <p className="mt-2 text-sm text-gray-500">{timeSlot}</p>
                     </div>
+                  </div>
+                  <div className="mt-5 max-w-xl rounded-lg border border-gray-100 p-4 dark:border-white/10">
+                    <p className="mb-3 text-sm font-black text-gray-950 dark:text-white">Apply coupon</p>
+                    <CouponInput amount={selectedService.basePrice} onApply={(nextCoupon, nextDiscount) => {
+                      setCoupon(nextCoupon)
+                      setDiscount(nextDiscount)
+                    }} />
+                    <p className="mt-3 text-xs font-semibold text-gray-500">Coupons are validated against active offers on your account.</p>
                   </div>
                   <div className="mt-5 overflow-hidden rounded-lg border border-gray-100 dark:border-white/10">
                     {[
@@ -385,7 +372,7 @@ export default function Booking() {
                 </div>
               )}
 
-              {step === 5 && (
+              {step === 4 && (
                 <div>
                   <h2 className="flex items-center gap-2 text-2xl font-extrabold text-gray-950 dark:text-white">
                     <CreditCard className="text-emerald-600" /> Payment

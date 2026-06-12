@@ -129,7 +129,7 @@ router.get(
       })
     }
 
-    const bookings = await db.collection('bookings').where('paymentStatus', '==', 'success').limit(200).get()
+    const bookings = await db.collection('bookings').where('paymentStatus', '==', 'paid').limit(200).get()
     const revenue = bookings.docs.reduce((sum, doc) => sum + Number(doc.data().amount || 0), 0)
     return res.json({ revenue, bookings: bookings.size })
   }),

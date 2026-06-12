@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, GripVertical, ImageUp, RotateCcw, Trash2 } from 'lucide-react'
-import { uploadToImgBB } from '../utils/uploadToImgBB'
+import { compressAndUploadToImgBB } from '../utils/compressToWebP'
 
 const makeId = (file) => `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`
 
@@ -25,6 +25,7 @@ export default function ImageUploader({
             progress: 100,
             status: 'complete',
             error: '',
+            sizeKB: 0,
           }))
         : [],
     [currentImageUrl, multiple],
@@ -37,6 +38,7 @@ export default function ImageUploader({
     status: currentImageUrl ? 'complete' : 'idle',
     error: '',
     file: null,
+    sizeKB: 0,
   })
 
   useEffect(() => {
@@ -75,12 +77,12 @@ export default function ImageUploader({
     const preview = URL.createObjectURL(file)
     setSingle({ preview, url: '', progress: 0, status: 'uploading', error: '', file })
     try {
-      const result = await uploadToImgBB(file, {
+      const result = await compressAndUploadToImgBB(file, {
         name: `${folder}-${Date.now()}`,
         onProgress: (progress) => setSingle((current) => ({ ...current, progress })),
       })
       const url = result.url
-      setSingle({ preview: url, url, progress: 100, status: 'complete', error: '', file: null })
+      setSingle({ preview: url, url, progress: 100, status: 'complete', error: '', file: null, sizeKB: result.sizeKB })
       await onUploadComplete?.(url)
     } catch (err) {
       setSingle((current) => ({ ...current, status: 'error', error: err.message || 'Upload failed.', file }))
@@ -104,7 +106,7 @@ export default function ImageUploader({
 
       if (error) return
 
-      uploadToImgBB(file, {
+      compressAndUploadToImgBB(file, {
         name: `${folder}-${Date.now()}-${safeName(file.name)}`,
         onProgress: (progress) =>
           setItems((current) => current.map((item) => (item.id === id ? { ...item, progress } : item))),
@@ -114,7 +116,7 @@ export default function ImageUploader({
           shouldEmitUrlsRef.current = true
           setItems((current) => {
             return current.map((item) =>
-              item.id === id ? { ...item, preview: url, url, progress: 100, status: 'complete', error: '', file: null } : item,
+              item.id === id ? { ...item, preview: url, url, progress: 100, status: 'complete', error: '', file: null, sizeKB: result.sizeKB } : item,
             )
           })
         })
@@ -194,6 +196,9 @@ export default function ImageUploader({
           onRetry={single.file ? () => uploadSingle(single.file) : undefined}
         />
       )}
+      {!multiple && single.status === 'complete' && single.sizeKB > 0 && (
+        <p className="mt-2 text-xs font-bold text-emerald-600">Compressed to {single.sizeKB}KB WebP</p>
+      )}
 
       {multiple && items.length > 0 && (
         <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -215,6 +220,11 @@ export default function ImageUploader({
               </div>
               {item.status === 'uploading' && <CircularProgress progress={item.progress} />}
               {item.status === 'complete' && <CheckCircle2 className="absolute bottom-2 right-2 rounded-full bg-white text-emerald-500" size={22} />}
+              {item.status === 'complete' && item.sizeKB > 0 && (
+                <span className="absolute bottom-2 left-2 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-emerald-600 shadow">
+                  {item.sizeKB}KB WebP
+                </span>
+              )}
               {item.status === 'error' && <ErrorLine error={item.error} onRetry={item.file ? () => uploadMultiple([item.file]) : undefined} compact />}
             </div>
           ))}

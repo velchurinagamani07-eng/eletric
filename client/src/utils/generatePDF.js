@@ -1,22 +1,38 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { settings } from '../data/catalog'
+import { UPI_ID, isPaidStatus, paymentStatusLabel } from './upiPayment'
 
 const money = (value) => `Rs. ${Number(value || 0).toLocaleString('en-IN')}`
 const amber = [245, 158, 11]
 const navy = [15, 39, 68]
 const lightGray = [248, 250, 252]
 
+function formatDate(value) {
+  if (!value) return '-'
+  if (typeof value.toDate === 'function') return value.toDate().toISOString().slice(0, 10)
+  if (typeof value.toMillis === 'function') return new Date(value.toMillis()).toISOString().slice(0, 10)
+  if (value instanceof Date) return value.toISOString().slice(0, 10)
+  const parsed = Date.parse(value)
+  return Number.isNaN(parsed) ? String(value).slice(0, 10) : new Date(parsed).toISOString().slice(0, 10)
+}
+
 function brandedHeader(doc, title, subtitle = '') {
   doc.setFillColor(...amber)
   doc.rect(0, 0, 210, 28, 'F')
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(14, 6, 14, 14, 2, 2, 'F')
+  doc.setTextColor(...amber)
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.text('HES', 21, 15, { align: 'center' })
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
-  doc.text(settings.companyName, 14, 13)
+  doc.text(settings.companyName, 34, 13)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
-  doc.text('Expert Electricians in Tuni, Andhra Pradesh', 14, 20)
+  doc.text('Expert Electricians in Tuni, Andhra Pradesh', 34, 20)
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.text(title.toUpperCase(), 196, 13, { align: 'right' })
@@ -42,7 +58,9 @@ function brandedFooter(doc) {
 export function generateReceiptPDF(booking, productOrders = []) {
   const doc = new jsPDF()
   const receiptId = booking.bookingId || booking.id
-  const paidStatus = booking.paymentStatus === 'success' || booking.status === 'paid' ? 'PAID' : String(booking.paymentStatus || booking.status || 'pending').toUpperCase()
+  const paymentStatus = booking.paymentStatus || booking.status || 'pending'
+  const paidStatus = isPaidStatus(paymentStatus) ? 'PAID' : paymentStatusLabel(paymentStatus).toUpperCase()
+  const paymentDate = formatDate(booking.paidAt || booking.approvedAt || booking.paymentDate || booking.createdAt)
   brandedHeader(doc, 'Service Receipt', receiptId)
 
   doc.setTextColor(...navy)
@@ -52,11 +70,22 @@ export function generateReceiptPDF(booking, productOrders = []) {
 
   autoTable(doc, {
     startY: 46,
-    head: [['Receipt Number', 'Issue Date', 'Payment Method', 'Transaction ID']],
+    head: [['Receipt Number', 'Payment Date', 'Payment Method', 'UTR Number']],
     body: [
-      [receiptId, String(booking.createdAt || new Date().toISOString()).slice(0, 10), booking.paymentMethod || 'Razorpay / Cash', booking.paymentId || 'Pending'],
+      [receiptId, paymentDate, booking.paymentMethod || 'UPI', booking.utrNumber || booking.paymentId || 'Pending'],
     ],
     headStyles: { fillColor: navy, textColor: [255, 255, 255] },
+    alternateRowStyles: { fillColor: lightGray },
+  })
+
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 6,
+    body: [
+      ['UPI ID', booking.upiId || UPI_ID],
+      ['QR Reference', `UPI payment collected for booking ${receiptId}`],
+    ],
+    styles: { fontSize: 9 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 38 }, 1: { textColor: navy } },
     alternateRowStyles: { fillColor: lightGray },
   })
 
@@ -187,4 +216,26 @@ export function generateIncomeReportPDF(rows) {
   })
   brandedFooter(doc)
   doc.save('income-report.pdf')
+}
+
+export function generatePaymentVerificationsPDF(rows) {
+  const doc = new jsPDF()
+  brandedHeader(doc, 'Payment Verifications', new Date().toISOString().slice(0, 10))
+  autoTable(doc, {
+    startY: 40,
+    head: [['Booking', 'Customer', 'Amount', 'UTR', 'Status', 'Service']],
+    body: rows.map((payment) => [
+      payment.bookingId || '-',
+      payment.customerName || payment.booking?.customer || '-',
+      money(payment.amount),
+      payment.utrNumber || '-',
+      paymentStatusLabel(payment.paymentStatus),
+      payment.booking?.serviceName || '-',
+    ]),
+    headStyles: { fillColor: navy, textColor: [255, 255, 255] },
+    alternateRowStyles: { fillColor: lightGray },
+    styles: { fontSize: 8 },
+  })
+  brandedFooter(doc)
+  doc.save('payment-verifications.pdf')
 }

@@ -57,6 +57,7 @@ export default function ManageBookings() {
           <select className="field w-36" value={status} onChange={(event) => setStatus(event.target.value)}>
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
             <option value="assigned">Assigned</option>
             <option value="in-progress">In progress</option>
             <option value="completed">Completed</option>
