@@ -1,0 +1,235 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function signedInUserExists() {
+      return signedIn() && exists(userPath(request.auth.uid));
+    }
+
+    function role() {
+      return signedInUserExists() ? get(userPath(request.auth.uid)).data.role : '';
+    }
+
+    function isAdmin() {
+      return role() in ['admin', 'superadmin'];
+    }
+
+    function isSuperAdmin() {
+      return role() == 'superadmin';
+    }
+
+    function isWorker() {
+      return role() == 'worker';
+    }
+
+    function isActive() {
+      return signedInUserExists()
+        && get(userPath(request.auth.uid)).data.isActive != false
+        && get(userPath(request.auth.uid)).data.status != 'suspended';
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function bookingVisible() {
+      return isAdmin()
+        || isOwner(resource.data.userId)
+        || (isWorker() && resource.data.workerUID == request.auth.uid);
+    }
+
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /services/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /product_categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /banners/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /hero_slides/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /announcement_messages/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /faqs/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /blog_posts/{id} {
+      allow read: if isAdmin() || resource.data.status == 'published' || resource.data.isPublished == true;
+      allow write: if isAdmin();
+    }
+
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) || isAdmin();
+      allow update: if isAdmin()
+        || (isOwner(uid)
+          && isActive()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'name',
+            'mobile',
+            'photoURL',
+            'addressBook',
+            'birthday',
+            'updatedAt'
+          ]));
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{id} {
+      allow read: if bookingVisible();
+      allow create: if signedIn() && isActive() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin()
+        || (isWorker() && resource.data.workerUID == request.auth.uid)
+        || (isOwner(resource.data.userId)
+          && isActive()
+          && resource.data.status in ['pending', 'paid']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'paymentStatus',
+            'paymentId',
+            'razorpayOrderId',
+            'status',
+            'updatedAt'
+          ]));
+      allow delete: if isAdmin();
+    }
+
+    match /workers/{workerId} {
+      allow read: if isAdmin() || isOwner(workerId);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isOwner(workerId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'photoURL',
+            'mobile',
+            'availability',
+            'profileCompleted',
+            'updatedAt'
+          ]));
+    }
+
+    match /payments/{id} {
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /notifications/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn();
+      allow update: if isAdmin()
+        || (signedIn()
+          && resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']));
+      allow delete: if isAdmin();
+    }
+
+    match /activity_logs/{id} {
+      allow read: if isAdmin();
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /webhook_events/{id} {
+      allow read, write: if false;
+    }
+
+    match /coupons/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /support_tickets/{id} {
+      allow read, update, delete: if isAdmin() || isOwner(resource.data.userId);
+      allow create: if signedIn() && (isAdmin() || request.resource.data.userId == request.auth.uid);
+    }
+
+    match /orders/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn() && isActive() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /payout_requests/{id} {
+      allow read: if isAdmin() || (isWorker() && resource.data.workerUID == request.auth.uid);
+      allow create: if isWorker() && isActive() && request.resource.data.workerUID == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /chatbot_leads/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /wallet_transactions/{id} {
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+      allow write: if isAdmin();
+    }
+
+    match /contact_messages/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /contacts/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /page_heroes/{pageSlug} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /reports/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

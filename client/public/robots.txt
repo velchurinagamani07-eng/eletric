@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /worker
+Disallow: /customer
+
+Sitemap: https://homeelectricservices.in/sitemap.xml

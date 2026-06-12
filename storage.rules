@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath() {
+      return /databases/(default)/documents/users/$(request.auth.uid);
+    }
+
+    function signedInUserExists() {
+      return signedIn() && firestore.exists(userPath());
+    }
+
+    function role() {
+      return signedInUserExists() ? firestore.get(userPath()).data.role : '';
+    }
+
+    function isAdmin() {
+      return role() in ['admin', 'superadmin'];
+    }
+
+    function underMb(size) {
+      return request.resource != null && request.resource.size < size * 1024 * 1024;
+    }
+
+    match /workers/{workerId}/docs/{fileName} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == workerId);
+      allow write: if isAdmin() && underMb(10);
+    }
+
+    match /profiles/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if signedIn() && request.auth.uid == uid && underMb(5);
+    }
+
+    match /workers/{workerId}/profile/{fileName} {
+      allow read: if true;
+      allow write: if signedIn() && (isAdmin() || request.auth.uid == workerId) && underMb(5);
+    }
+
+    match /bookings/{bookingId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if signedIn() && underMb(5);
+    }
+
+    match /admin/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && underMb(5);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
