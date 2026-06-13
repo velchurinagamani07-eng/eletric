@@ -24,7 +24,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
     whatsapp: settings.whatsapp,
     email: settings.email,
     address: settings.address,
-    homeTitle: 'Home Electric Services - Expert Electricians in Tuni',
+    homeTitle: 'DP Home Electric Services - Expert Electricians in Tuni',
     homeDescription: 'Book licensed electricians at your doorstep with 3-month warranty.',
     homeKeywords: 'electrician Tuni, home electrical services, fan installation, wiring repair',
     footerText: settings.footerCredit,

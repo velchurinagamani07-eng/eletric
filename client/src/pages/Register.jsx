@@ -32,7 +32,7 @@ export default function Register() {
   return (
     <>
       <Helmet>
-        <title>Register | Home Electric Services</title>
+        <title>Register | DP Home Electric Services</title>
       </Helmet>
 
       <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-gray-50 px-4 py-10 dark:bg-gray-950">
@@ -55,7 +55,7 @@ export default function Register() {
               }
               try {
                 await register(form)
-                toast.success('Welcome to Home Electric Services.')
+                toast.success('Welcome to DP Home Electric Services.')
                 navigate('/dashboard')
               } catch (error) {
                 toast.error(error.message || 'Registration failed.')

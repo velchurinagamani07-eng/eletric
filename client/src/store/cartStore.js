@@ -23,7 +23,17 @@ export const useCartStore = create((set, get) => ({
   addItem: (service) =>
     set((state) => {
       const exists = state.items.some((item) => item.id === service.id)
-      const items = exists ? state.items : [...state.items, { ...service, quantity: 1 }]
+      const items = exists
+        ? state.items.map((item) => (item.id === service.id ? { ...item, quantity: Number(item.quantity || 1) + 1 } : item))
+        : [...state.items, { ...service, quantity: 1 }]
+      writeCart(items)
+      return { items }
+    }),
+  decrementItem: (serviceId) =>
+    set((state) => {
+      const items = state.items
+        .map((item) => (item.id === serviceId ? { ...item, quantity: Number(item.quantity || 1) - 1 } : item))
+        .filter((item) => Number(item.quantity || 0) > 0)
       writeCart(items)
       return { items }
     }),

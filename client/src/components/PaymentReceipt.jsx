@@ -42,7 +42,7 @@ export default function PaymentReceipt({ booking }) {
         <a className="btn-secondary" href={`https://wa.me/?text=${whatsappText}`} target="_blank" rel="noreferrer">
           <MessageCircle size={17} /> Share on WhatsApp
         </a>
-        <a className="btn-secondary" href={`mailto:?subject=Home Electric Services Receipt&body=${whatsappText}`}>
+        <a className="btn-secondary" href={`mailto:?subject=DP Home Electric Services Receipt&body=${whatsappText}`}>
           <Mail size={17} /> Email Receipt
         </a>
       </div>
@@ -78,7 +78,7 @@ export default function PaymentReceipt({ booking }) {
           <InfoBlock
             rows={[
               ['Payment Method', booking.paymentMethod || 'UPI'],
-              ['UTR Number', booking.utrNumber || booking.paymentId || 'Pending'],
+              ['Payment Reference', booking.paymentId || 'Paid by screenshot'],
               ['Payment Date', paymentDate],
               ['UPI ID', booking.upiId || UPI_ID],
             ]}

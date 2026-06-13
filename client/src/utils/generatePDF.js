@@ -70,9 +70,9 @@ export function generateReceiptPDF(booking, productOrders = []) {
 
   autoTable(doc, {
     startY: 46,
-    head: [['Receipt Number', 'Payment Date', 'Payment Method', 'UTR Number']],
+    head: [['Receipt Number', 'Payment Date', 'Payment Method', 'Payment Reference']],
     body: [
-      [receiptId, paymentDate, booking.paymentMethod || 'UPI', booking.utrNumber || booking.paymentId || 'Pending'],
+      [receiptId, paymentDate, booking.paymentMethod || 'UPI', booking.paymentId || 'Paid by screenshot'],
     ],
     headStyles: { fillColor: navy, textColor: [255, 255, 255] },
     alternateRowStyles: { fillColor: lightGray },
@@ -223,12 +223,12 @@ export function generatePaymentVerificationsPDF(rows) {
   brandedHeader(doc, 'Payment Verifications', new Date().toISOString().slice(0, 10))
   autoTable(doc, {
     startY: 40,
-    head: [['Booking', 'Customer', 'Amount', 'UTR', 'Status', 'Service']],
+    head: [['Booking', 'Customer', 'Amount', 'Reference', 'Status', 'Service']],
     body: rows.map((payment) => [
       payment.bookingId || '-',
       payment.customerName || payment.booking?.customer || '-',
       money(payment.amount),
-      payment.utrNumber || '-',
+      payment.paymentId || payment.id || '-',
       paymentStatusLabel(payment.paymentStatus),
       payment.booking?.serviceName || '-',
     ]),

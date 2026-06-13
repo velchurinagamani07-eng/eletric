@@ -1,18 +1,18 @@
 export const settings = {
-  companyName: 'Home Electric Services',
-  shortName: 'Home Electric',
-  owner: 'M Dileep Kumar',
+  companyName: 'DP Home Electric Services',
+  shortName: 'DP Home Electric',
+  owner: 'Manepalli Dilip Kumar',
   tagline: 'Expert Electricians in Tuni',
   phone: '9493745479',
   whatsapp: '9493745479',
   email: 'support@homeelectricservices.in',
   address: 'Tuni, Andhra Pradesh',
   areaServed: 'Tuni and surrounding areas',
-  footerCredit: 'Website made by WayzenTech - 9398724704',
+  footerCredit: 'Founded by Manepalli Dilip Kumar, Tuni, AP. Website made by WayzenTech - 9398724704',
 }
 
 export const defaultHero = {
-  headline: 'Expert Home Electrical Services in Tuni',
+  headline: 'Expert home electrical services in Tuni',
   subheadline:
     'Fast, reliable electricians for fan installation, wiring, sockets, AC fitting, inverter work and emergency repairs with a 3-month warranty.',
   ctaText: 'Book a Service',

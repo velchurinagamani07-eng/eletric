@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
@@ -14,98 +15,164 @@ import {
   YAxis,
 } from 'recharts'
 import { Download } from 'lucide-react'
-import { incomeRows } from '../data/catalog'
 import { generateIncomeReportPDF } from '../utils/generatePDF'
+import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 
-const yearlyRows = [
-  { year: '2023', revenue: 420000, target: 450000 },
-  { year: '2024', revenue: 680000, target: 650000 },
-  { year: '2025', revenue: 910000, target: 850000 },
-  { year: '2026', revenue: 1180000, target: 1200000 },
-]
+const colors = ['#F59E0B', '#2563EB', '#16A34A', '#DC2626', '#64748B', '#7C3AED']
 
-const categoryRows = [
-  { name: 'Fans', value: 32, color: '#F59E0B' },
-  { name: 'Wiring', value: 28, color: '#3B82F6' },
-  { name: 'Sockets', value: 18, color: '#10B981' },
-  { name: 'MCB', value: 12, color: '#EF4444' },
-  { name: 'Other', value: 10, color: '#6B7280' },
-]
+const toDate = (value) => {
+  if (!value) return null
+  if (typeof value.toDate === 'function') return value.toDate()
+  const parsed = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
 
 export default function IncomeGraphs() {
+  const { items: bookings, loading, error } = useFirestoreCollection('bookings', [], 'createdAt')
+  const { items: workers } = useFirestoreCollection('workers', [], 'createdAt')
+
+  const paidBookings = useMemo(
+    () => bookings.filter((booking) => ['paid', 'success'].includes(booking.paymentStatus)),
+    [bookings],
+  )
+
+  const monthlyRows = useMemo(() => {
+    const now = new Date()
+    const rows = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1)
+      return {
+        key: `${date.getFullYear()}-${date.getMonth()}`,
+        month: new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(date),
+        revenue: 0,
+        bookings: 0,
+      }
+    })
+    paidBookings.forEach((booking) => {
+      const date = toDate(booking.createdAt) || (booking.date ? new Date(`${booking.date}T00:00:00`) : null)
+      if (!date) return
+      const row = rows.find((item) => item.key === `${date.getFullYear()}-${date.getMonth()}`)
+      if (!row) return
+      row.revenue += Number(booking.totalAmount ?? booking.amount ?? 0)
+      row.bookings += 1
+    })
+    return rows
+  }, [paidBookings])
+
+  const yearlyRows = useMemo(() => {
+    const byYear = paidBookings.reduce((acc, booking) => {
+      const date = toDate(booking.createdAt) || (booking.date ? new Date(`${booking.date}T00:00:00`) : null)
+      const year = date?.getFullYear?.()
+      if (!year) return acc
+      acc[year] = (acc[year] || 0) + Number(booking.totalAmount ?? booking.amount ?? 0)
+      return acc
+    }, {})
+    return Object.entries(byYear).map(([year, revenue]) => ({ year, revenue }))
+  }, [paidBookings])
+
+  const categoryRows = useMemo(() => {
+    const byCategory = paidBookings.reduce((acc, booking) => {
+      const category = booking.category || 'Other'
+      acc[category] = (acc[category] || 0) + Number(booking.totalAmount ?? booking.amount ?? 0)
+      return acc
+    }, {})
+    return Object.entries(byCategory).map(([name, value], index) => ({ name, value, color: colors[index % colors.length] }))
+  }, [paidBookings])
+
+  const workerRows = useMemo(
+    () =>
+      workers.map((worker) => {
+        const workerId = worker.uid || worker.id
+        return {
+          worker: worker.name || workerId,
+          jobs: bookings.filter((booking) => booking.workerUID === workerId && booking.status === 'completed').length,
+        }
+      }).filter((row) => row.jobs > 0),
+    [bookings, workers],
+  )
+
   return (
     <section className="grid gap-5">
       <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-bold text-gray-950 dark:text-white">Income & Analytics</h2>
-          <p className="mt-1 text-sm text-gray-500">Filter-ready reporting surface for revenue, categories and workers.</p>
+          <p className="mt-1 text-sm text-gray-500">Live reporting from paid bookings and completed jobs.</p>
+          {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}
         </div>
-        <button type="button" className="btn-primary" onClick={() => generateIncomeReportPDF(incomeRows)}>
+        <button type="button" className="btn-primary" onClick={() => generateIncomeReportPDF(monthlyRows)}>
           <Download size={17} /> Export PDF
         </button>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
-        <ChartCard title="Monthly income">
-          <ResponsiveContainer width="100%" height={290}>
-            <BarChart data={incomeRows}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="revenue" fill="#F59E0B" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      {loading ? (
+        <p className="card p-8 text-center text-sm font-semibold text-gray-500">Loading analytics...</p>
+      ) : (
+        <div className="grid gap-5 xl:grid-cols-2">
+          <ChartCard title="Monthly income">
+            <ResponsiveContainer width="100%" height={290}>
+              <BarChart data={monthlyRows}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="revenue" fill="#F59E0B" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
 
-        <ChartCard title="Yearly income target">
-          <ResponsiveContainer width="100%" height={290}>
-            <LineChart data={yearlyRows}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="year" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={3} />
-              <Line type="monotone" dataKey="target" stroke="#10B981" strokeDasharray="4 4" />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+          <ChartCard title="Yearly income">
+            <ResponsiveContainer width="100%" height={290}>
+              <LineChart data={yearlyRows}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
 
-        <ChartCard title="Income by service category">
-          <ResponsiveContainer width="100%" height={290}>
-            <PieChart>
-              <Pie data={categoryRows} dataKey="value" nameKey="name" outerRadius={95} label>
-                {categoryRows.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+          <ChartCard title="Income by service category">
+            {categoryRows.length ? (
+              <ResponsiveContainer width="100%" height={290}>
+                <PieChart>
+                  <Pie data={categoryRows} dataKey="value" nameKey="name" outerRadius={95} label>
+                    {categoryRows.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
 
-        <ChartCard title="Worker-wise earnings">
-          <ResponsiveContainer width="100%" height={290}>
-            <BarChart data={[
-              { worker: 'Suresh', earnings: 24000, jobs: 42 },
-              { worker: 'Imran', earnings: 21000, jobs: 35 },
-              { worker: 'Prakash', earnings: 18500, jobs: 31 },
-            ]}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="worker" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="earnings" fill="#3B82F6" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="jobs" fill="#10B981" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </div>
+          <ChartCard title="Worker completed jobs">
+            {workerRows.length ? (
+              <ResponsiveContainer width="100%" height={290}>
+                <BarChart data={workerRows}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="worker" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="jobs" fill="#16A34A" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
+        </div>
+      )}
     </section>
   )
+}
+
+function EmptyChart() {
+  return <p className="grid h-[290px] place-items-center text-sm font-semibold text-gray-400">No live data yet.</p>
 }
 
 function ChartCard({ title, children }) {
@@ -116,4 +183,3 @@ function ChartCard({ title, children }) {
     </div>
   )
 }
-

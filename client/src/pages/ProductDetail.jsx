@@ -60,8 +60,8 @@ export default function ProductDetail() {
   return (
     <>
       <Helmet>
-        <title>{product ? `${product.name} | Home Electric Products` : 'Product | Home Electric Services'}</title>
-        <meta name="description" content={product?.shortDescription || 'Electrical product details from Home Electric Services.'} />
+        <title>{product ? `${product.name} | DP Home Electric Products` : 'Product | DP Home Electric Services'}</title>
+        <meta name="description" content={product?.shortDescription || 'Electrical product details from DP Home Electric Services.'} />
       </Helmet>
 
       <main className="bg-[#FAFAFA] py-10 dark:bg-gray-950">

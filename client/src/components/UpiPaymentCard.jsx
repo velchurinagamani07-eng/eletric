@@ -17,10 +17,8 @@ const paymentApps = [
 
 export default function UpiPaymentCard({
   booking,
-  utrNumber,
   screenshotURL,
   submitting = false,
-  onUtrChange,
   onScreenshotUpload,
   onSubmit,
 }) {
@@ -64,7 +62,7 @@ export default function UpiPaymentCard({
           </p>
           <h2 className="mt-4 text-2xl font-extrabold sm:text-3xl">Pay securely with any UPI app</h2>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-            Complete the transfer manually, then upload the payment screenshot and UTR number for admin verification.
+            Complete the transfer manually, then upload the payment screenshot to instantly confirm your booking and generate the receipt.
           </p>
         </div>
         <div className="rounded-lg bg-white/10 px-5 py-4">
@@ -119,16 +117,6 @@ export default function UpiPaymentCard({
               onSubmit?.()
             }}
           >
-            <label>
-              <span className="mb-2 block text-sm font-black text-gray-800 dark:text-gray-100">Transaction ID / UTR Number</span>
-              <input
-                className="field"
-                value={utrNumber}
-                onChange={(event) => onUtrChange?.(event.target.value)}
-                placeholder="Enter UPI transaction reference"
-              />
-            </label>
-
             <div>
               <div className="mb-2 flex items-center gap-2 text-sm font-black text-gray-800 dark:text-gray-100">
                 <UploadCloud size={17} /> Payment Screenshot
@@ -144,7 +132,7 @@ export default function UpiPaymentCard({
             </div>
 
             <button type="submit" className="btn-primary w-full justify-center sm:w-fit" disabled={submitting}>
-              <CheckCircle2 size={17} /> {submitting ? 'Submitting...' : 'Submit for Verification'}
+              <CheckCircle2 size={17} /> {submitting ? 'Confirming...' : 'Complete Booking'}
             </button>
           </form>
         </section>
@@ -163,7 +151,7 @@ export default function UpiPaymentCard({
             </button>
           </div>
           <p className="mt-4 text-xs font-semibold leading-6 text-gray-500">
-            Keep the UTR number visible in your screenshot. Admin approval confirms the booking.
+            Upload a clear payment screenshot. Your booking is confirmed automatically after upload.
           </p>
         </aside>
       </div>

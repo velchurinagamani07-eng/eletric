@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Bell, FileImage, Loader2, Plus, Power, Trash2 } from 'lucide-react'
-import { workers as workerSeed } from '../data/catalog'
 import {
   deleteWorker,
   saveWorkerRecord,
@@ -17,7 +16,7 @@ const emptyForm = { name: '', email: '', mobile: '', specialization: '', passwor
 const defaultWorkerPhoto = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'
 
 export default function ManageWorkers() {
-  const { items: workers, setItems: setWorkers, loading, error } = useFirestoreCollection('workers', workerSeed)
+  const { items: workers, setItems: setWorkers, loading, error } = useFirestoreCollection('workers', [])
   const [form, setForm] = useState(emptyForm)
   const [profileFile, setProfileFile] = useState(null)
   const [profilePreview, setProfilePreview] = useState('')
@@ -58,7 +57,6 @@ export default function ManageWorkers() {
         ...publicWorkerFields,
         isActive: true,
         totalJobsCompleted: 0,
-        earnings: 0,
         rating: 0,
         joinedAt: new Date().toISOString().slice(0, 10),
       }
@@ -242,7 +240,7 @@ export default function ManageWorkers() {
                       <a
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
                         aria-label="Notify worker"
-                        href={`https://wa.me/91${worker.mobile}?text=${encodeURIComponent('Hello, please check your Home Electric Services job panel.')}`}
+                        href={`https://wa.me/91${worker.mobile}?text=${encodeURIComponent('Hello, please check your DP Home Electric Services job panel.')}`}
                         target="_blank"
                         rel="noreferrer"
                       >

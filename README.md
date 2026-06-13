@@ -1,6 +1,6 @@
-# Home Electric Services
+# DP Home Electric Services
 
-Production-oriented full-stack web app for Home Electric Services in Tuni, owned by M Dileep Kumar, for customer bookings, worker job handling, and admin platform management.
+Production-oriented full-stack web app for DP Home Electric Services in Tuni, owned by Manepalli Dilip Kumar, for customer bookings, worker job handling, and admin platform management.
 
 Built for:
 - `client/`: React + Vite + Tailwind + Framer Motion, deployable to Vercel.
@@ -27,7 +27,7 @@ Build credit: `WayzenTech 9398724704`.
 
 ## Key Features
 
-- User panel: booking flow, coupons, direct UPI QR payment, screenshot/UTR verification, receipts, PDF export, profile and booking history.
+- User panel: booking flow, coupons, direct UPI QR payment, screenshot confirmation, receipts, PDF export, profile and booking history.
 - Worker panel: assigned jobs, status updates, WebP image compression, ImgBB upload integration, history charts, notifications.
 - Admin panel: bookings, workers, services, coupons, banners, analytics, notifications, settings and AI service description endpoint.
 - SEO/PWA: Helmet metadata, sitemap, robots, structured data, lazy images, Vite PWA service worker.

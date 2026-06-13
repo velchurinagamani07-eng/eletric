@@ -5,7 +5,7 @@ export function buildUpiPaymentUri({
   amount,
   bookingId,
   customerName,
-  payeeName = 'Home Electric Services',
+  payeeName = 'DP Home Electric Services',
 }) {
   const params = new URLSearchParams({
     pa: UPI_ID,

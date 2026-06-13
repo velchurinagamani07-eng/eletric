@@ -17,7 +17,7 @@ const statusClasses = {
 export default function ManagePayments() {
   const { items: payments, setItems: setPayments, loading, error } = useFirestoreCollection('payments', [], 'createdAt')
   const { items: bookings } = useFirestoreCollection('bookings', [], 'createdAt')
-  const [status, setStatus] = useState('pending_verification')
+  const [status, setStatus] = useState('all')
   const [query, setQuery] = useState('')
   const [preview, setPreview] = useState(null)
   const [busyId, setBusyId] = useState('')
@@ -37,7 +37,7 @@ export default function ManagePayments() {
         const text = [
           payment.bookingId,
           payment.customerName,
-          payment.utrNumber,
+          payment.paymentId || payment.id,
           payment.booking?.mobile,
           payment.booking?.serviceName,
         ].join(' ').toLowerCase()
@@ -82,7 +82,6 @@ export default function ManagePayments() {
           paymentStatus: 'paid',
           paymentMethod: 'UPI',
           paymentId: payment.id,
-          utrNumber: payment.utrNumber,
           screenshotURL: payment.screenshotURL,
           paidAt: approvedAt,
           updatedAt: approvedAt,
@@ -139,12 +138,12 @@ export default function ManagePayments() {
   }
 
   const exportCsv = () => {
-    const headers = ['Booking ID', 'Customer', 'Amount', 'UTR', 'Status', 'Service']
+    const headers = ['Booking ID', 'Customer', 'Amount', 'Reference', 'Status', 'Service']
     const csvRows = rows.map((payment) => [
       payment.bookingId,
       payment.customerName,
       payment.amount,
-      payment.utrNumber,
+      payment.paymentId || payment.id,
       payment.paymentStatus,
       payment.booking?.serviceName || '',
     ])
@@ -162,19 +161,19 @@ export default function ManagePayments() {
     <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900">
       <div className="flex flex-col gap-3 border-b border-gray-100 p-4 dark:border-white/10 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h2 className="font-bold text-gray-950 dark:text-white">Payment Verifications</h2>
-          <p className="mt-1 text-sm text-gray-500">Review UPI screenshots and UTR numbers before confirming bookings.</p>
+          <h2 className="font-bold text-gray-950 dark:text-white">Payment Records</h2>
+          <p className="mt-1 text-sm text-gray-500">View UPI screenshots and payment references for booking records.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input className="field w-60 pl-9" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search UTR, booking, customer" />
+            <input className="field w-60 pl-9" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search reference, booking, customer" />
           </div>
           <select className="field w-48" value={status} onChange={(event) => setStatus(event.target.value)}>
-            <option value="pending_verification">Pending Verification</option>
-            <option value="paid">Paid</option>
-            <option value="rejected">Rejected</option>
             <option value="all">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="pending_verification">Legacy Pending</option>
+            <option value="rejected">Rejected</option>
           </select>
           <button type="button" className="btn-secondary" onClick={exportCsv}>
             <Download size={17} /> CSV
@@ -194,7 +193,7 @@ export default function ManagePayments() {
               <th className="px-4 py-3">Payment</th>
               <th>Booking</th>
               <th>Customer</th>
-              <th>UTR</th>
+              <th>Reference</th>
               <th>Screenshot</th>
               <th>Status</th>
               <th>Actions</th>
@@ -219,7 +218,7 @@ export default function ManagePayments() {
                   <p className="font-semibold text-gray-800 dark:text-gray-100">{payment.customerName || payment.booking?.customer || '-'}</p>
                   <p className="mt-1 max-w-xs text-xs text-gray-500">{fullAddress(payment.booking?.address)}</p>
                 </td>
-                <td className="font-mono font-bold text-gray-800 dark:text-gray-100">{payment.utrNumber}</td>
+                <td className="font-mono font-bold text-gray-800 dark:text-gray-100">{payment.paymentId || payment.id}</td>
                 <td>
                   {payment.screenshotURL ? (
                     <button type="button" className="btn-secondary px-3 py-2" onClick={() => setPreview(payment)}>
@@ -267,7 +266,7 @@ export default function ManagePayments() {
             <div className="flex items-center justify-between border-b border-gray-100 p-4 dark:border-white/10">
               <div>
                 <p className="font-black text-gray-950 dark:text-white">{preview.bookingId}</p>
-                <p className="text-sm text-gray-500">UTR: {preview.utrNumber}</p>
+                <p className="text-sm text-gray-500">Reference: {preview.paymentId || preview.id}</p>
               </div>
               <button type="button" className="btn-secondary" onClick={() => setPreview(null)}>Close</button>
             </div>

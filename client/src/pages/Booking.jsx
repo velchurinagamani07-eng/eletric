@@ -45,7 +45,6 @@ export default function Booking() {
   const [discount, setDiscount] = useState(0)
   const [paying, setPaying] = useState(false)
   const [paymentBooking, setPaymentBooking] = useState(null)
-  const [utrNumber, setUtrNumber] = useState('')
   const [paymentScreenshotURL, setPaymentScreenshotURL] = useState('')
   const [submittingPayment, setSubmittingPayment] = useState(false)
   const user = useAuthStore((state) => state.user)
@@ -62,6 +61,28 @@ export default function Booking() {
     Promise.resolve().then(() => setSelectedServiceId(selectedService.id))
   }, [selectedService?.id, selectedServiceId])
   const total = Math.max(selectedService.basePrice - discount, 0)
+
+  const createRewardCoupon = async (booking) => {
+    const bookingId = booking?.bookingId || booking?.id || Date.now()
+    const expiresAt = new Date()
+    expiresAt.setMonth(expiresAt.getMonth() + 3)
+    await setDoc(doc(db, 'coupons', `reward-${bookingId}-${Date.now()}`), {
+      code: `DP50${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+      type: 'flat',
+      value: 50,
+      minOrder: 199,
+      maxUses: 1,
+      usedCount: 0,
+      singleUse: true,
+      isActive: true,
+      assignedToUserId: user?.uid,
+      userId: user?.uid,
+      sourceBookingId: bookingId,
+      expiresAt: expiresAt.toISOString().slice(0, 10),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+  }
 
   const canContinue =
     step === 0
@@ -117,7 +138,6 @@ export default function Booking() {
       })
 
       setPaymentBooking(booking)
-      setUtrNumber('')
       setPaymentScreenshotURL('')
       toast.success('Booking saved. Complete the UPI payment and submit proof.')
     } catch (error) {
@@ -129,11 +149,6 @@ export default function Booking() {
 
   const submitPaymentProof = async () => {
     if (!paymentBooking) return
-    const normalizedUtr = utrNumber.trim()
-    if (!/^\d{10,22}$/.test(normalizedUtr)) {
-      toast.error('Enter a valid 10 to 22 digit UTR number.')
-      return
-    }
     if (!paymentScreenshotURL) {
       toast.error('Upload the payment screenshot.')
       return
@@ -148,10 +163,9 @@ export default function Booking() {
         userId: user?.uid,
         amount: Number(paymentBooking.totalAmount ?? paymentBooking.amount ?? 0),
         customerName: paymentBooking.customer || user?.name || 'Customer',
-        utrNumber: normalizedUtr,
         screenshotURL: paymentScreenshotURL,
         paymentMethod: PAYMENT_METHOD,
-        paymentStatus: 'pending_verification',
+        paymentStatus: 'paid',
         upiId: UPI_ID,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -160,9 +174,9 @@ export default function Booking() {
       await addDoc(collection(db, 'notifications'), {
         userId: 'admin',
         role: 'admin',
-        title: 'UPI payment submitted',
-        body: `${paymentPayload.customerName} submitted UPI proof for booking ${bookingId}.`,
-        type: 'payment_pending_verification',
+        title: 'UPI payment received',
+        body: `${paymentPayload.customerName} confirmed UPI payment for booking ${bookingId}.`,
+        type: 'payment_paid',
         bookingId,
         isRead: false,
         createdAt: serverTimestamp(),
@@ -170,21 +184,22 @@ export default function Booking() {
       await updateDoc(doc(db, 'bookings', bookingId), {
         paymentId: paymentRef.id,
         paymentMethod: PAYMENT_METHOD,
-        paymentStatus: 'pending_verification',
-        utrNumber: normalizedUtr,
+        paymentStatus: 'paid',
+        status: 'confirmed',
         screenshotURL: paymentScreenshotURL,
         paymentSubmittedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
+      await createRewardCoupon(paymentBooking).catch(() => {})
       setPaymentBooking({
         ...paymentBooking,
         paymentId: paymentRef.id,
         paymentMethod: PAYMENT_METHOD,
-        paymentStatus: 'pending_verification',
-        utrNumber: normalizedUtr,
+        paymentStatus: 'paid',
+        status: 'confirmed',
         screenshotURL: paymentScreenshotURL,
       })
-      toast.success('Payment proof submitted for admin verification.')
+      toast.success('Payment confirmed. Your receipt is ready.')
     } catch (error) {
       toast.error(error.message || 'Unable to submit payment proof.')
     } finally {
@@ -195,7 +210,7 @@ export default function Booking() {
   return (
     <>
       <Helmet>
-        <title>Book Electrical Service | Home Electric Services</title>
+        <title>Book Electrical Service | DP Home Electric Services</title>
         <meta name="description" content="Book a home electrical service with address, date, time slot, coupon and direct UPI payment." />
       </Helmet>
 
@@ -377,13 +392,13 @@ export default function Booking() {
                   <h2 className="flex items-center gap-2 text-2xl font-extrabold text-gray-950 dark:text-white">
                     <CreditCard className="text-emerald-600" /> Payment
                   </h2>
-                  {paymentBooking?.paymentStatus === 'pending_verification' ? (
+                  {paymentBooking?.paymentStatus === 'paid' ? (
                     <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/10">
                       <p className="flex items-center gap-2 font-black text-emerald-800 dark:text-emerald-100">
-                        <CheckCircle2 size={19} /> Payment proof submitted
+                        <CheckCircle2 size={19} /> Booking confirmed
                       </p>
                       <p className="mt-2 text-sm leading-7 text-emerald-900/80 dark:text-emerald-100/80">
-                        Your booking {paymentBooking.bookingId} is waiting for admin verification. Once approved, the booking will be confirmed and your receipt will be available in the dashboard.
+                        Your booking {paymentBooking.bookingId} is confirmed. Your receipt is available in the dashboard, and a Rs. 50 coupon has been added to your account.
                       </p>
                       <Link to="/dashboard/bookings" className="btn-primary mt-4">
                         Go to Dashboard
@@ -393,10 +408,8 @@ export default function Booking() {
                     <div className="mt-5">
                       <UpiPaymentCard
                         booking={paymentBooking}
-                        utrNumber={utrNumber}
                         screenshotURL={paymentScreenshotURL}
                         submitting={submittingPayment}
-                        onUtrChange={setUtrNumber}
                         onScreenshotUpload={setPaymentScreenshotURL}
                         onSubmit={submitPaymentProof}
                       />
@@ -404,7 +417,7 @@ export default function Booking() {
                   ) : (
                     <>
                       <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
-                        Your booking will be saved first. Then scan the UPI QR code, pay manually from any UPI app, and submit your screenshot plus UTR number for admin verification.
+                        Your booking will be saved first. Then scan the UPI QR code, pay manually from any UPI app, and upload your payment screenshot. The receipt is generated immediately after upload.
                       </p>
                       <button type="button" className="btn-primary mt-6" disabled={paying} onClick={createBookingForUpi}>
                         {paying ? 'Saving booking...' : `Create Booking & Pay ${currency(total)}`}

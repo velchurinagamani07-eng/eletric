@@ -37,28 +37,23 @@ const ManagePayments = lazy(() => import('./admin/ManagePayments'))
 const ManageCustomers = lazy(() => import('./admin/ManageCustomers'))
 const ManageWorkers = lazy(() => import('./admin/ManageWorkers'))
 const ManageServices = lazy(() => import('./admin/ManageServices'))
-const ManageCategories = lazy(() => import('./admin/ManageCategories'))
 const ManageCoupons = lazy(() => import('./admin/ManageCoupons'))
 const ManageBanners = lazy(() => import('./admin/ManageBanners'))
 const ManageProducts = lazy(() => import('./admin/ManageProducts'))
-const ManageProductCategories = lazy(() => import('./admin/ManageProductCategories'))
-const ManageReviews = lazy(() => import('./admin/ManageReviews'))
-const ManageSEO = lazy(() => import('./admin/ManageSEO'))
-const AITools = lazy(() => import('./admin/AITools'))
 const IncomeGraphs = lazy(() => import('./admin/IncomeGraphs'))
 const WorkerGraphs = lazy(() => import('./admin/WorkerGraphs'))
 const AdminNotifications = lazy(() => import('./admin/AdminNotifications'))
 const AdminSettings = lazy(() => import('./admin/AdminSettings'))
-const ManageRoles = lazy(() => import('./admin/ManageRoles'))
 const WorkerLayout = lazy(() => import('./worker/WorkerLayout'))
 const WorkerHistory = lazy(() => import('./worker/WorkerHistory'))
 const WorkerNotifications = lazy(() => import('./worker/WorkerNotifications'))
+const WorkerProfile = lazy(() => import('./worker/WorkerProfile'))
 
 export default function App() {
   const { pathname } = useLocation()
   const initAuthListener = useAuthStore((state) => state.initAuthListener)
-  const isPanelRoute = ['/admin', '/worker', '/dashboard', '/customer'].some((path) => pathname.startsWith(path))
-  const showPublicChrome = !isPanelRoute
+  const isAdminOrWorker = ['/admin', '/worker'].some((path) => pathname.startsWith(path))
+  const showPublicChrome = !isAdminOrWorker
   const [announcementVisible, setAnnouncementVisible] = useState(
     () => sessionStorage.getItem('hes-announcement-hidden') !== 'true',
   )
@@ -84,7 +79,7 @@ export default function App() {
         )}
         {showPublicChrome && <WebNavbar />}
         {showPublicChrome && <MobileNavbar />}
-        <div className={showPublicChrome ? `${showAnnouncement ? 'pt-[104px]' : 'pt-16'} pb-24 transition-[padding] duration-300 lg:pb-0` : ''}>
+        <div className={showPublicChrome ? `${showAnnouncement ? 'pt-9 lg:pt-[104px]' : 'pt-0 lg:pt-16'} pb-24 transition-[padding] duration-300 lg:pb-0` : ''}>
           <Suspense fallback={<ElectricLoader />}>
             <Routes>
             <Route path="/" element={<Home />} />
@@ -214,19 +209,13 @@ export default function App() {
             <Route path="customers" element={<ManageCustomers />} />
             <Route path="workers" element={<ManageWorkers />} />
             <Route path="services" element={<ManageServices />} />
-            <Route path="categories" element={<ManageCategories />} />
             <Route path="coupons" element={<ManageCoupons />} />
             <Route path="products" element={<ManageProducts />} />
-            <Route path="product-categories" element={<ManageProductCategories />} />
-            <Route path="reviews" element={<ManageReviews />} />
-            <Route path="seo" element={<ManageSEO />} />
-            <Route path="ai-tools" element={<AITools />} />
             <Route path="banners" element={<ManageBanners />} />
             <Route path="splash" element={<ManageBanners initialSection="splash" />} />
             <Route path="income" element={<IncomeGraphs />} />
             <Route path="worker-graphs" element={<WorkerGraphs />} />
             <Route path="notifications" element={<AdminNotifications />} />
-            <Route path="roles" element={<ManageRoles />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="settings/hero" element={<AdminSettings initialSection="hero" />} />
           </Route>
@@ -243,8 +232,8 @@ export default function App() {
             <Route path="dashboard" element={<WorkerDashboard />} />
             <Route path="jobs" element={<WorkerDashboard />} />
             <Route path="history" element={<WorkerHistory />} />
-            <Route path="earnings" element={<WorkerHistory />} />
             <Route path="notifications" element={<WorkerNotifications />} />
+            <Route path="profile" element={<WorkerProfile />} />
           </Route>
 
           <Route path="/login" element={<Login />} />

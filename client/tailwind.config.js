@@ -5,24 +5,28 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['DM Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        body: ['DM Sans', 'Satoshi', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'Clash Display', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        heading: ['Space Grotesk', 'Syne', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
+        primary: {
+          DEFAULT: '#F59E0B',
+          dark: '#D97706',
+          light: '#FEF3C7',
+        },
         navy: {
+          DEFAULT: '#0A1628',
+          mid: '#1E3A5F',
+          card: '#132038',
           50: '#F0F4FF',
           100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1',
           600: '#1E3A5F',
-          700: '#1a3355',
-          800: '#0F172A',
-          900: '#0B1120',
+          700: '#132038',
+          800: '#0A1628',
+          900: '#07101E',
         },
         amber: {
           50: '#FFFBEB',
@@ -37,9 +41,9 @@ export default {
           900: '#78350F',
         },
         surface: {
-          DEFAULT: '#FAFAFA',
+          DEFAULT: '#F7F8FA',
           card: '#FFFFFF',
-          border: '#E2E8F0',
+          border: '#E8ECF0',
           muted: '#F1F5F9',
         },
         brand: {
@@ -54,7 +58,16 @@ export default {
         danger: '#EF4444',
         info: '#3B82F6',
       },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.25rem',
+        '4xl': '1.5rem',
+      },
       boxShadow: {
+        card: '0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
+        hover: '0 8px 32px rgba(0,0,0,0.10)',
+        amber: '0 4px 20px rgba(245,158,11,0.28)',
+        nav: '0 -2px 20px rgba(0,0,0,0.06)',
         glow: '0 18px 70px rgba(245, 158, 11, 0.18)',
       },
     },

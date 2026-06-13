@@ -1,6 +1,6 @@
 import { Bolt } from 'lucide-react'
 
-export default function ElectricLoader({ label = 'Home Electric Services', compact = false }) {
+export default function ElectricLoader({ label = 'DP Home Electric Services', compact = false }) {
   return (
     <div className={`flex flex-col items-center justify-center bg-[#0F2744] text-white ${compact ? 'min-h-[240px] rounded-xl' : 'min-h-[55vh]'}`}>
       <div className="relative flex h-24 w-24 items-center justify-center">

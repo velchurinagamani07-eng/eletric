@@ -43,8 +43,8 @@ const roleMenu = {
   superadmin: [['Admin Panel', '/admin/dashboard']],
   worker: [
     ['My Jobs', '/worker/jobs'],
-    ['Earnings', '/worker/earnings'],
-    ['Profile', '/worker/dashboard'],
+    ['Job History', '/worker/history'],
+    ['Profile', '/worker/profile'],
   ],
 }
 

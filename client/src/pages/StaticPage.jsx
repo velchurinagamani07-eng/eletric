@@ -28,7 +28,7 @@ const pageContent = {
   privacy: {
     title: 'Privacy Policy',
     heading: 'Privacy Policy',
-    description: 'How Home Electric Services handles customer booking and contact information.',
+    description: 'How DP Home Electric Services handles customer booking and contact information.',
     items: [
       ['Data we collect', 'Name, phone, address, booking details, payment references, and uploaded service photos.'],
       ['How we use data', 'To schedule services, assign workers, issue receipts, provide warranty, and support customers.'],
@@ -77,7 +77,7 @@ export default function StaticPage({ type }) {
   return (
     <>
       <Helmet>
-        <title>{page.title} | Home Electric Services | Tuni, Andhra Pradesh</title>
+        <title>{page.title} | DP Home Electric Services | Tuni, Andhra Pradesh</title>
         <meta name="description" content={page.description.slice(0, 158)} />
         {schema && <script type="application/ld+json">{JSON.stringify(schema)}</script>}
       </Helmet>

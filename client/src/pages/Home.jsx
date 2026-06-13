@@ -1,68 +1,113 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-import {
-  ArrowRight,
-  CalendarCheck,
-  CheckCircle2,
-  ClipboardCheck,
-  Headphones,
-  ShieldCheck,
-  Star,
-  UserCheck,
-  Wrench,
-  Zap,
-} from 'lucide-react'
-import FestivalBanner from '../components/Banners/FestivalBanner'
-import PromoBanner from '../components/Banners/PromoBanner'
-import HeroSlider from '../components/HeroSlider'
-import ServiceCard from '../components/ServiceCard'
-import { settings, testimonials } from '../data/catalog'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { ArrowRight, CheckCircle2, Clock, Minus, Plus, ShoppingCart, Star, Zap } from 'lucide-react'
+import { db, isFirebaseConfigured } from '../firebase/config'
+import { settings } from '../data/catalog'
 import { useServiceCategories, useServices } from '../hooks/useServices'
+import { productPrice, useProducts } from '../hooks/useProducts'
+import { useCartStore } from '../store/cartStore'
+import { currency } from '../utils/format'
+import { getDefaultImage, getServiceImage, handleImageFallback } from '../utils/defaultImages'
 
-const steps = [
+const fallbackSlides = [
   {
-    title: 'Book',
-    text: 'Choose service, address, date, time slot and coupon in a guided flow.',
-    icon: CalendarCheck,
+    id: 'starter',
+    badge: 'Super Saver',
+    badgeColor: 'green',
+    headline: 'Affordable repairs starting at just Rs. 149',
+    imageURL: '/default-images/services/electric.png',
+    bgColor: '#FEF3C7',
+    ctaText: 'Book Now',
+    ctaLink: '/services',
+    isActive: true,
+    order: 0,
   },
   {
-    title: 'Assign Expert',
-    text: 'Admin assigns a verified electrician matched to your service category.',
-    icon: UserCheck,
-  },
-  {
-    title: 'Service Done',
-    text: 'Track completion photo, receipt, warranty and follow-up coupon.',
-    icon: Wrench,
+    id: 'warranty',
+    badge: '3 Month Warranty',
+    badgeColor: 'amber',
+    headline: 'Verified electricians for every home visit',
+    imageURL: '/default-images/services/wiring.png',
+    bgColor: '#EFF6FF',
+    ctaText: 'View Services',
+    ctaLink: '/services',
+    isActive: true,
+    order: 1,
   },
 ]
 
-const features = [
-  ['Tuni local team', 'Fast support for Tuni and nearby areas.', Zap],
-  ['Verified workers', 'Admin-created worker accounts with service specialization.', UserCheck],
-  ['Warranty support', '3-month warranty certificate included in receipts.', ShieldCheck],
-  ['Transparent prices', 'Starting prices and itemized payment receipts.', ClipboardCheck],
-  ['Real-time updates', 'Booking, payment and job status notifications.', CheckCircle2],
-  ['Human help', 'WhatsApp, call button and assistant chat are always reachable.', Headphones],
-]
+const badgeTone = {
+  green: 'bg-green-600 text-white',
+  amber: 'bg-primary text-white',
+  blue: 'bg-blue-600 text-white',
+}
 
 export default function Home() {
-  const { services: liveServices } = useServices({ onlyActive: true })
-  const { categories: liveCategories } = useServiceCategories({ includeAll: false })
-  const featuredServices = liveServices.slice(0, 8)
+  const [slides, setSlides] = useState(fallbackSlides)
+  const [activeSlide, setActiveSlide] = useState(0)
+  const categoryRefs = useRef({})
+  const { services } = useServices({ onlyActive: true })
+  const { categories } = useServiceCategories({ includeAll: false })
+  const { products } = useProducts({ onlyActive: true })
+  const cartItems = useCartStore((state) => state.items)
+  const addItem = useCartStore((state) => state.addItem)
+  const decrementItem = useCartStore((state) => state.decrementItem)
+
+  useEffect(() => {
+    if (!db || !isFirebaseConfigured) return undefined
+    const unsubscribe = onSnapshot(
+      doc(db, 'settings', 'promoSlides'),
+      (snapshot) => {
+        if (!snapshot.exists()) return
+        const data = snapshot.data()
+        const liveSlides = (data.promoSlides || data.slides || [])
+          .filter((slide) => slide.isActive !== false)
+          .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+        if (liveSlides.length) setSlides(liveSlides)
+      },
+      () => {},
+    )
+    return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    if (slides.length < 2) return undefined
+    const timer = window.setInterval(() => {
+      setActiveSlide((index) => (index + 1) % slides.length)
+    }, 2000)
+    return () => window.clearInterval(timer)
+  }, [slides.length])
+
+  const servicesByCategory = useMemo(
+    () =>
+      categories.map((category) => ({
+        ...category,
+        services: services.filter((service) => service.category === category.id),
+      })).filter((category) => category.services.length),
+    [categories, services],
+  )
+
+  const cartTotal = cartItems.reduce((sum, item) => sum + Number(item.basePrice || item.price || 0) * Number(item.quantity || 1), 0)
+  const recommendedProducts = products.slice(0, 3)
+
+  const scrollToCategory = (categoryId) => {
+    categoryRefs.current[categoryId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
     <>
       <Helmet>
-        <title>Home Electric Services - Expert Electricians in Tuni | M Dileep Kumar</title>
+        <title>DP Home Electric Services - Expert Electricians in Tuni</title>
         <meta
           name="description"
-          content="Professional home electrical services in Tuni. Fan installation, house wiring, AC fitting, inverter repair. 3-month warranty. Call +91 9493745479."
+          content="Book verified electricians in Tuni for fan installation, wiring, switches, MCB, lighting, CCTV, AC wiring and repairs with transparent pricing."
         />
         <meta
           name="keywords"
-          content="electrician Tuni, home electric service, fan installation Tuni, house wiring, electrical repair"
+          content="electrician Tuni, DP Home Electric Services, fan installation Tuni, house wiring, electrical repair"
         />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -82,177 +127,353 @@ export default function Home() {
         </script>
       </Helmet>
 
-      <PromoBanner />
-      <HeroSlider />
-      <FestivalBanner />
-
-      <section className="border-y border-slate-100 bg-white py-4 dark:border-white/10 dark:bg-gray-950">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 text-center sm:px-6 lg:grid-cols-4">
-          {[
-            ['500+ Happy Customers', CheckCircle2],
-            ['3 Month Warranty', ShieldCheck],
-            ['Same-Day Service', CalendarCheck],
-            ['Verified Workers', UserCheck],
-          ].map(([label, Icon]) => (
-            <div key={label} className="flex items-center justify-center gap-2 border-slate-100 py-2 text-sm font-black text-navy-900 dark:text-white lg:border-r last:lg:border-r-0">
-              <Icon className="text-amber-500" size={18} /> {label}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-white py-14 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="eyebrow">What we do</p>
-          <h2 className="section-title">Our Services</h2>
-          <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {liveCategories.slice(0, 12).map((category) => (
-              <Link
-                key={category.id}
-                to={`/services?category=${category.id}`}
-                className="rounded-lg border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg dark:border-white/10 dark:bg-gray-900"
-              >
-                {category.imageURL ? (
-                  <img src={category.imageURL} alt="" className="aspect-square w-full rounded-lg object-cover" loading="lazy" />
-                ) : (
-                  <span className="grid aspect-square w-full place-items-center rounded-lg bg-amber-100 text-2xl font-black text-amber-700">
-                    {category.name?.slice(0, 1) || 'E'}
+      <main className="bg-surface pb-6 lg:pb-0">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[360px_1fr] lg:py-8">
+          <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
+            <div className="space-y-5 pr-2">
+              <section>
+                <h1 className="font-display text-3xl font-extrabold text-navy">{settings.companyName}</h1>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-600">
+                  <span className="inline-flex items-center gap-1">
+                    <Star size={16} fill="currentColor" className="text-primary" /> 4.80 (2.5K bookings)
                   </span>
-                )}
-                <p className="mt-3 text-sm font-black text-navy-900 dark:text-white">{category.name}</p>
-                <p className="mt-1 text-xs font-semibold text-slate-500">Book now</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+                  <span className="inline-flex items-center gap-1">
+                    <Zap size={16} className="text-primary" /> Instant
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock size={16} className="text-primary" /> In ~30 mins
+                  </span>
+                </div>
+              </section>
 
-      <section className="bg-gray-50 py-14 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Services</p>
-              <h2 className="mt-2 text-3xl font-extrabold text-navy-900 dark:text-white">
-                Book trusted electrical work
-              </h2>
-            </div>
-            <Link to="/services" className="btn-secondary">
-              View All <ArrowRight size={17} />
-            </Link>
-          </div>
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {liveCategories.slice(0, 7).map((category) => (
-              <span
-                key={category.id}
-                className="shrink-0 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 dark:border-white/10 dark:bg-gray-900 dark:text-gray-200"
-              >
-                {category.name}
-              </span>
-            ))}
-          </div>
-          <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredServices.map((service) => (
-              <ServiceCard service={service} key={service.id} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-14 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-amber-600">How it works</p>
-              <h2 className="mt-2 text-3xl font-extrabold text-navy-900 dark:text-white">
-                From booking to warranty, every step is trackable.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-300">
-                Customers, workers and admins each get the right panel, so assignments, payments, work photos,
-                notifications, coupons and receipts stay organized.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {steps.map((step, index) => {
-                const Icon = step.icon
-                return (
-                  <motion.div
-                    key={step.title}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.08 }}
-                    className="rounded-xl border border-gray-200 bg-gray-50 p-5 shadow-sm dark:border-white/10 dark:bg-gray-900"
-                  >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-                      <Icon size={22} />
-                    </span>
-                    <h3 className="mt-4 font-bold text-navy-900 dark:text-white">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-gray-500">{step.text}</p>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gray-50 py-14 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Why choose us</p>
-          <h2 className="mt-2 text-3xl font-extrabold text-navy-900 dark:text-white">Built for reliable home visits</h2>
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(([title, text, Icon]) => (
-              <article key={title} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-lg dark:border-white/10 dark:bg-gray-900">
-                <Icon className="text-amber-600" size={22} />
-                <h3 className="mt-4 font-bold text-navy-900 dark:text-white">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-500">{text}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="overflow-hidden bg-white py-14 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Testimonials</p>
-          <h2 className="mt-2 text-3xl font-extrabold text-navy-900 dark:text-white">Customers trust the follow-through</h2>
-          <div className="mt-7 flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-            {testimonials.map((item) => (
-              <article
-                key={item.id}
-                className="w-[310px] shrink-0 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900"
-              >
-                <div className="flex gap-1 text-amber-500">
-                  {Array.from({ length: item.rating }).map((_, index) => (
-                    <Star key={`${item.id}-star-${index}`} size={16} fill="currentColor" />
+              <section className="card p-4">
+                <h2 className="font-display text-lg font-extrabold text-navy">Select a service</h2>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {categories.slice(0, 10).map((category) => (
+                    <button
+                      type="button"
+                      key={category.id}
+                      onClick={() => scrollToCategory(category.id)}
+                      className="rounded-2xl border border-surface-border bg-white p-3 text-left shadow-sm transition hover:border-primary hover:bg-primary-light"
+                    >
+                      <img
+                        src={category.imageURL || category.iconURL || getDefaultImage(category.id)}
+                        alt=""
+                        width="72"
+                        height="72"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
+                        className="h-16 w-full rounded-xl object-cover"
+                      />
+                      <p className="mt-2 line-clamp-2 text-sm font-bold text-navy">{category.name}</p>
+                    </button>
                   ))}
                 </div>
-                <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-300">"{item.text}"</p>
-                <div className="mt-5 border-t border-gray-100 pt-4 text-sm dark:border-white/10">
-                  <p className="font-bold text-navy-900 dark:text-white">{item.name}</p>
-                  <p className="text-gray-500">
-                    {item.service} | {item.date}
-                  </p>
-                </div>
-              </article>
+              </section>
+
+              <CartSummary items={cartItems} total={cartTotal} />
+            </div>
+          </aside>
+
+          <section className="min-w-0">
+            <PromoSlider slides={slides} activeSlide={activeSlide} setActiveSlide={setActiveSlide} />
+
+            <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-navy sm:grid-cols-4 lg:hidden">
+              {['3 Month Warranty', 'Same-Day Service', 'Verified Workers', 'Transparent Price'].map((label) => (
+                <span key={label} className="rounded-2xl border border-surface-border bg-white px-3 py-2 shadow-sm">
+                  {label}
+                </span>
+              ))}
+            </div>
+
+            <section className="mt-5 grid grid-cols-4 gap-3 lg:hidden">
+              {categories.slice(0, 12).map((category) => (
+                <button
+                  type="button"
+                  key={category.id}
+                  onClick={() => scrollToCategory(category.id)}
+                  className="rounded-2xl border border-surface-border bg-white p-2 text-center shadow-sm"
+                >
+                  <img
+                    src={category.imageURL || category.iconURL || getDefaultImage(category.id)}
+                    alt=""
+                    width="64"
+                    height="64"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
+                    className="mx-auto h-12 w-12 rounded-xl object-cover"
+                  />
+                  <p className="mt-1 line-clamp-2 text-[11px] font-bold text-navy">{category.name}</p>
+                </button>
+              ))}
+            </section>
+
+            <div className="mt-6 grid gap-7">
+              {servicesByCategory.map((category) => (
+                <section
+                  key={category.id}
+                  ref={(node) => {
+                    categoryRefs.current[category.id] = node
+                  }}
+                  className="scroll-mt-24"
+                >
+                  <div className="mb-4 flex items-end justify-between gap-3">
+                    <div>
+                      <h2 className="font-display text-2xl font-extrabold text-navy">{category.name}</h2>
+                      <p className="mt-1 text-sm text-gray-500">Doorstep service by verified electricians</p>
+                    </div>
+                    <Link to={`/services?category=${category.id}`} className="hidden items-center gap-1 text-sm font-bold text-primary sm:inline-flex">
+                      See all <ArrowRight size={15} />
+                    </Link>
+                  </div>
+                  <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                    {category.services.map((service) => (
+                      <UrbanServiceCard
+                        key={service.id}
+                        service={service}
+                        quantity={cartItems.find((item) => item.id === service.id)?.quantity || 0}
+                        onAdd={() => addItem(service)}
+                        onRemove={() => decrementItem(service.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              {recommendedProducts.length > 0 && (
+                <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
+                  <h2 className="font-display text-lg font-extrabold text-navy">
+                    Based on Fan Installation, customers also buy:
+                  </h2>
+                  <div className="mt-4 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                    {recommendedProducts.map((product) => (
+                      <button
+                        type="button"
+                        key={product.id}
+                        onClick={() => addItem({
+                          ...product,
+                          itemType: 'product',
+                          basePrice: productPrice(product),
+                          shortDescription: product.shortDescription || product.brand,
+                        })}
+                        className="shrink-0 rounded-2xl border border-amber-200 bg-white px-4 py-3 text-left text-sm font-bold text-navy shadow-sm"
+                      >
+                        {product.name} <span className="text-primary">{currency(productPrice(product))}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {products.length > 0 && (
+                <section>
+                  <div className="mb-4 flex items-end justify-between">
+                    <div>
+                      <p className="eyebrow">Products</p>
+                      <h2 className="section-title mt-2">Our Products</h2>
+                    </div>
+                    <Link to="/products" className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+                      See all <ArrowRight size={15} />
+                    </Link>
+                  </div>
+                  <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                    {products.slice(0, 10).map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onAdd={() => addItem({
+                          ...product,
+                          itemType: 'product',
+                          basePrice: productPrice(product),
+                          shortDescription: product.shortDescription || product.brand,
+                        })}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          </section>
+        </div>
+      </main>
+    </>
+  )
+}
+
+function PromoSlider({ slides, activeSlide, setActiveSlide }) {
+  const slide = slides[activeSlide % slides.length] || fallbackSlides[0]
+  return (
+    <section className="relative overflow-hidden rounded-3xl border border-surface-border bg-white shadow-card">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={slide.id || activeSlide}
+          className="grid min-h-[260px] lg:grid-cols-[0.92fr_1.08fr]"
+          initial={{ opacity: 0, x: 18 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -18 }}
+          transition={{ duration: 0.35 }}
+        >
+          <div className="flex flex-col justify-center p-6 sm:p-8" style={{ backgroundColor: slide.bgColor || '#FEF3C7' }}>
+            <span className={`w-fit rounded-full px-3 py-1 text-xs font-extrabold ${badgeTone[slide.badgeColor] || badgeTone.amber}`}>
+              {slide.badge || 'Super Saver'}
+            </span>
+            <h2 className="mt-4 max-w-md font-display text-3xl font-extrabold leading-tight text-navy sm:text-4xl">
+              {slide.headline || 'Affordable repairs starting at just Rs. 149'}
+            </h2>
+            <Link to={slide.ctaLink || '/services'} className="btn-primary mt-6 w-fit">
+              {slide.ctaText || 'Book Now'} <ArrowRight size={17} />
+            </Link>
+          </div>
+          <div className="min-h-[220px] bg-gray-100">
+            <img
+              src={slide.imageURL || fallbackSlides[0].imageURL}
+              alt={slide.headline || 'Electrical service'}
+              width="720"
+              height="420"
+              loading={activeSlide === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              onError={(event) => handleImageFallback(event)}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </motion.div>
+      </AnimatePresence>
+      {slides.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+          {slides.map((item, index) => (
+            <button
+              key={item.id || index}
+              type="button"
+              aria-label={`Show slide ${index + 1}`}
+              onClick={() => setActiveSlide(index)}
+              className={`h-2 rounded-full transition-all ${index === activeSlide ? 'w-7 bg-primary' : 'w-2 bg-white/80'}`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
+  const hasDiscount = Number(service.salePrice || 0) > 0 && Number(service.salePrice) < Number(service.basePrice)
+  const price = hasDiscount ? Number(service.salePrice) : Number(service.basePrice)
+  return (
+    <article className="w-[230px] shrink-0 overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
+      <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-[4/3] overflow-hidden bg-gray-100">
+        <img
+          src={getServiceImage(service)}
+          alt={service.name}
+          width="230"
+          height="173"
+          loading="lazy"
+          decoding="async"
+          onError={(event) => handleImageFallback(event, getDefaultImage(service.category))}
+          className="h-full w-full object-cover transition duration-300 hover:scale-105"
+        />
+        {hasDiscount && (
+          <span className="absolute left-3 top-3 rounded-full bg-green-600 px-2 py-1 text-[10px] font-black text-white">
+            Offer
+          </span>
+        )}
+      </Link>
+      <div className="p-4">
+        <h3 className="truncate text-sm font-bold text-navy">{service.name}</h3>
+        <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-gray-500">
+          <Star size={12} fill="currentColor" className="text-primary" /> 4.8 <span>|</span> {service.duration}
+        </p>
+        <p className="mt-2 text-sm font-extrabold text-navy">
+          {currency(price)}
+          {hasDiscount && <span className="ml-2 text-xs font-semibold text-gray-400 line-through">{currency(service.basePrice)}</span>}
+        </p>
+        <ul className="mt-2 space-y-1">
+          {(service.includes || []).slice(0, 2).map((item) => (
+            <li key={item} className="flex items-start gap-1 text-xs text-gray-500">
+              <CheckCircle2 className="mt-0.5 shrink-0 text-green-600" size={12} /> {item}
+            </li>
+          ))}
+        </ul>
+        {quantity > 0 ? (
+          <div className="mt-4 grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-2xl border border-primary bg-primary-light text-sm font-extrabold text-navy">
+            <button type="button" onClick={onRemove} className="grid h-10 place-items-center" aria-label={`Remove ${service.name}`}>
+              <Minus size={15} />
+            </button>
+            <span className="grid place-items-center">{quantity}</span>
+            <button type="button" onClick={onAdd} className="grid h-10 place-items-center" aria-label={`Add ${service.name}`}>
+              <Plus size={15} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="btn-secondary mt-4 h-10 w-full px-4 py-2" onClick={onAdd}>
+            Add
+          </button>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function ProductCard({ product, onAdd }) {
+  const price = productPrice(product)
+  return (
+    <article className="w-[210px] shrink-0 overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
+      <Link to={`/products/${product.slug || product.id}`} className="block aspect-square bg-gray-100">
+        <img
+          src={product.imageURL || product.images?.[0] || '/default-images/services/electric.png'}
+          alt={product.name}
+          width="210"
+          height="210"
+          loading="lazy"
+          decoding="async"
+          onError={(event) => handleImageFallback(event)}
+          className="h-full w-full object-cover"
+        />
+      </Link>
+      <div className="p-4">
+        <h3 className="line-clamp-2 text-sm font-bold text-navy">{product.name}</h3>
+        <p className="mt-1 text-xs text-gray-500">{product.brand || product.warranty || 'Electrical product'}</p>
+        <p className="mt-2 font-display text-lg font-extrabold text-navy">{currency(price)}</p>
+        <button type="button" className="btn-secondary mt-3 h-10 w-full px-4 py-2" onClick={onAdd}>
+          Add
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function CartSummary({ items, total }) {
+  return (
+    <section className="card p-4">
+      <div className="flex items-center gap-3">
+        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-light text-primary">
+          <ShoppingCart size={20} />
+        </span>
+        <div>
+          <h2 className="font-display text-lg font-extrabold text-navy">Cart</h2>
+          <p className="text-xs font-semibold text-gray-500">{items.length ? `${items.length} selected item(s)` : 'No items in your cart'}</p>
+        </div>
+      </div>
+      {items.length > 0 && (
+        <>
+          <div className="mt-4 max-h-44 space-y-2 overflow-y-auto pr-1">
+            {items.map((item) => (
+              <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2 text-sm">
+                <span className="line-clamp-1 font-semibold text-navy">{item.name}</span>
+                <span className="font-bold text-primary">x{item.quantity || 1}</span>
+              </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="bg-navy-900 py-12 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-4 sm:px-6 lg:flex-row lg:items-center">
-          <div>
-            <p className="flex items-center gap-2 text-sm font-bold text-amber-400">
-              <Zap size={17} /> Same-day help in Tuni
-            </p>
-            <h2 className="mt-2 text-3xl font-extrabold">Ready to book?</h2>
+          <div className="mt-4 flex items-center justify-between border-t border-surface-border pt-4 text-sm">
+            <span className="font-semibold text-gray-500">Total</span>
+            <span className="font-display text-xl font-extrabold text-navy">{currency(total)}</span>
           </div>
-          <Link to="/booking" className="btn-primary">
-            Get Same-day Service <ArrowRight size={18} />
+          <Link to="/cart" className="btn-primary mt-4 w-full">
+            Proceed to checkout
           </Link>
-        </div>
-      </section>
-    </>
+        </>
+      )}
+    </section>
   )
 }

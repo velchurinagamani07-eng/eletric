@@ -42,7 +42,7 @@ export default function Services() {
   return (
     <>
       <Helmet>
-        <title>Electrical Services | Home Electric Services</title>
+        <title>Electrical Services | DP Home Electric Services</title>
         <meta
           name="description"
           content="Browse fan installation, wiring, sockets, switch board repair, MCB, lighting, geyser, AC wiring, inverter and CCTV services."

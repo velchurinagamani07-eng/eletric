@@ -42,7 +42,7 @@ export default function ReceiptPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-16 text-center">
         <Helmet>
-          <title>Receipt Not Found | Home Electric Services | Tuni, Andhra Pradesh</title>
+          <title>Receipt Not Found | DP Home Electric Services | Tuni, Andhra Pradesh</title>
         </Helmet>
         <h1 className="text-2xl font-bold text-gray-950 dark:text-white">Receipt not found</h1>
         <Link to="/customer/bookings" className="btn-primary mt-5">
@@ -55,7 +55,7 @@ export default function ReceiptPage() {
   return (
     <>
       <Helmet>
-        <title>Receipt {booking.bookingId} | Home Electric Services | Tuni, Andhra Pradesh</title>
+        <title>Receipt {booking.bookingId} | DP Home Electric Services | Tuni, Andhra Pradesh</title>
         <meta name="description" content={`Service receipt for ${booking.serviceName} booking ${booking.bookingId}.`} />
       </Helmet>
       <PaymentReceipt booking={booking} />

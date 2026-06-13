@@ -10,7 +10,7 @@ export default function NotFound() {
         </span>
         <h1 className="mt-5 text-4xl font-extrabold text-gray-950 dark:text-white">Page not found</h1>
         <p className="mt-3 text-sm leading-7 text-gray-500">
-          This route is not wired into the Home Electric Services app.
+          This route is not wired into the DP Home Electric Services app.
         </p>
         <Link to="/" className="btn-primary mt-6">
           <Home size={17} /> Go Home

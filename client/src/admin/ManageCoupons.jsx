@@ -2,14 +2,13 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { Gift, Plus, Shuffle, Trash2 } from 'lucide-react'
-import { coupons as couponSeed } from '../data/catalog'
 import { db, isFirebaseConfigured } from '../firebase/config'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 
 const randomCode = () => Math.random().toString(36).slice(2, 10).toUpperCase()
 
 export default function ManageCoupons() {
-  const { items: coupons, setItems: setCoupons, loading, error } = useFirestoreCollection('coupons', couponSeed, 'createdAt')
+  const { items: coupons, setItems: setCoupons, loading, error } = useFirestoreCollection('coupons', [], 'createdAt')
   const [form, setForm] = useState({
     code: '',
     type: 'flat',

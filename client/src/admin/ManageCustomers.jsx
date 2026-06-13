@@ -1,12 +1,11 @@
 import { Copy, FileText } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { users as userSeed } from '../data/catalog'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 import { currency } from '../utils/format'
 
 export default function ManageCustomers() {
-  const { items, loading, error } = useFirestoreCollection('users', userSeed)
-  const customers = items.filter((user) => user.role === 'customer')
+  const { items, loading, error } = useFirestoreCollection('users', [])
+  const customers = items.filter((user) => ['user', 'customer'].includes(user.role))
 
   const copyUid = async (uid) => {
     await navigator.clipboard?.writeText(uid)
@@ -17,7 +16,7 @@ export default function ManageCustomers() {
     <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900">
       <div className="border-b border-gray-100 p-4 dark:border-white/10">
         <h2 className="font-bold text-gray-950 dark:text-white">Manage Customers</h2>
-        <p className="mt-1 text-sm text-gray-500">Only users where role equals customer are shown here.</p>
+        <p className="mt-1 text-sm text-gray-500">Customer and user accounts loaded from Firestore.</p>
         {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}
       </div>
       <div className="overflow-x-auto">

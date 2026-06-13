@@ -6,15 +6,10 @@ import {
   Gauge,
   Gift,
   Image,
-  Layers3,
-  Bot,
   PackageSearch,
   CreditCard,
-  SearchCheck,
   Settings,
-  ShieldCheck,
   Sparkles,
-  Star,
   UserRound,
   Users,
   Wrench,
@@ -27,18 +22,12 @@ const links = [
   { label: 'Customers', to: '/admin/customers', icon: UserRound },
   { label: 'Workers', to: '/admin/workers', icon: Users },
   { label: 'Services', to: '/admin/services', icon: Wrench },
-  { label: 'Categories', to: '/admin/categories', icon: Layers3 },
   { label: 'Products', to: '/admin/products', icon: PackageSearch },
-  { label: 'Product Categories', to: '/admin/product-categories', icon: Layers3 },
   { label: 'Coupons', to: '/admin/coupons', icon: Gift },
   { label: 'Banners', to: '/admin/banners', icon: Image },
   { label: 'Splash', to: '/admin/splash', icon: Sparkles },
-  { label: 'Reviews', to: '/admin/reviews', icon: Star },
-  { label: 'SEO', to: '/admin/seo', icon: SearchCheck },
-  { label: 'AI Tools', to: '/admin/ai-tools', icon: Bot },
   { label: 'Income', to: '/admin/income', icon: ChartNoAxesCombined },
   { label: 'Notifications', to: '/admin/notifications', icon: BellRing },
-  { label: 'Roles', to: '/admin/roles', icon: ShieldCheck },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ]
 
@@ -47,7 +36,7 @@ export default function AdminLayout() {
     <main className="bg-[#FAFAFA] py-10 dark:bg-gray-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-7">
-          <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Admin Panel</p>
+            <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Admin Panel</p>
           <h1 className="mt-2 text-3xl font-extrabold text-gray-950 dark:text-white">Platform control center</h1>
         </div>
         <div className="grid gap-6 lg:grid-cols-[250px_1fr]">

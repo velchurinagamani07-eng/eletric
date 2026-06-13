@@ -131,10 +131,11 @@ service cloud.firestore {
             'paymentStatus',
             'paymentId',
             'paymentMethod',
-            'utrNumber',
             'screenshotURL',
             'paymentSubmittedAt',
             'paymentRejectionReason',
+            'cancellationReason',
+            'cancelledAt',
             'upiId',
             'status',
             'updatedAt'
@@ -143,7 +144,7 @@ service cloud.firestore {
     }
 
     match /workers/{workerId} {
-      allow read: if isAdmin() || isOwner(workerId);
+      allow read: if isAdmin() || isOwner(workerId) || resource.data.isActive == true;
       allow create, delete: if isAdmin();
       allow update: if isAdmin()
         || (isOwner(workerId)
@@ -162,7 +163,7 @@ service cloud.firestore {
         && isActive()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.paymentMethod == 'UPI'
-        && request.resource.data.paymentStatus == 'pending_verification';
+        && request.resource.data.paymentStatus in ['paid', 'pending_verification'];
       allow update, delete: if isAdmin();
     }
 
@@ -188,7 +189,16 @@ service cloud.firestore {
 
     match /coupons/{id} {
       allow read: if signedIn();
-      allow write: if isAdmin();
+      allow create: if isAdmin()
+        || (signedIn()
+          && isActive()
+          && request.resource.data.assignedToUserId == request.auth.uid
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.type == 'flat'
+          && request.resource.data.value == 50
+          && request.resource.data.isActive == true
+          && request.resource.data.singleUse == true);
+      allow update, delete: if isAdmin();
     }
 
     match /support_tickets/{id} {

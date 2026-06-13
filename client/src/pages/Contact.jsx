@@ -41,17 +41,17 @@ export default function Contact() {
   return (
     <>
       <Helmet>
-        <title>Contact Us - Home Electric Services Tuni | +91 9493745479</title>
+        <title>Contact Us - DP Home Electric Services Tuni | +91 9493745479</title>
         <meta
           name="description"
-          content="Contact Home Electric Services in Tuni for fan installation, wiring, AC fitting, inverter and electrical repairs. Call +91 9493745479."
+          content="Contact DP Home Electric Services in Tuni for fan installation, wiring, AC fitting, inverter and electrical repairs. Call +91 9493745479."
         />
       </Helmet>
       <main className="bg-gray-50 py-12 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8">
             <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Contact</p>
-            <h1 className="mt-2 text-4xl font-extrabold text-navy-900 dark:text-white">Talk to Home Electric Services</h1>
+            <h1 className="mt-2 text-4xl font-extrabold text-navy-900 dark:text-white">Talk to DP Home Electric Services</h1>
           </div>
           <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <aside className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-900">

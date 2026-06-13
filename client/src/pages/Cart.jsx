@@ -29,7 +29,7 @@ export default function Cart() {
   return (
     <>
       <Helmet>
-        <title>Cart | Home Electric Services | Tuni, Andhra Pradesh</title>
+        <title>Cart | DP Home Electric Services | Tuni, Andhra Pradesh</title>
         <meta name="description" content="Review selected electrical services and proceed to checkout." />
       </Helmet>
       <main className="bg-gray-50 py-10 dark:bg-gray-950">

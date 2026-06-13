@@ -39,8 +39,8 @@ export default function Products() {
   return (
     <>
       <Helmet>
-        <title>Electrical Products | Home Electric Services</title>
-        <meta name="description" content="Shop electrical products and service-ready parts from Home Electric Services." />
+        <title>Electrical Products | DP Home Electric Services</title>
+        <meta name="description" content="Shop electrical products and service-ready parts from DP Home Electric Services." />
       </Helmet>
 
       <main className="bg-[#FAFAFA] py-10 dark:bg-gray-950">

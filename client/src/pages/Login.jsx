@@ -14,7 +14,7 @@ const routeForRole = (role) => {
 const copy = {
   customer: {
     title: 'Customer Login',
-    eyebrow: 'Home Electric Services',
+    eyebrow: 'DP Home Electric Services',
     description: 'Manage bookings, receipts, coupons and your service profile.',
     panelTitle: 'Welcome back',
     panelSub: 'Sign in with your registered customer account.',
@@ -29,7 +29,7 @@ const copy = {
   worker: {
     title: 'Worker Login',
     eyebrow: 'Worker Portal',
-    description: 'Check assigned jobs, history, earnings and field notifications.',
+    description: 'Check assigned jobs, history and field notifications.',
     panelTitle: 'Worker access',
     panelSub: 'Use your Firebase worker account created by admin.',
   },
@@ -66,7 +66,7 @@ export default function Login({ expectedRoles = null, portal = 'customer', allow
   return (
     <>
       <Helmet>
-        <title>{text.title} | Home Electric Services</title>
+        <title>{text.title} | DP Home Electric Services</title>
       </Helmet>
 
       <main className="min-h-screen bg-[#FAFAFA] dark:bg-gray-950">

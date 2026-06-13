@@ -36,7 +36,7 @@ export default function ServiceDetail() {
   return (
     <>
       <Helmet>
-        <title>{service.name} | Home Electric Services</title>
+        <title>{service.name} | DP Home Electric Services</title>
         <meta name="description" content={service.description} />
         <script type="application/ld+json">
           {JSON.stringify({
