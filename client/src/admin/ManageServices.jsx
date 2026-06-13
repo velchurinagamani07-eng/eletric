@@ -144,7 +144,7 @@ export default function ManageServices() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-bold text-navy-900 dark:text-white">{editingId ? 'Edit Service' : 'Add Service'}</h2>
-            <p className="mt-1 text-sm text-gray-500">Images upload to ImgBB with live progress, then the display URLs are saved.</p>
+            <p className="mt-1 text-sm text-gray-500">Images are compressed and uploaded with live progress before their display URLs are saved.</p>
           </div>
           <button type="button" className="btn-secondary" onClick={generateDescription}>
             <Sparkles size={17} /> Generate Description with AI
@@ -182,6 +182,7 @@ export default function ManageServices() {
             <ImageUploader
               label="Upload service images"
               multiple
+              useAdminStorage
               folder={`service-${editingId || form.name || 'new'}`}
               currentImageUrl={form.images || (form.imageURL ? [form.imageURL] : [])}
               onUploadComplete={(urls) => update('images', urls)}

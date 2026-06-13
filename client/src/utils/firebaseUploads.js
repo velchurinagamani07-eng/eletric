@@ -54,9 +54,8 @@ export function uploadWithProgress(file, path, onProgress) {
         onProgress?.(progress)
       },
       reject,
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref)
-        resolve(url)
+      () => {
+        getDownloadURL(task.snapshot.ref).then(resolve).catch(reject)
       },
     )
   })

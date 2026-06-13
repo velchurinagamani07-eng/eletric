@@ -73,10 +73,17 @@ export async function compressAndUploadToImgBB(
   file,
   { name, onProgress, maxWidth = 1200, maxSizeKB = 280, apiKey = import.meta.env.VITE_IMGBB_API_KEY } = {},
 ) {
-  if (!apiKey) throw new Error('ImgBB API key missing.')
   onProgress?.(5)
   const webpFile = await compressToWebP(file, { maxWidth, maxSizeKB })
   onProgress?.(25)
+  return uploadCompressedToImgBB(webpFile, { name, onProgress, apiKey })
+}
+
+export async function uploadCompressedToImgBB(
+  webpFile,
+  { name, onProgress, apiKey = import.meta.env.VITE_IMGBB_API_KEY } = {},
+) {
+  if (!apiKey) throw new Error('ImgBB API key missing.')
   const base64 = await fileToBase64(webpFile)
   onProgress?.(35)
 

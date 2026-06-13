@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, GripVertical, ImageUp, RotateCcw, Trash2 } from 'lucide-react'
-import { compressAndUploadToImgBB } from '../utils/compressToWebP'
+import { compressAndUploadToImgBB, compressToWebP, uploadCompressedToImgBB } from '../utils/compressToWebP'
+import { uploadWithProgress } from '../utils/firebaseUploads'
 
 const makeId = (file) => `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`
 
@@ -13,6 +14,7 @@ export default function ImageUploader({
   multiple = false,
   folder = 'uploads',
   maxFiles = Infinity,
+  useAdminStorage = false,
 }) {
   const shouldEmitUrlsRef = useRef(false)
   const initialItems = useMemo(
@@ -77,7 +79,9 @@ export default function ImageUploader({
     const preview = URL.createObjectURL(file)
     setSingle({ preview, url: '', progress: 0, status: 'uploading', error: '', file })
     try {
-      const result = await compressAndUploadToImgBB(file, {
+      const result = await uploadImage(file, {
+        folder,
+        useAdminStorage,
         name: `${folder}-${Date.now()}`,
         onProgress: (progress) => setSingle((current) => ({ ...current, progress })),
       })
@@ -106,7 +110,9 @@ export default function ImageUploader({
 
       if (error) return
 
-      compressAndUploadToImgBB(file, {
+      uploadImage(file, {
+        folder,
+        useAdminStorage,
         name: `${folder}-${Date.now()}-${safeName(file.name)}`,
         onProgress: (progress) =>
           setItems((current) => current.map((item) => (item.id === id ? { ...item, progress } : item))),
@@ -174,7 +180,7 @@ export default function ImageUploader({
           <>
             <ImageUp className="text-orange-500" size={28} />
             <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{label}</span>
-            <span className="text-xs font-semibold text-gray-400">ImgBB upload, max {maxSizeMB}MB</span>
+            <span className="text-xs font-semibold text-gray-400">Compressed image upload, max {maxSizeMB}MB</span>
           </>
         )}
         <input
@@ -281,4 +287,51 @@ function ErrorLine({ error, onRetry, compact = false }) {
 
 function safeName(name = 'image') {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+}
+
+async function uploadImage(file, {
+  folder,
+  name,
+  onProgress,
+  useAdminStorage,
+}) {
+  if (!useAdminStorage) {
+    return compressAndUploadToImgBB(file, { name, onProgress })
+  }
+
+  onProgress?.(5)
+  const webpFile = await compressToWebP(file)
+  onProgress?.(25)
+
+  const safeFolder = safeName(folder) || 'uploads'
+  const safeFile = safeName(file.name.replace(/\.[^.]+$/, '')) || 'image'
+  const storagePath = `admin/${safeFolder}/${Date.now()}-${safeFile}.webp`
+
+  try {
+    const url = await uploadWithProgress(
+      webpFile,
+      storagePath,
+      (progress) => onProgress?.(25 + Math.round(progress * 0.7)),
+    )
+    onProgress?.(100)
+    return {
+      url,
+      displayUrl: url,
+      deleteUrl: '',
+      thumbUrl: url,
+      sizeKB: Math.round(webpFile.size / 1024),
+      format: 'webp',
+    }
+  } catch (storageError) {
+    try {
+      return await uploadCompressedToImgBB(webpFile, { name, onProgress })
+    } catch (imgbbError) {
+      const storageMessage = storageError?.message || 'Firebase Storage upload failed.'
+      const imgbbMessage = imgbbError?.message || 'ImgBB upload failed.'
+      throw new Error(
+        `Image upload failed. ${storageMessage} ${imgbbMessage}`,
+        { cause: imgbbError },
+      )
+    }
+  }
 }

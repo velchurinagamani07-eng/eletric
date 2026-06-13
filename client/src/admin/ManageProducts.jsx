@@ -126,7 +126,7 @@ export default function ManageProducts() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-bold text-navy-900 dark:text-white">Product Catalog</h2>
-            <p className="mt-1 text-sm text-gray-500">Create electrical products with ImgBB images and Firestore stock data.</p>
+            <p className="mt-1 text-sm text-gray-500">Create electrical products with compressed images and Firestore stock data.</p>
           </div>
           {form.id && (
             <button type="button" className="btn-secondary" onClick={() => setForm(emptyForm)}>
@@ -201,6 +201,7 @@ export default function ManageProducts() {
           <ImageUploader
             label="Upload product images"
             multiple
+            useAdminStorage
             maxFiles={6}
             currentImageUrl={form.images}
             folder={`products-${form.name || 'new'}`}

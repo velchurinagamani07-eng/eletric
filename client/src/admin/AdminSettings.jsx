@@ -520,6 +520,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
               <ImageUploader
                 label="Upload up to 8 hero images"
                 multiple
+                useAdminStorage
                 maxFiles={8}
                 currentImageUrl={heroForm.images || []}
                 folder="settings-hero"
@@ -587,6 +588,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
               </label>
               <ImageUploader
                 label="Upload right-side banner image"
+                useAdminStorage
                 currentImageUrl={promoForm.rightImageURL}
                 folder="settings-promo"
                 onUploadComplete={(url) => updatePromo('rightImageURL', url)}
