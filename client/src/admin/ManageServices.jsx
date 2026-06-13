@@ -156,13 +156,18 @@ export default function ManageServices() {
             <input className="field" value={form.name} onChange={(event) => update('name', event.target.value)} />
           </Field>
           <Field label="Category" error={errors.category}>
-            <select className="field" value={form.category} onChange={(event) => update('category', event.target.value)}>
+            <input
+              className="field"
+              list="service-category-options"
+              placeholder="fans, wiring, ac..."
+              value={form.category}
+              onChange={(event) => update('category', event.target.value)}
+            />
+            <datalist id="service-category-options">
               {activeCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
+                <option key={category.id} value={category.id}>{category.name}</option>
               ))}
-            </select>
+            </datalist>
           </Field>
           <Field label="Base Price Rs." error={errors.basePrice}>
             <input className="field" type="number" min="1" value={form.basePrice} onChange={(event) => update('basePrice', event.target.value)} />

@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async'
-import { Mail, Phone, ShieldCheck, UserRound, Wrench } from 'lucide-react'
+import { Mail, Phone, ShieldCheck, Wrench } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 export default function WorkerProfile() {

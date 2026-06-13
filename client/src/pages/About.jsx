@@ -7,7 +7,6 @@ import {
   ArrowRight,
   BadgeCheck,
   CalendarCheck,
-  CheckCircle2,
   GraduationCap,
   IndianRupee,
   MapPin,
@@ -16,8 +15,6 @@ import {
   ShieldCheck,
   Star,
   UserCheck,
-  Users,
-  Wrench,
   Zap,
 } from 'lucide-react'
 import { db, isFirebaseConfigured } from '../firebase/config'

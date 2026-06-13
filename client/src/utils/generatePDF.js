@@ -7,6 +7,7 @@ const money = (value) => `Rs. ${Number(value || 0).toLocaleString('en-IN')}`
 const amber = [245, 158, 11]
 const navy = [15, 39, 68]
 const lightGray = [248, 250, 252]
+let logoDataUrlPromise = null
 
 function formatDate(value) {
   if (!value) return '-'
@@ -17,15 +18,54 @@ function formatDate(value) {
   return Number.isNaN(parsed) ? String(value).slice(0, 10) : new Date(parsed).toISOString().slice(0, 10)
 }
 
-function brandedHeader(doc, title, subtitle = '') {
-  doc.setFillColor(...amber)
-  doc.rect(0, 0, 210, 28, 'F')
+function logoFormat(dataUrl = '') {
+  if (dataUrl.startsWith('data:image/png')) return 'PNG'
+  if (dataUrl.startsWith('data:image/jpeg') || dataUrl.startsWith('data:image/jpg')) return 'JPEG'
+  if (dataUrl.startsWith('data:image/webp')) return 'WEBP'
+  return 'WEBP'
+}
+
+function loadLogoDataUrl() {
+  if (logoDataUrlPromise) return logoDataUrlPromise
+  logoDataUrlPromise = fetch('/logo.webp')
+    .then((response) => {
+      if (!response.ok) throw new Error('Logo not found')
+      return response.blob()
+    })
+    .then((blob) => new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    }))
+    .catch(() => '')
+  return logoDataUrlPromise
+}
+
+function drawFallbackLogo(doc) {
   doc.setFillColor(255, 255, 255)
   doc.roundedRect(14, 6, 14, 14, 2, 2, 'F')
   doc.setTextColor(...amber)
   doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.text('HES', 21, 15, { align: 'center' })
+  doc.text('DP', 21, 15, { align: 'center' })
+}
+
+async function brandedHeader(doc, title, subtitle = '') {
+  doc.setFillColor(...amber)
+  doc.rect(0, 0, 210, 28, 'F')
+  const logoDataUrl = await loadLogoDataUrl()
+  if (logoDataUrl) {
+    try {
+      doc.setFillColor(255, 255, 255)
+      doc.roundedRect(14, 5, 16, 16, 2, 2, 'F')
+      doc.addImage(logoDataUrl, logoFormat(logoDataUrl), 15.5, 6.5, 13, 13)
+    } catch {
+      drawFallbackLogo(doc)
+    }
+  } else {
+    drawFallbackLogo(doc)
+  }
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
@@ -55,13 +95,13 @@ function brandedFooter(doc) {
   }
 }
 
-export function generateReceiptPDF(booking, productOrders = []) {
+export async function generateReceiptPDF(booking, productOrders = []) {
   const doc = new jsPDF()
   const receiptId = booking.bookingId || booking.id
   const paymentStatus = booking.paymentStatus || booking.status || 'pending'
   const paidStatus = isPaidStatus(paymentStatus) ? 'PAID' : paymentStatusLabel(paymentStatus).toUpperCase()
   const paymentDate = formatDate(booking.paidAt || booking.approvedAt || booking.paymentDate || booking.createdAt)
-  brandedHeader(doc, 'Service Receipt', receiptId)
+  await brandedHeader(doc, 'Service Receipt', receiptId)
 
   doc.setTextColor(...navy)
   doc.setFontSize(10)
@@ -178,9 +218,9 @@ export function generateReceiptPDF(booking, productOrders = []) {
   doc.save(`receipt-${receiptId}.pdf`)
 }
 
-export function generateBookingsPDF(bookings, filename = 'bookings-report.pdf') {
+export async function generateBookingsPDF(bookings, filename = 'bookings-report.pdf') {
   const doc = new jsPDF()
-  brandedHeader(doc, 'Bookings Report', new Date().toISOString().slice(0, 10))
+  await brandedHeader(doc, 'Bookings Report', new Date().toISOString().slice(0, 10))
   autoTable(doc, {
     startY: 40,
     head: [['Booking', 'Customer', 'Service', 'Date', 'Status', 'Amount']],
@@ -199,10 +239,10 @@ export function generateBookingsPDF(bookings, filename = 'bookings-report.pdf') 
   doc.save(filename)
 }
 
-export function generateIncomeReportPDF(rows) {
+export async function generateIncomeReportPDF(rows) {
   const doc = new jsPDF()
   const total = rows.reduce((sum, row) => sum + row.revenue, 0)
-  brandedHeader(doc, 'Daily Income Report', `Total: ${money(total)}`)
+  await brandedHeader(doc, 'Daily Income Report', `Total: ${money(total)}`)
   doc.setTextColor(...navy)
   doc.setFontSize(11)
   doc.setFont('helvetica', 'bold')
@@ -218,9 +258,9 @@ export function generateIncomeReportPDF(rows) {
   doc.save('income-report.pdf')
 }
 
-export function generatePaymentVerificationsPDF(rows) {
+export async function generatePaymentVerificationsPDF(rows) {
   const doc = new jsPDF()
-  brandedHeader(doc, 'Payment Verifications', new Date().toISOString().slice(0, 10))
+  await brandedHeader(doc, 'Payment Records', new Date().toISOString().slice(0, 10))
   autoTable(doc, {
     startY: 40,
     head: [['Booking', 'Customer', 'Amount', 'Reference', 'Status', 'Service']],

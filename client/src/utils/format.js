@@ -5,7 +5,6 @@ export const fullAddress = (address = {}) =>
     .filter(Boolean)
     .join(', ')
 
-export const nextBookingId = () => `HES-${String(Date.now()).slice(-6)}`
+export const nextBookingId = () => `DP-${String(Date.now()).slice(-6)}`
 
 export const todayISO = () => new Date().toISOString().slice(0, 10)
-

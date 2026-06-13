@@ -211,13 +211,14 @@ export default function App() {
             <Route path="services" element={<ManageServices />} />
             <Route path="coupons" element={<ManageCoupons />} />
             <Route path="products" element={<ManageProducts />} />
-            <Route path="banners" element={<ManageBanners />} />
             <Route path="splash" element={<ManageBanners initialSection="splash" />} />
             <Route path="income" element={<IncomeGraphs />} />
             <Route path="worker-graphs" element={<WorkerGraphs />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="settings/hero" element={<AdminSettings initialSection="hero" />} />
+            <Route path="settings/promo" element={<AdminSettings initialSection="promo" />} />
+            <Route path="settings/tools" element={<AdminSettings initialSection="tools" />} />
           </Route>
 
           <Route

@@ -32,18 +32,39 @@ export function useNotifications(user) {
     }
 
     Promise.resolve().then(() => setLoading(true))
-    const ref = query(
-      collection(db, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      limit(50),
-    )
+    const isAdmin = ['admin', 'superadmin'].includes(user.role)
+    const ref = isAdmin
+      ? query(
+          collection(db, 'notifications'),
+          where('role', 'in', ['admin', 'superadmin']),
+          orderBy('createdAt', 'desc'),
+          limit(50),
+        )
+      : query(
+          collection(db, 'notifications'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc'),
+          limit(50),
+        )
 
     const unsubscribe = onSnapshot(ref, (snapshot) => {
       const next = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }))
       const unreadCount = next.filter((item) => !item.isRead).length
       if (unreadCount > previousCount.current) {
+        const newestUnread = next.find((item) => !item.isRead)
         new Audio('/notification.mp3').play().catch(() => {})
+        if (
+          ['admin', 'superadmin'].includes(user.role) &&
+          document.hidden &&
+          newestUnread &&
+          'Notification' in window &&
+          Notification.permission === 'granted'
+        ) {
+          new Notification(newestUnread.title || 'New admin notification', {
+            body: newestUnread.body || 'Open the admin panel for details.',
+            tag: newestUnread.id,
+          })
+        }
       }
       previousCount.current = unreadCount
       setItems(next)

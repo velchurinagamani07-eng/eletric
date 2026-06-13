@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
-import { CheckCircle2, Download, Eye, FileText, Search, XCircle } from 'lucide-react'
+import { deleteDoc, doc } from 'firebase/firestore'
+import { Download, Eye, FileText, Search, Trash2 } from 'lucide-react'
 import { db, isFirebaseConfigured } from '../firebase/config'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 import { currency, fullAddress } from '../utils/format'
@@ -45,22 +45,8 @@ export default function ManagePayments() {
       })
   }, [bookingMap, payments, query, status])
 
-  const notifyCustomer = async ({ payment, title, body, type }) => {
-    if (!db || !isFirebaseConfigured || !payment?.userId) return
-    await addDoc(collection(db, 'notifications'), {
-      userId: payment.userId,
-      role: 'user',
-      title,
-      body,
-      type,
-      bookingId: payment.bookingId,
-      isRead: false,
-      createdAt: serverTimestamp(),
-    }).catch(() => {})
-  }
-
-  const approvePayment = async (payment) => {
-    const booking = bookingMap.get(payment.bookingId)
+  const deletePayment = async (payment) => {
+    if (!window.confirm(`Delete payment record ${payment.paymentId || payment.id}?`)) return
     if (!db || !isFirebaseConfigured) {
       toast.error('Database is not configured.')
       return
@@ -68,70 +54,11 @@ export default function ManagePayments() {
 
     setBusyId(payment.id)
     try {
-      const approvedAt = serverTimestamp()
-      await updateDoc(doc(db, 'payments', payment.id), {
-        paymentStatus: 'paid',
-        approvedAt,
-        verifiedAt: approvedAt,
-        updatedAt: approvedAt,
-      })
-      if (booking?.id || payment.bookingId) {
-        await updateDoc(doc(db, 'bookings', booking?.id || payment.bookingId), {
-          status: 'confirmed',
-          bookingStatus: 'confirmed',
-          paymentStatus: 'paid',
-          paymentMethod: 'UPI',
-          paymentId: payment.id,
-          screenshotURL: payment.screenshotURL,
-          paidAt: approvedAt,
-          updatedAt: approvedAt,
-        })
-      }
-      await notifyCustomer({
-        payment,
-        title: 'Payment approved',
-        body: `Your UPI payment for booking ${payment.bookingId} is approved. Receipt is ready.`,
-        type: 'payment_approved',
-      })
-      setPayments((items) => items.map((item) => (item.id === payment.id ? { ...item, paymentStatus: 'paid' } : item)))
-      toast.success('Payment approved and booking confirmed.')
+      await deleteDoc(doc(db, 'payments', payment.id))
+      setPayments((items) => items.filter((item) => item.id !== payment.id))
+      toast.success('Payment record deleted.')
     } catch (err) {
-      toast.error(err.message || 'Unable to approve payment.')
-    } finally {
-      setBusyId('')
-    }
-  }
-
-  const rejectPayment = async (payment) => {
-    const reason = window.prompt('Reason for rejecting this payment?')
-    if (!reason) return
-    const booking = bookingMap.get(payment.bookingId)
-    setBusyId(payment.id)
-    try {
-      const rejectedAt = serverTimestamp()
-      await updateDoc(doc(db, 'payments', payment.id), {
-        paymentStatus: 'rejected',
-        rejectionReason: reason,
-        rejectedAt,
-        updatedAt: rejectedAt,
-      })
-      if (booking?.id || payment.bookingId) {
-        await updateDoc(doc(db, 'bookings', booking?.id || payment.bookingId), {
-          paymentStatus: 'rejected',
-          paymentRejectionReason: reason,
-          updatedAt: rejectedAt,
-        })
-      }
-      await notifyCustomer({
-        payment,
-        title: 'Payment rejected',
-        body: `Your payment proof for booking ${payment.bookingId} was rejected. Reason: ${reason}`,
-        type: 'payment_rejected',
-      })
-      setPayments((items) => items.map((item) => (item.id === payment.id ? { ...item, paymentStatus: 'rejected', rejectionReason: reason } : item)))
-      toast.success('Payment rejected.')
-    } catch (err) {
-      toast.error(err.message || 'Unable to reject payment.')
+      toast.error(err.message || 'Unable to delete payment record.')
     } finally {
       setBusyId('')
     }
@@ -167,7 +94,7 @@ export default function ManagePayments() {
         <div className="flex flex-wrap gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input className="field w-60 pl-9" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search reference, booking, customer" />
+            <input className="field w-60 pl-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search reference, booking, customer" />
           </div>
           <select className="field w-48" value={status} onChange={(event) => setStatus(event.target.value)}>
             <option value="all">All payments</option>
@@ -238,19 +165,11 @@ export default function ManagePayments() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className="btn-primary px-3 py-2"
-                      disabled={busyId === payment.id || payment.paymentStatus === 'paid'}
-                      onClick={() => approvePayment(payment)}
-                    >
-                      <CheckCircle2 size={16} /> Approve
-                    </button>
-                    <button
-                      type="button"
                       className="btn-danger"
-                      disabled={busyId === payment.id || payment.paymentStatus === 'rejected'}
-                      onClick={() => rejectPayment(payment)}
+                      disabled={busyId === payment.id}
+                      onClick={() => deletePayment(payment)}
                     >
-                      <XCircle size={16} /> Reject
+                      <Trash2 size={16} /> Delete
                     </button>
                   </div>
                 </td>
@@ -268,7 +187,12 @@ export default function ManagePayments() {
                 <p className="font-black text-gray-950 dark:text-white">{preview.bookingId}</p>
                 <p className="text-sm text-gray-500">Reference: {preview.paymentId || preview.id}</p>
               </div>
-              <button type="button" className="btn-secondary" onClick={() => setPreview(null)}>Close</button>
+              <div className="flex gap-2">
+                <a className="btn-secondary" href={preview.screenshotURL} target="_blank" rel="noreferrer" download>
+                  <Download size={16} /> Open
+                </a>
+                <button type="button" className="btn-secondary" onClick={() => setPreview(null)}>Close</button>
+              </div>
             </div>
             <div className="max-h-[75vh] overflow-auto bg-gray-100 p-4 dark:bg-gray-900">
               <img src={preview.screenshotURL} alt={`Payment screenshot for ${preview.bookingId}`} className="mx-auto max-h-[70vh] rounded-lg object-contain" />

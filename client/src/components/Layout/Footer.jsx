@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bolt, Globe2, Mail, MapPin, Phone, Send, Share2 } from 'lucide-react'
+import { Globe2, Mail, MapPin, Phone, Send, Share2 } from 'lucide-react'
 import { settings } from '../../data/catalog'
 
 export default function Footer() {
@@ -8,8 +8,22 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.3fr_0.8fr_1fr]">
         <div>
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500 text-gray-950">
-              <Bolt fill="currentColor" size={22} />
+            <span className="relative shrink-0">
+              <img
+                src="/logo.webp"
+                alt="DP Home Electric Services"
+                className="h-11 w-11 rounded-xl object-contain"
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none'
+                  event.currentTarget.nextSibling.style.display = 'flex'
+                }}
+              />
+              <span
+                style={{ display: 'none' }}
+                className="h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-sm font-extrabold text-white"
+              >
+                DP
+              </span>
             </span>
             <div>
               <p className="font-extrabold text-gray-950 dark:text-white">{settings.companyName}</p>

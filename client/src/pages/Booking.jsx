@@ -31,6 +31,21 @@ const emptyAddress = {
   pincode: '',
 }
 
+function estimatedArrivalWindow(slot = '') {
+  const match = slot.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+  if (!match) return 'Within your selected time slot'
+  const [, hourText, minuteText, meridiem] = match
+  let hours = Number(hourText)
+  const minutes = Number(minuteText)
+  if (meridiem.toUpperCase() === 'PM' && hours !== 12) hours += 12
+  if (meridiem.toUpperCase() === 'AM' && hours === 12) hours = 0
+  const start = new Date()
+  start.setHours(hours, minutes, 0, 0)
+  const end = new Date(start.getTime() + 30 * 60 * 1000)
+  const format = (value) => value.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return `${format(start)} - ${format(end)}`
+}
+
 export default function Booking() {
   const [params] = useSearchParams()
   const { serviceId } = useParams()
@@ -61,6 +76,7 @@ export default function Booking() {
     Promise.resolve().then(() => setSelectedServiceId(selectedService.id))
   }, [selectedService?.id, selectedServiceId])
   const total = Math.max(selectedService.basePrice - discount, 0)
+  const arrivalWindow = useMemo(() => estimatedArrivalWindow(timeSlot), [timeSlot])
 
   const createRewardCoupon = async (booking) => {
     const bookingId = booking?.bookingId || booking?.id || Date.now()
@@ -114,6 +130,7 @@ export default function Booking() {
       address,
       date,
       timeSlot,
+      estimatedArrival: arrivalWindow,
       amount: total,
       totalAmount: total,
       subtotalAmount: selectedService.basePrice,
@@ -334,7 +351,7 @@ export default function Booking() {
                   </div>
                   <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-4 dark:border-white/10">
                     <p className="text-sm font-semibold leading-6 text-gray-600 dark:text-gray-300">
-                      Need to share issue photos? Use support after booking. This booking step only captures the visit schedule.
+                      Estimated electrician arrival: <span className="font-black text-gray-950 dark:text-white">{arrivalWindow}</span>. Use support after booking if you need to share issue photos.
                     </p>
                   </div>
                 </div>
@@ -355,6 +372,7 @@ export default function Booking() {
                       <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Schedule</p>
                       <p className="mt-1 font-bold text-gray-950 dark:text-white">{date}</p>
                       <p className="mt-2 text-sm text-gray-500">{timeSlot}</p>
+                      <p className="mt-1 text-sm font-semibold text-amber-700">ETA {arrivalWindow}</p>
                     </div>
                   </div>
                   <div className="mt-5 max-w-xl rounded-lg border border-gray-100 p-4 dark:border-white/10">

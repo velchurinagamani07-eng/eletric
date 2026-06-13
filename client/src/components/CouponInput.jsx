@@ -83,7 +83,7 @@ export default function CouponInput({ amount, onApply }) {
         <div className="relative flex-1">
           <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
           <input
-            className="field pl-9 uppercase"
+            className="field pl-10 uppercase"
             value={code}
             onChange={(event) => setCode(event.target.value.toUpperCase())}
             placeholder="POWER10"

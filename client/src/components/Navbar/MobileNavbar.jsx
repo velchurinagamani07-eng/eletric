@@ -16,7 +16,6 @@ import {
   Phone,
   Settings,
   UserRound,
-  Wrench,
   X,
   Zap,
 } from 'lucide-react'
@@ -89,7 +88,24 @@ export default function MobileNavbar() {
                   <X size={20} />
                 </button>
                 <Link to="/" onClick={() => setDrawerOpen(false)} className="flex items-center gap-2 font-display text-sm font-extrabold text-navy">
-                  <Zap className="text-primary" size={19} fill="currentColor" /> {settings.shortName}
+                  <span className="relative shrink-0">
+                    <img
+                      src="/logo.webp"
+                      alt="DP Home Electric Services"
+                      className="h-10 w-10 rounded-xl object-contain"
+                      onError={(event) => {
+                        event.currentTarget.style.display = 'none'
+                        event.currentTarget.nextSibling.style.display = 'flex'
+                      }}
+                    />
+                    <span
+                      style={{ display: 'none' }}
+                      className="h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-sm font-extrabold text-white"
+                    >
+                      DP
+                    </span>
+                  </span>
+                  {settings.shortName}
                 </Link>
               </header>
 

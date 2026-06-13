@@ -184,11 +184,12 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
+            ['New Booking', '/booking'],
             ['Add Service', '/admin/services'],
-            ['Assign Booking', '/admin/bookings'],
-            ['Create Coupon', '/admin/coupons'],
+            ['Assign Worker', '/admin/bookings'],
+            ['Add Worker', '/admin/workers'],
           ].map(([label, to]) => (
             <Link key={label} to={to} className="btn-primary">
               {label}

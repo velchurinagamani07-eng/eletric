@@ -122,7 +122,7 @@ export default function Login({ expectedRoles = null, portal = 'customer', allow
                   <span className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">Email</span>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
-                    <input className="field min-h-12 pl-9" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                    <input className="field min-h-12 pl-10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
                   </div>
                 </label>
                 <label>
@@ -130,7 +130,7 @@ export default function Login({ expectedRoles = null, portal = 'customer', allow
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
                     <input
-                      className="field min-h-12 px-9"
+                      className="field min-h-12 pl-10 pr-10"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}

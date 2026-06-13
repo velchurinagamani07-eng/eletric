@@ -199,6 +199,17 @@ textarea {
   @apply flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-left text-sm font-semibold text-gray-700 transition hover:bg-primary-light hover:text-navy;
 }
 
+.category-strip::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, white);
+}
+
 .eyebrow {
   @apply text-xs font-bold uppercase tracking-[0.16em] text-primary;
 }

@@ -1,7 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
   Bell,
-  Bolt,
   ChevronDown,
   LogIn,
   LogOut,
@@ -92,8 +91,22 @@ export default function WebNavbar() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F59E0B] text-[#0F172A] shadow-[0_4px_14px_rgba(245,158,11,0.35)]">
-              <Bolt fill="currentColor" size={23} />
+            <span className="relative shrink-0">
+              <img
+                src="/logo.webp"
+                alt="DP Home Electric Services"
+                className="h-10 w-10 rounded-xl object-contain"
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none'
+                  event.currentTarget.nextSibling.style.display = 'flex'
+                }}
+              />
+              <span
+                style={{ display: 'none' }}
+                className="h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-sm font-extrabold text-white"
+              >
+                DP
+              </span>
             </span>
             <span>
               <span className="block text-lg font-black tracking-normal text-[#0F172A] dark:text-white">

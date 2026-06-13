@@ -1,9 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { ArrowRight, CheckCircle2, Clock, Minus, Plus, ShoppingCart, Star, Zap } from 'lucide-react'
+import {
+  ArrowRight,
+  BatteryCharging,
+  Cable,
+  Cctv,
+  CheckCircle2,
+  CircuitBoard,
+  Clock,
+  Fan,
+  ImageIcon,
+  Lightbulb,
+  Minus,
+  PlugZap,
+  Plus,
+  ShoppingCart,
+  Star,
+  Zap,
+} from 'lucide-react'
 import { db, isFirebaseConfigured } from '../firebase/config'
 import { settings } from '../data/catalog'
 import { useServiceCategories, useServices } from '../hooks/useServices'
@@ -16,9 +33,9 @@ const fallbackSlides = [
   {
     id: 'starter',
     badge: 'Super Saver',
-    badgeColor: 'green',
+    badgeColor: '#16A34A',
     headline: 'Affordable repairs starting at just Rs. 149',
-    imageURL: '/default-images/services/electric.png',
+    rightImageURL: '/default-images/services/electric.png',
     bgColor: '#FEF3C7',
     ctaText: 'Book Now',
     ctaLink: '/services',
@@ -28,9 +45,9 @@ const fallbackSlides = [
   {
     id: 'warranty',
     badge: '3 Month Warranty',
-    badgeColor: 'amber',
+    badgeColor: '#F59E0B',
     headline: 'Verified electricians for every home visit',
-    imageURL: '/default-images/services/wiring.png',
+    rightImageURL: '/default-images/services/wiring.png',
     bgColor: '#EFF6FF',
     ctaText: 'View Services',
     ctaLink: '/services',
@@ -39,10 +56,15 @@ const fallbackSlides = [
   },
 ]
 
-const badgeTone = {
-  green: 'bg-green-600 text-white',
-  amber: 'bg-primary text-white',
-  blue: 'bg-blue-600 text-white',
+const categoryIconMap = {
+  BatteryCharging,
+  Cable,
+  Cctv,
+  CircuitBoard,
+  Fan,
+  Lightbulb,
+  PlugZap,
+  Zap,
 }
 
 export default function Home() {
@@ -55,6 +77,7 @@ export default function Home() {
   const cartItems = useCartStore((state) => state.items)
   const addItem = useCartStore((state) => state.addItem)
   const decrementItem = useCartStore((state) => state.decrementItem)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!db || !isFirebaseConfigured) return undefined
@@ -91,10 +114,11 @@ export default function Home() {
   )
 
   const cartTotal = cartItems.reduce((sum, item) => sum + Number(item.basePrice || item.price || 0) * Number(item.quantity || 1), 0)
+  const cartCount = cartItems.reduce((sum, item) => sum + Number(item.quantity || 1), 0)
   const recommendedProducts = products.slice(0, 3)
 
-  const scrollToCategory = (categoryId) => {
-    categoryRefs.current[categoryId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const openCategory = (category) => {
+    navigate(`/services?category=${encodeURIComponent(category.id || category.slug || category.name)}`)
   }
 
   return (
@@ -128,55 +152,98 @@ export default function Home() {
       </Helmet>
 
       <main className="bg-surface pb-6 lg:pb-0">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[360px_1fr] lg:py-8">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[280px_1fr] lg:py-8">
           <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
             <div className="space-y-5 pr-2">
               <section>
-                <h1 className="font-display text-3xl font-extrabold text-navy">{settings.companyName}</h1>
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-600">
+                <h1 className="font-display text-2xl font-extrabold leading-tight text-navy">{settings.companyName}</h1>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600">
                   <span className="inline-flex items-center gap-1">
-                    <Star size={16} fill="currentColor" className="text-primary" /> 4.80 (2.5K bookings)
+                    <Star size={14} fill="currentColor" className="text-amber-400" />
+                    <span className="font-semibold">4.80</span>
+                    <span className="text-gray-400">(2.5K bookings)</span>
                   </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Zap size={16} className="text-primary" /> Instant
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Clock size={16} className="text-primary" /> In ~30 mins
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                    <Zap size={13} fill="currentColor" /> Instant
                   </span>
                 </div>
+                <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+                  <Clock size={13} /> In ~30 mins
+                </p>
               </section>
 
-              <section className="card p-4">
-                <h2 className="font-display text-lg font-extrabold text-navy">Select a service</h2>
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {categories.slice(0, 10).map((category) => (
+              <section className="rounded-2xl border border-surface-border bg-white p-4 shadow-card">
+                <h2 className="mb-3 text-sm font-bold text-navy">Select a service</h2>
+                <div className="grid grid-cols-3 gap-x-2 gap-y-4">
+                  {categories.slice(0, 9).map((category) => (
                     <button
                       type="button"
                       key={category.id}
-                      onClick={() => scrollToCategory(category.id)}
-                      className="rounded-2xl border border-surface-border bg-white p-3 text-left shadow-sm transition hover:border-primary hover:bg-primary-light"
+                      onClick={() => openCategory(category)}
+                      className="group flex flex-col items-center gap-1.5 focus:outline-none"
                     >
-                      <img
-                        src={category.imageURL || category.iconURL || getDefaultImage(category.id)}
-                        alt=""
-                        width="72"
-                        height="72"
-                        loading="lazy"
-                        decoding="async"
-                        onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
-                        className="h-16 w-full rounded-xl object-cover"
-                      />
-                      <p className="mt-2 line-clamp-2 text-sm font-bold text-navy">{category.name}</p>
+                      <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-surface-border bg-amber-50 shadow-sm transition-all group-hover:border-amber-400">
+                        {category.imageURL || category.iconURL ? (
+                          <img
+                            src={category.imageURL || category.iconURL}
+                            alt={category.name}
+                            width="64"
+                            height="64"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <CategoryIcon category={category} />
+                        )}
+                      </div>
+                      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-gray-700 group-hover:text-amber-600">
+                        {category.name}
+                      </span>
                     </button>
                   ))}
                 </div>
               </section>
 
-              <CartSummary items={cartItems} total={cartTotal} />
+              <CartSummary items={cartItems} total={cartTotal} count={cartCount} />
             </div>
           </aside>
 
           <section className="min-w-0">
+            <section className="category-strip relative -mx-4 mb-4 overflow-x-auto px-4 pb-1 lg:hidden">
+              <div className="flex gap-3">
+                {categories.slice(0, 12).map((category) => (
+                  <button
+                    type="button"
+                    key={category.id}
+                    onClick={() => openCategory(category)}
+                    className="flex w-20 shrink-0 flex-col items-center gap-1.5"
+                  >
+                    <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-surface-border bg-white shadow-sm">
+                      {category.imageURL || category.iconURL ? (
+                        <img
+                          src={category.imageURL || category.iconURL}
+                          alt={category.name}
+                          width="64"
+                          height="64"
+                          loading="lazy"
+                          decoding="async"
+                          onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <CategoryIcon category={category} />
+                      )}
+                    </div>
+                    <span className="line-clamp-2 text-center text-[11px] font-semibold leading-tight text-gray-700">
+                      {category.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
             <PromoSlider slides={slides} activeSlide={activeSlide} setActiveSlide={setActiveSlide} />
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-navy sm:grid-cols-4 lg:hidden">
@@ -186,29 +253,6 @@ export default function Home() {
                 </span>
               ))}
             </div>
-
-            <section className="mt-5 grid grid-cols-4 gap-3 lg:hidden">
-              {categories.slice(0, 12).map((category) => (
-                <button
-                  type="button"
-                  key={category.id}
-                  onClick={() => scrollToCategory(category.id)}
-                  className="rounded-2xl border border-surface-border bg-white p-2 text-center shadow-sm"
-                >
-                  <img
-                    src={category.imageURL || category.iconURL || getDefaultImage(category.id)}
-                    alt=""
-                    width="64"
-                    height="64"
-                    loading="lazy"
-                    decoding="async"
-                    onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
-                    className="mx-auto h-12 w-12 rounded-xl object-cover"
-                  />
-                  <p className="mt-1 line-clamp-2 text-[11px] font-bold text-navy">{category.name}</p>
-                </button>
-              ))}
-            </section>
 
             <div className="mt-6 grid gap-7">
               {servicesByCategory.map((category) => (
@@ -302,41 +346,78 @@ export default function Home() {
   )
 }
 
+function CategoryIcon({ category }) {
+  const Icon = categoryIconMap[category.icon] || categoryIconMap[category.id] || Zap
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-amber-50 text-amber-600">
+      <Icon size={26} strokeWidth={2.3} />
+    </div>
+  )
+}
+
 function PromoSlider({ slides, activeSlide, setActiveSlide }) {
   const slide = slides[activeSlide % slides.length] || fallbackSlides[0]
+  const buttonColor = /^#/.test(String(slide.badgeColor || '')) ? slide.badgeColor : '#F59E0B'
+  const badgeColor = /^#/.test(String(slide.badgeColor || '')) ? slide.badgeColor : '#16A34A'
+  const imageURL = slide.rightImageURL || slide.imageURL || ''
+
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-surface-border bg-white shadow-card">
+    <section className="relative overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id || activeSlide}
-          className="grid min-h-[260px] lg:grid-cols-[0.92fr_1.08fr]"
+          className="grid min-h-[280px] md:grid-cols-2"
           initial={{ opacity: 0, x: 18 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -18 }}
           transition={{ duration: 0.35 }}
+          style={{ backgroundColor: slide.bgColor || '#FEF3C7' }}
         >
-          <div className="flex flex-col justify-center p-6 sm:p-8" style={{ backgroundColor: slide.bgColor || '#FEF3C7' }}>
-            <span className={`w-fit rounded-full px-3 py-1 text-xs font-extrabold ${badgeTone[slide.badgeColor] || badgeTone.amber}`}>
-              {slide.badge || 'Super Saver'}
-            </span>
-            <h2 className="mt-4 max-w-md font-display text-3xl font-extrabold leading-tight text-navy sm:text-4xl">
+          <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
+            {slide.badge && (
+              <span
+                className="mb-4 inline-flex w-fit rounded-xl px-3 py-1.5 text-xs font-bold text-white"
+                style={{ backgroundColor: badgeColor }}
+              >
+                {slide.badge}
+              </span>
+            )}
+            <h2 className="max-w-md font-display text-3xl font-extrabold leading-tight text-[#1A1D23] sm:text-4xl">
               {slide.headline || 'Affordable repairs starting at just Rs. 149'}
             </h2>
-            <Link to={slide.ctaLink || '/services'} className="btn-primary mt-6 w-fit">
-              {slide.ctaText || 'Book Now'} <ArrowRight size={17} />
-            </Link>
+            {slide.ctaText && (
+              <Link
+                to={slide.ctaLink || '/services'}
+                className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.97]"
+                style={{ backgroundColor: buttonColor }}
+              >
+                {slide.ctaText} <ArrowRight size={17} />
+              </Link>
+            )}
           </div>
-          <div className="min-h-[220px] bg-gray-100">
-            <img
-              src={slide.imageURL || fallbackSlides[0].imageURL}
-              alt={slide.headline || 'Electrical service'}
-              width="720"
-              height="420"
-              loading={activeSlide === 0 ? 'eager' : 'lazy'}
-              decoding="async"
-              onError={(event) => handleImageFallback(event)}
-              className="h-full w-full object-cover"
-            />
+          <div className="relative min-h-[220px] overflow-hidden">
+            {imageURL ? (
+              <img
+                src={imageURL}
+                alt={slide.headline || 'Electrical service'}
+                width="720"
+                height="420"
+                loading={activeSlide === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none'
+                  event.currentTarget.nextSibling.style.display = 'flex'
+                }}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null}
+            <div
+              style={{ display: imageURL ? 'none' : 'flex' }}
+              className="absolute inset-0 flex-col items-center justify-center gap-2 bg-white/35 text-center backdrop-blur-sm"
+            >
+              <ImageIcon className="text-gray-300" size={32} />
+              <p className="max-w-[180px] text-xs font-semibold text-gray-400">Upload right-side image from Admin Settings</p>
+            </div>
           </div>
         </motion.div>
       </AnimatePresence>

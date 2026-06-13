@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   BellRing,
@@ -5,10 +7,10 @@ import {
   ClipboardList,
   Gauge,
   Gift,
-  Image,
   PackageSearch,
   CreditCard,
   Settings,
+  Smartphone,
   Sparkles,
   UserRound,
   Users,
@@ -18,20 +20,54 @@ import {
 const links = [
   { label: 'Dashboard', to: '/admin/dashboard', icon: Gauge },
   { label: 'Bookings', to: '/admin/bookings', icon: ClipboardList },
-  { label: 'Payment Verifications', to: '/admin/payments', icon: CreditCard },
+  { label: 'Payment Records', to: '/admin/payments', icon: CreditCard },
   { label: 'Customers', to: '/admin/customers', icon: UserRound },
   { label: 'Workers', to: '/admin/workers', icon: Users },
   { label: 'Services', to: '/admin/services', icon: Wrench },
   { label: 'Products', to: '/admin/products', icon: PackageSearch },
   { label: 'Coupons', to: '/admin/coupons', icon: Gift },
-  { label: 'Banners', to: '/admin/banners', icon: Image },
-  { label: 'Splash', to: '/admin/splash', icon: Sparkles },
+  { label: 'Entry Splash', to: '/admin/splash', icon: Sparkles },
   { label: 'Income', to: '/admin/income', icon: ChartNoAxesCombined },
   { label: 'Notifications', to: '/admin/notifications', icon: BellRing },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ]
 
 export default function AdminLayout() {
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [installed, setInstalled] = useState(() => window.matchMedia?.('(display-mode: standalone)').matches || false)
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {})
+    }
+  }, [])
+
+  useEffect(() => {
+    const onBeforeInstall = (event) => {
+      event.preventDefault()
+      setInstallPrompt(event)
+    }
+    const onInstalled = () => {
+      setInstalled(true)
+      setInstallPrompt(null)
+      toast.success('Admin app installed.')
+    }
+
+    window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  const installApp = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    await installPrompt.userChoice.catch(() => null)
+    setInstallPrompt(null)
+  }
+
   return (
     <main className="bg-[#FAFAFA] py-10 dark:bg-gray-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -64,6 +100,17 @@ export default function AdminLayout() {
           <Outlet />
         </div>
       </div>
+      {installPrompt && !installed && (
+        <button
+          type="button"
+          className="fixed bottom-6 right-6 z-50 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500 text-navy-900 shadow-lg transition hover:scale-105"
+          onClick={installApp}
+          aria-label="Install admin app"
+          title="Install admin app"
+        >
+          <Smartphone size={21} />
+        </button>
+      )}
     </main>
   )
 }

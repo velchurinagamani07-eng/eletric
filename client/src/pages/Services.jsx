@@ -124,7 +124,23 @@ export default function Services() {
             </aside>
 
             <section>
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 grid gap-3">
+                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {categories.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => selectCategory(item.id)}
+                      className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition ${
+                        category === item.id
+                          ? 'border-amber-400 bg-amber-100 text-amber-800'
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-amber-200 dark:border-white/10 dark:bg-gray-900 dark:text-gray-300'
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
                 <p className="text-sm font-semibold text-gray-500">{filteredServices.length} services found</p>
               </div>
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
