@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -14,6 +14,7 @@ export default function ServiceDetail() {
   const { slug } = useParams()
   const { services, loading } = useServices({ onlyActive: false })
   const service = useMemo(() => services.find((item) => item.slug === slug || item.id === slug), [services, slug])
+  const [selectedImage, setSelectedImage] = useState('')
   const addItem = useCartStore((state) => state.addItem)
 
   if (!service && loading) {
@@ -32,6 +33,9 @@ export default function ServiceDetail() {
   }
 
   const totalEstimate = service.labor + service.partsEstimate
+  const galleryImages = (service.images?.length ? service.images : [service.imageURL || getServiceImage(service)]).filter(Boolean)
+  const images = galleryImages.length ? galleryImages : [getServiceImage(service)]
+  const mainImage = selectedImage || images[0]
 
   return (
     <>
@@ -57,24 +61,47 @@ export default function ServiceDetail() {
 
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
-              <div className="overflow-hidden rounded-lg bg-gray-200 shadow-xl">
-                <img
-                  src={getServiceImage(service)}
-                  alt={service.name}
-                  onError={handleImageFallback}
-                  className="aspect-[16/11] w-full object-cover"
-                />
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                {(service.images?.length ? service.images : [service.imageURL, service.imageURL, service.imageURL]).slice(0, 3).map((src, index) => (
+              <div className="flex gap-2 overflow-x-auto rounded-2xl pb-1 snap-x snap-mandatory no-scrollbar lg:hidden">
+                {images.map((src, index) => (
                   <img
-                    key={`${service.id}-gallery-${src || index}`}
-                    src={src || getServiceImage(service)}
-                    alt={`${service.name} gallery ${index + 1}`}
+                    key={`${service.id}-mobile-gallery-${src || index}`}
+                    src={src}
+                    alt={`${service.name} photo ${index + 1}`}
                     onError={handleImageFallback}
-                    className="aspect-[4/3] rounded-lg object-cover"
+                    className="aspect-square w-full shrink-0 rounded-2xl object-cover snap-center"
                   />
                 ))}
+              </div>
+              <div className="hidden lg:block">
+                <div className="overflow-hidden rounded-lg bg-gray-200 shadow-xl">
+                  <img
+                    src={mainImage}
+                    alt={service.name}
+                    onError={handleImageFallback}
+                    className="aspect-[16/11] w-full object-cover"
+                  />
+                </div>
+                {images.length > 1 && (
+                  <div className="mt-3 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                    {images.map((src, index) => (
+                      <button
+                        type="button"
+                        key={`${service.id}-gallery-${src || index}`}
+                        onClick={() => setSelectedImage(src)}
+                        className={`h-24 w-28 shrink-0 overflow-hidden rounded-lg border ${
+                          mainImage === src ? 'border-amber-500' : 'border-gray-200'
+                        }`}
+                      >
+                        <img
+                          src={src}
+                          alt={`${service.name} photo ${index + 1}`}
+                          onError={handleImageFallback}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

@@ -79,6 +79,9 @@ export default function ManageServices() {
     const nextErrors = validate(form)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
+    if ((form.images?.length || 0) < 3) {
+      toast('Tip: services with 3+ photos get more bookings. You can add more later from Edit.')
+    }
 
     setSaving(true)
     try {
@@ -182,10 +185,16 @@ export default function ManageServices() {
           <Field label="Description" error={errors.description} className="md:col-span-4">
             <textarea className="field min-h-28" value={form.description} onChange={(event) => update('description', event.target.value)} />
           </Field>
-          <div className="md:col-span-4">
+          <Field
+            label="Service Photos"
+            hint="Add at least 3 photos: different angles, before/after, equipment used."
+            error={errors.images}
+            className="md:col-span-4"
+          >
             <ImageUploader
               label="Upload service images"
               multiple
+              maxFiles={6}
               folder={`service-${editingId || form.name || 'new'}`}
               currentImageUrl={form.images || (form.imageURL ? [form.imageURL] : [])}
               onUploadComplete={(urls) => {
@@ -193,8 +202,8 @@ export default function ManageServices() {
                 update('images', urls)
               }}
             />
-            {errors.images && <span className="mt-1 block text-xs font-semibold text-red-500">{errors.images}</span>}
-          </div>
+            <PhotoProgress count={form.images?.length || 0} />
+          </Field>
           <div className="flex items-center gap-3 md:col-span-2">
             <button
               type="button"
@@ -297,12 +306,31 @@ export default function ManageServices() {
   )
 }
 
-function Field({ label, error, children, className = '' }) {
+function Field({ label, error, hint, children, className = '' }) {
   return (
-    <label className={className}>
+    <div className={className}>
       <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">{label}</span>
+      {hint && <span className="-mt-1 mb-2 block text-xs font-semibold text-gray-400">{hint}</span>}
       {children}
       {error && <span className="mt-1 block text-xs font-semibold text-red-500">{error}</span>}
-    </label>
+    </div>
+  )
+}
+
+function PhotoProgress({ count }) {
+  const value = Math.min(100, (Number(count || 0) / 3) * 100)
+  const complete = count >= 3
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+        <div
+          className={`h-full rounded-full transition-all ${complete ? 'bg-emerald-500' : 'bg-amber-400'}`}
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <span className={`text-xs font-bold ${complete ? 'text-emerald-600' : 'text-amber-600'}`}>
+        {count}/3
+      </span>
+    </div>
   )
 }

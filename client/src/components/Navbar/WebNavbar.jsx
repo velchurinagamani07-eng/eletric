@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import NotificationBell from '../NotificationBell'
+import ConfirmDialog from '../ConfirmDialog'
 import { settings } from '../../data/catalog'
 import { useProducts, productPrice } from '../../hooks/useProducts'
 import { useServiceCategories, useServices } from '../../hooks/useServices'
@@ -54,6 +55,7 @@ export default function WebNavbar() {
   const [megaOpen, setMegaOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const cartCount = useCartStore((state) => state.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0))
@@ -254,10 +256,9 @@ export default function WebNavbar() {
                   )}
                   <button
                     type="button"
-                    onClick={async () => {
-                      await logout()
+                    onClick={() => {
                       setMenuOpen(false)
-                      navigate('/login')
+                      setConfirmLogout(true)
                     }}
                     className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
                   >
@@ -318,6 +319,19 @@ export default function WebNavbar() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={confirmLogout}
+        title={`Log out of ${user?.name || 'your'} account?`}
+        description={`You're currently signed in as a ${user?.role || 'user'}.\nYou'll need to sign in again to access your dashboard.`}
+        confirmLabel="Log Out"
+        confirmVariant="danger"
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={async () => {
+          await logout()
+          setConfirmLogout(false)
+          navigate('/')
+        }}
+      />
     </>
   )
 }

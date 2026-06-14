@@ -1,9 +1,15 @@
+import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { Mail, Phone, ShieldCheck, Wrench } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { LogOut, Mail, Phone, ShieldCheck, Wrench } from 'lucide-react'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { useAuthStore } from '../store/authStore'
 
 export default function WorkerProfile() {
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+  const navigate = useNavigate()
   const initial = (user?.name || user?.email || 'W').slice(0, 1).toUpperCase()
 
   return (
@@ -35,7 +41,25 @@ export default function WorkerProfile() {
         <p className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
           Profile edits are handled by the admin team to keep worker verification records consistent.
         </p>
+        <div className="mt-5 flex justify-end">
+          <button type="button" className="btn-danger w-full justify-center sm:w-auto" onClick={() => setConfirmLogout(true)}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </section>
+      <ConfirmDialog
+        open={confirmLogout}
+        title={`Log out of ${user?.name || 'worker'} account?`}
+        description="You're currently signed in as a Worker.\nYou'll need to sign in again to access your dashboard."
+        confirmLabel="Log Out"
+        confirmVariant="danger"
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={async () => {
+          await logout()
+          setConfirmLogout(false)
+          navigate('/')
+        }}
+      />
     </>
   )
 }

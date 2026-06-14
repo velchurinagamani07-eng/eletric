@@ -1,21 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { createElement, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { doc, onSnapshot } from 'firebase/firestore'
 import {
   ArrowRight,
-  BatteryCharging,
-  Cable,
-  Cctv,
   CheckCircle2,
-  CircuitBoard,
   Clock,
-  Fan,
   ImageIcon,
-  Lightbulb,
   Minus,
-  PlugZap,
   Plus,
   ShoppingCart,
   Star,
@@ -28,6 +21,7 @@ import { productPrice, useProducts } from '../hooks/useProducts'
 import { useCartStore } from '../store/cartStore'
 import { currency } from '../utils/format'
 import { getDefaultImage, getServiceImage, handleImageFallback } from '../utils/defaultImages'
+import { getCategoryIcon } from '../utils/categoryIcons'
 
 const fallbackSlides = [
   {
@@ -55,17 +49,6 @@ const fallbackSlides = [
     order: 1,
   },
 ]
-
-const categoryIconMap = {
-  BatteryCharging,
-  Cable,
-  Cctv,
-  CircuitBoard,
-  Fan,
-  Lightbulb,
-  PlugZap,
-  Zap,
-}
 
 export default function Home() {
   const [slides, setSlides] = useState(fallbackSlides)
@@ -116,6 +99,10 @@ export default function Home() {
   const cartTotal = cartItems.reduce((sum, item) => sum + Number(item.basePrice || item.price || 0) * Number(item.quantity || 1), 0)
   const cartCount = cartItems.reduce((sum, item) => sum + Number(item.quantity || 1), 0)
   const recommendedProducts = products.slice(0, 3)
+  const validCategories = useMemo(
+    () => categories.filter((category) => category.slug && !('specialization' in category) && !('photoURL' in category)),
+    [categories],
+  )
 
   const openCategory = (category) => {
     navigate(`/services?category=${encodeURIComponent(category.id || category.slug || category.name)}`)
@@ -151,8 +138,8 @@ export default function Home() {
         </script>
       </Helmet>
 
-      <main className="bg-surface pb-6 lg:pb-0">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[280px_1fr] lg:py-8">
+      <main className="overflow-x-hidden bg-surface pb-6 lg:pb-0">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-8">
           <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
             <div className="space-y-5 pr-2">
               <section>
@@ -174,77 +161,40 @@ export default function Home() {
 
               <section className="rounded-2xl border border-surface-border bg-white p-4 shadow-card">
                 <h2 className="mb-3 text-sm font-bold text-navy">Select a service</h2>
-                <div className="grid grid-cols-3 gap-x-2 gap-y-4">
-                  {categories.slice(0, 9).map((category) => (
-                    <button
-                      type="button"
-                      key={category.id}
-                      onClick={() => openCategory(category)}
-                      className="group flex flex-col items-center gap-1.5 focus:outline-none"
-                    >
-                      <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-surface-border bg-amber-50 shadow-sm transition-all group-hover:border-amber-400">
-                        {category.imageURL || category.iconURL ? (
-                          <img
-                            src={category.imageURL || category.iconURL}
-                            alt={category.name}
-                            width="64"
-                            height="64"
-                            loading="lazy"
-                            decoding="async"
-                            onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <CategoryIcon category={category} />
-                        )}
-                      </div>
-                      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-gray-700 group-hover:text-amber-600">
-                        {category.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} />
               </section>
 
               <CartSummary items={cartItems} total={cartTotal} count={cartCount} />
             </div>
           </aside>
 
-          <section className="min-w-0">
-            <section className="category-strip relative -mx-4 mb-4 overflow-x-auto px-4 pb-1 lg:hidden">
-              <div className="flex gap-3">
-                {categories.slice(0, 12).map((category) => (
-                  <button
-                    type="button"
-                    key={category.id}
-                    onClick={() => openCategory(category)}
-                    className="flex w-20 shrink-0 flex-col items-center gap-1.5"
-                  >
-                    <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-surface-border bg-white shadow-sm">
-                      {category.imageURL || category.iconURL ? (
-                        <img
-                          src={category.imageURL || category.iconURL}
-                          alt={category.name}
-                          width="64"
-                          height="64"
-                          loading="lazy"
-                          decoding="async"
-                          onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <CategoryIcon category={category} />
-                      )}
-                    </div>
-                    <span className="line-clamp-2 text-center text-[11px] font-semibold leading-tight text-gray-700">
-                      {category.name}
-                    </span>
-                  </button>
-                ))}
+          <section className="min-w-0 w-full">
+            <section className="mb-4 lg:hidden">
+              <h1 className="font-display text-2xl font-extrabold leading-tight text-navy">{settings.companyName}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                <span className="inline-flex items-center gap-1">
+                  <Star size={14} fill="currentColor" className="text-amber-400" />
+                  <span className="font-semibold">4.80</span>
+                  <span className="text-gray-400">(2.5K bookings)</span>
+                </span>
+                <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                  <Zap size={13} fill="currentColor" /> Instant
+                </span>
+                <span className="inline-flex items-center gap-1 text-gray-500">
+                  <Clock size={13} /> In ~30 mins
+                </span>
+              </div>
+              <div className="mt-4 rounded-2xl border border-surface-border bg-white p-4 shadow-card">
+                <h2 className="mb-3 text-sm font-bold text-navy">Select a service</h2>
+                <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} />
               </div>
             </section>
 
             <PromoSlider slides={slides} activeSlide={activeSlide} setActiveSlide={setActiveSlide} />
+
+            <div className="mt-4 lg:hidden">
+              <CartSummary items={cartItems} total={cartTotal} count={cartCount} />
+            </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-navy sm:grid-cols-4 lg:hidden">
               {['3 Month Warranty', 'Same-Day Service', 'Verified Workers', 'Transparent Price'].map((label) => (
@@ -346,11 +296,58 @@ export default function Home() {
   )
 }
 
+function CategoryGrid({ categories, onOpen, onMore }) {
+  const displayCategories = categories.length > 9 ? categories.slice(0, 8) : categories.slice(0, 9)
+  const moreCount = categories.length > 9 ? categories.length - 8 : 0
+
+  return (
+    <div className="grid w-full grid-cols-3 gap-x-2 gap-y-4">
+      {displayCategories.map((category) => (
+        <CategoryTile key={category.id} category={category} onClick={() => onOpen(category)} />
+      ))}
+      {moreCount > 0 && (
+        <button type="button" onClick={onMore} className="group flex flex-col items-center gap-1.5 focus:outline-none">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-amber-300 bg-amber-50 text-sm font-bold text-amber-600 transition-all group-hover:border-amber-400 group-hover:bg-amber-100">
+            +{moreCount}
+          </div>
+          <span className="text-center text-[11px] font-medium text-gray-700 group-hover:text-amber-600">More</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function CategoryTile({ category, onClick }) {
+  return (
+    <button type="button" onClick={onClick} className="group flex min-w-0 flex-col items-center gap-1.5 focus:outline-none">
+      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 border-surface-border bg-amber-50 shadow-sm transition-all group-hover:border-amber-400">
+        {category.imageURL || category.iconURL ? (
+          <img
+            src={category.imageURL || category.iconURL}
+            alt={category.name}
+            width="64"
+            height="64"
+            loading="lazy"
+            decoding="async"
+            onError={(event) => handleImageFallback(event, getDefaultImage(category.id))}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <CategoryIcon category={category} />
+        )}
+      </div>
+      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-gray-700 group-hover:text-amber-600">
+        {category.name}
+      </span>
+    </button>
+  )
+}
+
 function CategoryIcon({ category }) {
-  const Icon = categoryIconMap[category.icon] || categoryIconMap[category.id] || Zap
+  const Icon = getCategoryIcon(category)
   return (
     <div className="flex h-full w-full items-center justify-center bg-amber-50 text-amber-600">
-      <Icon size={26} strokeWidth={2.3} />
+      {createElement(Icon, { size: 26, strokeWidth: 2.3 })}
     </div>
   )
 }
@@ -362,11 +359,11 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
   const imageURL = slide.rightImageURL || slide.imageURL || ''
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
+    <section className="relative w-full min-w-0 overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id || activeSlide}
-          className="grid min-h-[280px] md:grid-cols-2"
+          className="grid min-h-[280px] grid-cols-1 md:grid-cols-2"
           initial={{ opacity: 0, x: 18 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -18 }}
@@ -395,7 +392,7 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
               </Link>
             )}
           </div>
-          <div className="relative min-h-[220px] overflow-hidden">
+          <div className="relative min-h-[220px] min-w-0 overflow-hidden">
             {imageURL ? (
               <img
                 src={imageURL}

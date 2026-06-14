@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore'
 import {
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react'
 import PaymentReceipt from '../components/PaymentReceipt'
 import UpiPaymentCard from '../components/UpiPaymentCard'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { useAuthStore } from '../store/authStore'
 import { currency, fullAddress } from '../utils/format'
 import { generateBookingsPDF, generateReceiptPDF } from '../utils/generatePDF'
@@ -103,10 +105,12 @@ export default function UserDashboard({ initialTab = 'overview' }) {
   const [screenshotURL, setScreenshotURL] = useState('')
   const [submittingPayment, setSubmittingPayment] = useState(false)
   const [addressForm, setAddressForm] = useState(emptyAddress)
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const user = useAuthStore((state) => state.user)
   const updateProfileLocal = useAuthStore((state) => state.updateProfileLocal)
   const resetPassword = useAuthStore((state) => state.resetPassword)
   const logout = useAuthStore((state) => state.logout)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!user?.uid || !db || !isFirebaseConfigured) {
@@ -309,7 +313,7 @@ export default function UserDashboard({ initialTab = 'overview' }) {
               <p className="eyebrow">User Panel</p>
               <h1 className="mt-2 font-display text-3xl font-extrabold text-navy dark:text-white">Welcome, {user?.name || 'Customer'}</h1>
             </div>
-            <button type="button" className="btn-secondary" onClick={logout}>
+            <button type="button" className="btn-secondary" onClick={() => setConfirmLogout(true)}>
               <LogOut size={17} /> Logout
             </button>
           </div>
@@ -486,6 +490,9 @@ export default function UserDashboard({ initialTab = 'overview' }) {
                       >
                         <KeyRound size={16} /> Change Password
                       </button>
+                      <button type="button" className="btn-danger w-full justify-center sm:w-auto" onClick={() => setConfirmLogout(true)}>
+                        <LogOut size={16} /> Logout
+                      </button>
                     </div>
                   </form>
 
@@ -559,6 +566,19 @@ export default function UserDashboard({ initialTab = 'overview' }) {
           </div>
         </div>
       </main>
+      <ConfirmDialog
+        open={confirmLogout}
+        title={`Log out of ${user?.name || 'your'} account?`}
+        description={`You're currently signed in as a ${user?.role || 'customer'}.\nYou'll need to sign in again to access your dashboard.`}
+        confirmLabel="Log Out"
+        confirmVariant="danger"
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={async () => {
+          await logout()
+          setConfirmLogout(false)
+          navigate('/')
+        }}
+      />
     </>
   )
 }

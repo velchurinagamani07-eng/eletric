@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { CheckCircle2, GripVertical, ImageUp, RotateCcw, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, CheckCircle2, ImageUp, RotateCcw, Trash2 } from 'lucide-react'
 import { uploadToImgBB } from '../utils/uploadToImgBB'
 
 const makeId = (file) => `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`
@@ -17,10 +17,10 @@ export default function ImageUploader({
 }) {
   const shouldEmitUrlsRef = useRef(false)
   const justUploadedRef = useRef(false)
-  const incomingUrls = multiple
-    ? Array.isArray(currentImageUrl) ? currentImageUrl : currentImageUrl ? [currentImageUrl] : []
-    : []
-  const incomingUrlsKey = incomingUrls.join('|')
+  const incomingUrls = useMemo(
+    () => (multiple ? Array.isArray(currentImageUrl) ? currentImageUrl : currentImageUrl ? [currentImageUrl] : [] : []),
+    [currentImageUrl, multiple],
+  )
   const initialItems = useMemo(
     () =>
       multiple
@@ -34,7 +34,7 @@ export default function ImageUploader({
             sizeKB: 0,
           }))
         : [],
-    [incomingUrlsKey, multiple],
+    [incomingUrls, multiple],
   )
   const [items, setItems] = useState(initialItems)
   const [single, setSingle] = useState({
@@ -52,22 +52,29 @@ export default function ImageUploader({
       justUploadedRef.current = false
       return
     }
-    if (multiple) {
-      setItems((current) => {
-        const hasLocalActivity = current.some((item) => item.file || item.status === 'uploading' || item.status === 'error')
-        const currentUrls = current.filter((item) => item.status === 'complete').map((item) => item.url).join('|')
-        const nextUrls = initialItems.map((item) => item.url).join('|')
-        if (hasLocalActivity || currentUrls === nextUrls) return current
-        return initialItems
-      })
-    } else {
-      setSingle((current) => ({
-        ...current,
-        preview: currentImageUrl || '',
-        url: currentImageUrl || '',
-        progress: currentImageUrl ? 100 : 0,
-        status: currentImageUrl ? 'complete' : 'idle',
-      }))
+    let alive = true
+    Promise.resolve().then(() => {
+      if (!alive) return
+      if (multiple) {
+        setItems((current) => {
+          const hasLocalActivity = current.some((item) => item.file || item.status === 'uploading' || item.status === 'error')
+          const currentUrls = current.filter((item) => item.status === 'complete').map((item) => item.url).join('|')
+          const nextUrls = initialItems.map((item) => item.url).join('|')
+          if (hasLocalActivity || currentUrls === nextUrls) return current
+          return initialItems
+        })
+      } else {
+        setSingle((current) => ({
+          ...current,
+          preview: currentImageUrl || '',
+          url: currentImageUrl || '',
+          progress: currentImageUrl ? 100 : 0,
+          status: currentImageUrl ? 'complete' : 'idle',
+        }))
+      }
+    })
+    return () => {
+      alive = false
     }
   }, [currentImageUrl, initialItems, multiple])
 
@@ -233,8 +240,23 @@ export default function ImageUploader({
                 </span>
               )}
               <div className="absolute right-2 top-2 flex gap-1">
-                <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-600 shadow" onClick={() => reorderItem(item.id, -1)} aria-label="Move image earlier">
-                  <GripVertical size={14} />
+                <button
+                  type="button"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-600 shadow disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => reorderItem(item.id, -1)}
+                  disabled={index === 0}
+                  aria-label="Move image earlier"
+                >
+                  <ArrowUp size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-600 shadow disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => reorderItem(item.id, 1)}
+                  disabled={index === items.length - 1}
+                  aria-label="Move image later"
+                >
+                  <ArrowDown size={14} />
                 </button>
                 <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-red-600 shadow" onClick={() => removeItem(item.id)} aria-label="Remove image">
                   <Trash2 size={14} />

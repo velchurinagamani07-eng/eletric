@@ -9,6 +9,31 @@ function stableSlug(value = 'service') {
     .replace(/(^-|-$)/g, '') || 'service'
 }
 
+function looksLikeWorkerRecord(category = {}) {
+  const name = String(category.name || '').trim().toLowerCase()
+  return (
+    name === 'mahi' ||
+    'specialization' in category ||
+    'phone' in category ||
+    'mobile' in category ||
+    'photoURL' in category ||
+    ('rating' in category && 'totalJobsCompleted' in category)
+  )
+}
+
+function normalizeCategory(category = {}) {
+  const id = category.id || category.slug || stableSlug(category.name || 'category')
+  const slug = category.slug || (id === 'all' ? 'all' : stableSlug(category.name || id))
+
+  return {
+    ...category,
+    id,
+    slug,
+    name: category.name || 'Untitled category',
+    isActive: category.isActive !== false,
+  }
+}
+
 export function normalizeService(service = {}) {
   const id = service.id || service.slug || stableSlug(service.name)
   const basePrice = Number(service.basePrice || service.price || 0)
@@ -64,11 +89,14 @@ export function useServiceCategories({ includeAll = false, onlyActive = true } =
   const categories = useMemo(() => {
     const filtered = items.filter((category) => {
       if (!includeAll && category.id === 'all') return false
+      if (looksLikeWorkerRecord(category)) return false
+      if (!category.slug && category.id !== 'all') return false
+      if (!category.name || category.name === 'Untitled category') return false
       if (onlyActive && category.isActive === false) return false
       return true
-    })
+    }).map(normalizeCategory)
     const hasAll = filtered.some((category) => category.id === 'all')
-    return includeAll && !hasAll ? [categorySeed[0], ...filtered] : filtered
+    return includeAll && !hasAll ? [normalizeCategory(categorySeed[0]), ...filtered] : filtered
   }, [includeAll, items, onlyActive])
 
   return { categories, loading, error }

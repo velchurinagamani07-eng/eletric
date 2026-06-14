@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
+import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
 import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2 } from 'lucide-react'
 import { defaultHero, settings } from '../data/catalog'
 import { db, isFirebaseConfigured } from '../firebase/config'
@@ -134,6 +134,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const [announcementForm, setAnnouncementForm] = useState(emptyAnnouncement)
   const [saving, setSaving] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [cleaningCategories, setCleaningCategories] = useState(false)
   const [testStatus, setTestStatus] = useState('idle')
   const [testResult, setTestResult] = useState(null)
   const sortedAnnouncements = [...announcementItems].sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
@@ -343,6 +344,43 @@ export default function AdminSettings({ initialSection = 'company' }) {
       toast.error(error.message || 'Unable to seed default data.')
     } finally {
       setSeeding(false)
+    }
+  }
+
+  const cleanupInvalidCategories = async () => {
+    if (!db || !isFirebaseConfigured) {
+      toast.error('Firestore is not configured.')
+      return
+    }
+    if (!window.confirm('Remove invalid category records that look like worker profiles?')) return
+
+    setCleaningCategories(true)
+    try {
+      const snap = await getDocs(collection(db, 'categories'))
+      const batch = writeBatch(db)
+      let removed = 0
+      snap.forEach((docSnap) => {
+        const data = docSnap.data()
+        const name = String(data.name || '').trim().toLowerCase()
+        const looksLikeWorker =
+          name === 'mahi' ||
+          'specialization' in data ||
+          'phone' in data ||
+          'mobile' in data ||
+          'photoURL' in data ||
+          ('rating' in data && 'totalJobsCompleted' in data)
+        const missingCategoryFields = !data.slug
+        if (looksLikeWorker || missingCategoryFields) {
+          batch.delete(docSnap.ref)
+          removed += 1
+        }
+      })
+      if (removed > 0) await batch.commit()
+      toast.success(`Removed ${removed} invalid category record(s).`)
+    } catch (error) {
+      toast.error(error.message || 'Unable to clean categories.')
+    } finally {
+      setCleaningCategories(false)
     }
   }
 
@@ -744,9 +782,14 @@ export default function AdminSettings({ initialSection = 'company' }) {
                 Seed production-ready default categories, services, product categories, and products into Firestore. Matching document IDs are merged.
               </p>
             </div>
-            <button type="button" className="btn-primary" disabled={seeding} onClick={seedDefaultData}>
-              <Database size={17} /> {seeding ? 'Seeding...' : 'Seed Default Catalog'}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="btn-primary" disabled={seeding} onClick={seedDefaultData}>
+                <Database size={17} /> {seeding ? 'Seeding...' : 'Seed Default Catalog'}
+              </button>
+              <button type="button" className="btn-danger" disabled={cleaningCategories} onClick={cleanupInvalidCategories}>
+                <Trash2 size={17} /> {cleaningCategories ? 'Cleaning...' : 'Clean Invalid Categories'}
+              </button>
+            </div>
           </div>
           <div className="mt-5 grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-3">
             <div className="rounded-lg bg-gray-50 p-4 dark:bg-white/5">

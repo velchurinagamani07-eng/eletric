@@ -88,32 +88,45 @@ export default function ProductDetail() {
           ) : (
             <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
               <div>
-                <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:border-white/10 dark:bg-gray-900">
-                  <img
-                    src={selectedImage || DEFAULT_SERVICE_IMAGE}
-                    alt={product.name}
-                    onError={handleImageFallback}
-                    className="aspect-square w-full object-cover"
-                    width="720"
-                    height="720"
-                  />
+                <div className="flex gap-2 overflow-x-auto rounded-2xl pb-1 snap-x snap-mandatory no-scrollbar lg:hidden">
+                  {images.map((image, index) => (
+                    <img
+                      key={`${image}-${index}-mobile`}
+                      src={image}
+                      alt={`${product.name} photo ${index + 1}`}
+                      onError={handleImageFallback}
+                      className="aspect-square w-full shrink-0 rounded-2xl object-cover snap-center"
+                    />
+                  ))}
                 </div>
-                {images.length > 1 && (
-                  <div className="mt-3 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
-                    {images.map((image, index) => (
-                      <button
-                        type="button"
-                        key={`${image}-${index}`}
-                        onClick={() => setSelectedImage(image)}
-                        className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border ${
-                          selectedImage === image ? 'border-amber-500' : 'border-[#E2E8F0]'
-                        }`}
-                      >
-                        <img src={image} alt="" onError={handleImageFallback} className="h-full w-full object-cover" />
-                      </button>
-                    ))}
+                <div className="hidden lg:block">
+                  <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:border-white/10 dark:bg-gray-900">
+                    <img
+                      src={selectedImage || images[0] || DEFAULT_SERVICE_IMAGE}
+                      alt={product.name}
+                      onError={handleImageFallback}
+                      className="aspect-square w-full object-cover"
+                      width="720"
+                      height="720"
+                    />
                   </div>
-                )}
+                  {images.length > 1 && (
+                    <div className="mt-3 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                      {images.map((image, index) => (
+                        <button
+                          type="button"
+                          key={`${image}-${index}`}
+                          onClick={() => setSelectedImage(image)}
+                          className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border ${
+                            selectedImage === image ? 'border-amber-500' : 'border-[#E2E8F0]'
+                          }`}
+                        >
+                          <img src={image} alt={`${product.name} thumbnail ${index + 1}`} onError={handleImageFallback} className="h-full w-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:border-white/10 dark:bg-gray-900 sm:p-7">

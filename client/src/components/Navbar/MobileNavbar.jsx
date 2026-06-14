@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { settings } from '../../data/catalog'
 import { useAuthStore } from '../../store/authStore'
+import ConfirmDialog from '../ConfirmDialog'
 
 const sparkParticles = [
   { x: -16, y: -12 },
@@ -46,6 +47,7 @@ const accountLinks = [
 
 export default function MobileNavbar() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
@@ -146,10 +148,9 @@ export default function MobileNavbar() {
                   <button
                     type="button"
                     className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 text-sm font-bold text-red-600"
-                    onClick={async () => {
-                      await logout()
+                    onClick={() => {
                       setDrawerOpen(false)
-                      navigate('/login')
+                      setConfirmLogout(true)
                     }}
                   >
                     <LogOut size={17} /> Logout
@@ -202,6 +203,19 @@ export default function MobileNavbar() {
           <span>Menu</span>
         </button>
       </nav>
+      <ConfirmDialog
+        open={confirmLogout}
+        title={`Log out of ${user?.name || 'your'} account?`}
+        description={`You're currently signed in as a ${user?.role || 'user'}.\nYou'll need to sign in again to access your dashboard.`}
+        confirmLabel="Log Out"
+        confirmVariant="danger"
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={async () => {
+          await logout()
+          setConfirmLogout(false)
+          navigate('/')
+        }}
+      />
     </>
   )
 }

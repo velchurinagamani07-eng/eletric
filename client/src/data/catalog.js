@@ -33,14 +33,14 @@ export const defaultHero = {
 }
 
 export const categories = [
-  { id: 'all', name: 'All', icon: 'Zap', order: 0, isActive: true },
-  { id: 'fans', name: 'Fans', icon: 'Fan', order: 1, isActive: true },
-  { id: 'wiring', name: 'Wiring', icon: 'Cable', order: 2, isActive: true },
-  { id: 'sockets', name: 'Sockets', icon: 'PlugZap', order: 3, isActive: true },
-  { id: 'mcb', name: 'MCB', icon: 'CircuitBoard', order: 4, isActive: true },
-  { id: 'lights', name: 'Lights', icon: 'Lightbulb', order: 5, isActive: true },
-  { id: 'backup', name: 'Backup', icon: 'BatteryCharging', order: 6, isActive: true },
-  { id: 'security', name: 'Security', icon: 'Cctv', order: 7, isActive: true },
+  { id: 'all', slug: 'all', name: 'All', icon: 'Zap', order: 0, isActive: true },
+  { id: 'fans', slug: 'fan-services', name: 'Fans', icon: 'Fan', order: 1, isActive: true },
+  { id: 'wiring', slug: 'wiring-circuits', name: 'Wiring', icon: 'Cable', order: 2, isActive: true },
+  { id: 'sockets', slug: 'sockets-plugs', name: 'Sockets', icon: 'PlugZap', order: 3, isActive: true },
+  { id: 'mcb', slug: 'mcb-db-box', name: 'MCB', icon: 'CircuitBoard', order: 4, isActive: true },
+  { id: 'lights', slug: 'lights-switches', name: 'Lights', icon: 'Lightbulb', order: 5, isActive: true },
+  { id: 'backup', slug: 'inverter-battery', name: 'Backup', icon: 'BatteryCharging', order: 6, isActive: true },
+  { id: 'security', slug: 'cctv-security', name: 'Security', icon: 'Cctv', order: 7, isActive: true },
 ]
 
 const image = (id) =>

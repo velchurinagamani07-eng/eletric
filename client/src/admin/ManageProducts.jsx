@@ -69,9 +69,16 @@ export default function ManageProducts() {
       toast.error('Product name is required.')
       return
     }
+    if (!form.images?.length) {
+      toast.error('Upload at least one product image.')
+      return
+    }
     if (!db || !isFirebaseConfigured) {
       toast.error('Firestore is not configured.')
       return
+    }
+    if ((form.images?.length || 0) < 3) {
+      toast('Tip: products with 3+ photos look more trustworthy. You can add more later from Edit.')
     }
 
     setSaving(true)
@@ -198,14 +205,19 @@ export default function ManageProducts() {
         </div>
 
         <div className="mt-5">
+          <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Product Photos</span>
+          <span className="-mt-1 mb-2 block text-xs font-semibold text-gray-400">
+            Add at least 3 photos: packaging, product itself, and size/scale reference.
+          </span>
           <ImageUploader
             label="Upload product images"
             multiple
             maxFiles={6}
             currentImageUrl={form.images}
-            folder={`products-${form.name || 'new'}`}
+            folder="products"
             onUploadComplete={(urls) => update('images', urls)}
           />
+          <PhotoProgress count={form.images?.length || 0} />
         </div>
 
         <button type="submit" className="btn-primary mt-5" disabled={saving}>
@@ -253,5 +265,23 @@ export default function ManageProducts() {
         </div>
       </div>
     </section>
+  )
+}
+
+function PhotoProgress({ count }) {
+  const value = Math.min(100, (Number(count || 0) / 3) * 100)
+  const complete = count >= 3
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+        <div
+          className={`h-full rounded-full transition-all ${complete ? 'bg-emerald-500' : 'bg-amber-400'}`}
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <span className={`text-xs font-bold ${complete ? 'text-emerald-600' : 'text-amber-600'}`}>
+        {count}/3
+      </span>
+    </div>
   )
 }
