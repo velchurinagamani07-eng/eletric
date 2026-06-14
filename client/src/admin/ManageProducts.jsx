@@ -201,7 +201,6 @@ export default function ManageProducts() {
           <ImageUploader
             label="Upload product images"
             multiple
-            useAdminStorage
             maxFiles={6}
             currentImageUrl={form.images}
             folder={`products-${form.name || 'new'}`}

@@ -97,7 +97,6 @@ export default function ManageProductCategories() {
           </label>
           <ImageUploader
             label="Upload category image"
-            useAdminStorage
             currentImageUrl={form.imageURL}
             folder={`product-category-${form.name || 'new'}`}
             onUploadComplete={(url) => update('imageURL', url)}

@@ -24,18 +24,6 @@ function canvasToBlob(canvas, quality) {
   })
 }
 
-async function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = String(reader.result || '')
-      resolve(result.includes(',') ? result.split(',')[1] : result)
-    }
-    reader.onerror = () => reject(new Error('Unable to read compressed image.'))
-    reader.readAsDataURL(file)
-  })
-}
-
 export async function compressToWebP(file, {
   maxWidth = 1200,
   maxSizeKB = 280,
@@ -67,47 +55,4 @@ export async function compressToWebP(file, {
     type: 'image/webp',
     lastModified: Date.now(),
   })
-}
-
-export async function compressAndUploadToImgBB(
-  file,
-  { name, onProgress, maxWidth = 1200, maxSizeKB = 280, apiKey = import.meta.env.VITE_IMGBB_API_KEY } = {},
-) {
-  onProgress?.(5)
-  const webpFile = await compressToWebP(file, { maxWidth, maxSizeKB })
-  onProgress?.(25)
-  return uploadCompressedToImgBB(webpFile, { name, onProgress, apiKey })
-}
-
-export async function uploadCompressedToImgBB(
-  webpFile,
-  { name, onProgress, apiKey = import.meta.env.VITE_IMGBB_API_KEY } = {},
-) {
-  if (!apiKey) throw new Error('ImgBB API key missing.')
-  const base64 = await fileToBase64(webpFile)
-  onProgress?.(35)
-
-  const formData = new FormData()
-  formData.append('image', base64)
-  formData.append('name', name || webpFile.name.replace(/\.[^.]+$/, ''))
-
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-    method: 'POST',
-    body: formData,
-  })
-  onProgress?.(90)
-  const payload = await response.json().catch(() => ({}))
-  if (!response.ok || !payload?.data?.url) {
-    throw new Error(payload?.error?.message || 'ImgBB upload failed.')
-  }
-  onProgress?.(100)
-
-  return {
-    url: payload.data.display_url || payload.data.url,
-    displayUrl: payload.data.display_url || payload.data.url,
-    deleteUrl: payload.data.delete_url || '',
-    thumbUrl: payload.data.thumb?.url || payload.data.display_url || payload.data.url,
-    sizeKB: Math.round(webpFile.size / 1024),
-    format: 'webp',
-  }
 }

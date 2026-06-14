@@ -101,7 +101,6 @@ export default function ManageCategories() {
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <ImageUploader
             label="Icon image"
-            useAdminStorage
             aspectRatio="1 / 1"
             folder={`category-${form.name || 'new'}-icon`}
             currentImageUrl={form.iconURL}
@@ -109,14 +108,12 @@ export default function ManageCategories() {
           />
           <ImageUploader
             label="Banner image"
-            useAdminStorage
             folder={`category-${form.name || 'new'}-banner`}
             currentImageUrl={form.bannerURL}
             onUploadComplete={(url) => setForm((value) => ({ ...value, bannerURL: url }))}
           />
           <ImageUploader
             label="Hero slide image"
-            useAdminStorage
             folder={`category-${form.name || 'new'}-slide`}
             currentImageUrl={form.slideImage}
             onUploadComplete={(url) => setForm((value) => ({ ...value, slideImage: url }))}

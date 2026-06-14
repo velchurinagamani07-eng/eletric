@@ -95,7 +95,6 @@ export default function ManageBanners() {
         <div className="mt-5 grid gap-4">
           <ImageUploader
             label="Upload full-screen splash image"
-            useAdminStorage
             currentImageUrl={splashForm.imageURL}
             folder="settings-splash"
             onUploadComplete={(url) => updateSplash('imageURL', url)}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import { CheckCircle2, GripVertical, ImageUp, RotateCcw, Trash2 } from 'lucide-react'
-import { compressAndUploadToImgBB, compressToWebP, uploadCompressedToImgBB } from '../utils/compressToWebP'
-import { uploadWithProgress } from '../utils/firebaseUploads'
+import { uploadToImgBB } from '../utils/uploadToImgBB'
 
 const makeId = (file) => `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`
 
@@ -14,13 +14,17 @@ export default function ImageUploader({
   multiple = false,
   folder = 'uploads',
   maxFiles = Infinity,
-  useAdminStorage = false,
 }) {
   const shouldEmitUrlsRef = useRef(false)
+  const justUploadedRef = useRef(false)
+  const incomingUrls = multiple
+    ? Array.isArray(currentImageUrl) ? currentImageUrl : currentImageUrl ? [currentImageUrl] : []
+    : []
+  const incomingUrlsKey = incomingUrls.join('|')
   const initialItems = useMemo(
     () =>
       multiple
-        ? (Array.isArray(currentImageUrl) ? currentImageUrl : currentImageUrl ? [currentImageUrl] : []).map((url, index) => ({
+        ? incomingUrls.map((url, index) => ({
             id: `${url}-${index}`,
             url,
             preview: url,
@@ -30,7 +34,7 @@ export default function ImageUploader({
             sizeKB: 0,
           }))
         : [],
-    [currentImageUrl, multiple],
+    [incomingUrlsKey, multiple],
   )
   const [items, setItems] = useState(initialItems)
   const [single, setSingle] = useState({
@@ -44,6 +48,10 @@ export default function ImageUploader({
   })
 
   useEffect(() => {
+    if (justUploadedRef.current) {
+      justUploadedRef.current = false
+      return
+    }
     if (multiple) {
       setItems((current) => {
         const hasLocalActivity = current.some((item) => item.file || item.status === 'uploading' || item.status === 'error')
@@ -72,6 +80,8 @@ export default function ImageUploader({
   const uploadSingle = async (file) => {
     const error = validate(file)
     if (error) {
+      console.error('[ImageUpload] Validation failed:', error)
+      toast.error(`Upload failed: ${error}`, { duration: 8000 })
       setSingle((current) => ({ ...current, error, status: 'error' }))
       return
     }
@@ -79,17 +89,19 @@ export default function ImageUploader({
     const preview = URL.createObjectURL(file)
     setSingle({ preview, url: '', progress: 0, status: 'uploading', error: '', file })
     try {
-      const result = await uploadImage(file, {
-        folder,
-        useAdminStorage,
+      const result = await uploadToImgBB(file, {
         name: `${folder}-${Date.now()}`,
         onProgress: (progress) => setSingle((current) => ({ ...current, progress })),
       })
       const url = result.url
+      justUploadedRef.current = true
       setSingle({ preview: url, url, progress: 100, status: 'complete', error: '', file: null, sizeKB: result.sizeKB })
       await onUploadComplete?.(url)
     } catch (err) {
-      setSingle((current) => ({ ...current, status: 'error', error: err.message || 'Upload failed.', file }))
+      console.error('[ImageUpload] Single upload failed:', err)
+      const message = err?.message || 'Unknown image upload error.'
+      toast.error(`Upload failed: ${message}`, { duration: 8000 })
+      setSingle((current) => ({ ...current, status: 'error', error: message, file }))
     }
   }
 
@@ -110,15 +122,14 @@ export default function ImageUploader({
 
       if (error) return
 
-      uploadImage(file, {
-        folder,
-        useAdminStorage,
+      uploadToImgBB(file, {
         name: `${folder}-${Date.now()}-${safeName(file.name)}`,
         onProgress: (progress) =>
           setItems((current) => current.map((item) => (item.id === id ? { ...item, progress } : item))),
       })
         .then((result) => {
           const url = result.url
+          justUploadedRef.current = true
           shouldEmitUrlsRef.current = true
           setItems((current) => {
             return current.map((item) =>
@@ -127,9 +138,12 @@ export default function ImageUploader({
           })
         })
         .catch((err) => {
+          console.error('[ImageUpload] Multiple upload failed:', err)
+          const message = err?.message || 'Unknown image upload error.'
+          toast.error(`Upload failed: ${message}`, { duration: 8000 })
           setItems((current) =>
             current.map((item) =>
-              item.id === id ? { ...item, status: 'error', error: err.message || 'Upload failed.', file } : item,
+              item.id === id ? { ...item, status: 'error', error: message, file } : item,
             ),
           )
         })
@@ -189,8 +203,10 @@ export default function ImageUploader({
           multiple={multiple}
           className="sr-only"
           onChange={(event) => {
-            if (multiple) uploadMultiple(event.target.files)
-            else uploadSingle(event.target.files?.[0])
+            const files = event.target.files
+            console.log('[ImageUploader] File selection received:', files?.length || 0, multiple ? 'multiple' : 'single')
+            if (multiple) uploadMultiple(files)
+            else uploadSingle(files?.[0])
             event.target.value = ''
           }}
         />
@@ -287,51 +303,4 @@ function ErrorLine({ error, onRetry, compact = false }) {
 
 function safeName(name = 'image') {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-}
-
-async function uploadImage(file, {
-  folder,
-  name,
-  onProgress,
-  useAdminStorage,
-}) {
-  if (!useAdminStorage) {
-    return compressAndUploadToImgBB(file, { name, onProgress })
-  }
-
-  onProgress?.(5)
-  const webpFile = await compressToWebP(file)
-  onProgress?.(25)
-
-  const safeFolder = safeName(folder) || 'uploads'
-  const safeFile = safeName(file.name.replace(/\.[^.]+$/, '')) || 'image'
-  const storagePath = `admin/${safeFolder}/${Date.now()}-${safeFile}.webp`
-
-  try {
-    const url = await uploadWithProgress(
-      webpFile,
-      storagePath,
-      (progress) => onProgress?.(25 + Math.round(progress * 0.7)),
-    )
-    onProgress?.(100)
-    return {
-      url,
-      displayUrl: url,
-      deleteUrl: '',
-      thumbUrl: url,
-      sizeKB: Math.round(webpFile.size / 1024),
-      format: 'webp',
-    }
-  } catch (storageError) {
-    try {
-      return await uploadCompressedToImgBB(webpFile, { name, onProgress })
-    } catch (imgbbError) {
-      const storageMessage = storageError?.message || 'Firebase Storage upload failed.'
-      const imgbbMessage = imgbbError?.message || 'ImgBB upload failed.'
-      throw new Error(
-        `Image upload failed. ${storageMessage} ${imgbbMessage}`,
-        { cause: imgbbError },
-      )
-    }
-  }
 }

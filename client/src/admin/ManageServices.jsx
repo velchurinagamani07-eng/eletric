@@ -82,6 +82,10 @@ export default function ManageServices() {
 
     setSaving(true)
     try {
+      console.log('[ManageServices] Saving service images:', {
+        imageURL: form.imageURL,
+        images: form.images,
+      })
       const service = await saveService({
         form: { ...form, id: editingId || form.id },
       })
@@ -92,9 +96,9 @@ export default function ManageServices() {
       toast.success(editingId ? 'Service updated successfully' : 'Service added successfully')
       resetForm()
     } catch (err) {
-      if (import.meta.env.DEV) console.error(err)
+      console.error('[ManageServices] Save failed:', err)
       const message = err.message || 'Unable to save service.'
-      toast.error(message)
+      toast.error(message, { duration: 8000 })
     } finally {
       setSaving(false)
     }
@@ -182,10 +186,12 @@ export default function ManageServices() {
             <ImageUploader
               label="Upload service images"
               multiple
-              useAdminStorage
               folder={`service-${editingId || form.name || 'new'}`}
               currentImageUrl={form.images || (form.imageURL ? [form.imageURL] : [])}
-              onUploadComplete={(urls) => update('images', urls)}
+              onUploadComplete={(urls) => {
+                console.log('[ManageServices] Received uploaded image URLs:', urls)
+                update('images', urls)
+              }}
             />
             {errors.images && <span className="mt-1 block text-xs font-semibold text-red-500">{errors.images}</span>}
           </div>

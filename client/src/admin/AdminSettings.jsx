@@ -7,6 +7,7 @@ import { db, isFirebaseConfigured } from '../firebase/config'
 import ImageUploader from '../components/ImageUploader'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 import { defaultAnnouncements } from '../data/announcements'
+import { uploadToImgBB } from '../utils/uploadToImgBB'
 
 const emptyAnnouncement = { id: '', text: '', href: '', order: 1, isActive: true }
 const emptyPromoSlide = {
@@ -133,6 +134,8 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const [announcementForm, setAnnouncementForm] = useState(emptyAnnouncement)
   const [saving, setSaving] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [testStatus, setTestStatus] = useState('idle')
+  const [testResult, setTestResult] = useState(null)
   const sortedAnnouncements = [...announcementItems].sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
   const sortedPromoSlides = [...promoSlides].sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
 
@@ -165,6 +168,33 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const updateHero = (field, value) => setHeroForm((current) => ({ ...current, [field]: value }))
   const updatePromo = (field, value) => setPromoForm((current) => ({ ...current, [field]: value }))
   const updateAnnouncement = (field, value) => setAnnouncementForm((current) => ({ ...current, [field]: value }))
+
+  const testImageUpload = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setTestStatus('uploading')
+    setTestResult(null)
+    try {
+      console.log('[TestUpload] Starting upload:', file.name, file.size, 'bytes')
+      console.log('[TestUpload] VITE_IMGBB_API_KEY present?', Boolean(import.meta.env.VITE_IMGBB_API_KEY))
+      const result = await uploadToImgBB(file, {
+        name: 'diagnostic-test',
+        onProgress: (progress) => console.log('[TestUpload] Progress:', progress),
+      })
+      console.log('[TestUpload] Success:', result.url)
+      setTestResult(result.url)
+      setTestStatus('success')
+      toast.success('Test upload succeeded.')
+    } catch (error) {
+      console.error('[TestUpload] Failed:', error)
+      const message = error?.message || 'Unknown image upload error.'
+      setTestResult(message)
+      setTestStatus('error')
+      toast.error(`Test upload failed: ${message}`, { duration: 10000 })
+    }
+  }
 
   const saveCompany = async (event) => {
     event.preventDefault()
@@ -520,7 +550,6 @@ export default function AdminSettings({ initialSection = 'company' }) {
               <ImageUploader
                 label="Upload up to 8 hero images"
                 multiple
-                useAdminStorage
                 maxFiles={8}
                 currentImageUrl={heroForm.images || []}
                 folder="settings-hero"
@@ -588,7 +617,6 @@ export default function AdminSettings({ initialSection = 'company' }) {
               </label>
               <ImageUploader
                 label="Upload right-side banner image"
-                useAdminStorage
                 currentImageUrl={promoForm.rightImageURL}
                 folder="settings-promo"
                 onUploadComplete={(url) => updatePromo('rightImageURL', url)}
@@ -734,6 +762,28 @@ export default function AdminSettings({ initialSection = 'company' }) {
               <p>products</p>
             </div>
           </div>
+          <details className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-400/20 dark:bg-amber-500/10">
+            <summary className="cursor-pointer text-sm font-bold text-amber-800 dark:text-amber-200">
+              Image Upload Diagnostics
+            </summary>
+            <div className="mt-4 grid gap-3">
+              <p className="text-sm text-amber-700 dark:text-amber-200/80">
+                Upload a test image here to verify the ImgBB API key and shared upload pipeline independently from the content forms.
+              </p>
+              <input type="file" accept="image/*" onChange={testImageUpload} className="block w-full text-sm" />
+              {testStatus === 'uploading' && <p className="text-sm font-semibold text-amber-700">Uploading test image...</p>}
+              {testStatus === 'success' && (
+                <div>
+                  <p className="text-sm font-semibold text-emerald-700">Test upload succeeded.</p>
+                  <img src={testResult} alt="Test upload" className="mt-2 h-32 w-32 rounded-lg object-cover" />
+                  <p className="mt-1 break-all text-xs text-gray-500">{testResult}</p>
+                </div>
+              )}
+              {testStatus === 'error' && (
+                <p className="text-sm font-semibold text-red-600">Test upload failed: {testResult}</p>
+              )}
+            </div>
+          </details>
         </section>
       )}
     </section>

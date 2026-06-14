@@ -11,7 +11,7 @@ import {
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { auth, db, isFirebaseConfigured, storage } from '../firebase/config'
 import { apiFetch, getApiBaseUrl, getFirebaseIdToken } from './apiClient'
-import { compressAndUploadToImgBB } from './compressToWebP'
+import { uploadToImgBB } from './uploadToImgBB'
 
 export function slugify(value) {
   return String(value || '')
@@ -76,7 +76,7 @@ export async function uploadImageToImgBB({
   maxWidth = 1200,
   maxSizeKB = 280,
 }) {
-  const result = await compressAndUploadToImgBB(file, {
+  const result = await uploadToImgBB(file, {
     name: `${folder}-${Date.now()}-${safeFileName(file.name).replace(/\.[^.]+$/, '')}`,
     onProgress,
     maxWidth,
