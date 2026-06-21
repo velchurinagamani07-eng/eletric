@@ -6,7 +6,7 @@ import { db, isFirebaseConfigured } from '../firebase/config'
 
 const defaults = {
   homeTitle: 'DP Home Electric Services - Expert Electricians in Tuni',
-  homeDescription: 'Book trusted electricians at your doorstep with transparent pricing and 3-month warranty.',
+  homeDescription: 'Book trusted electricians at your doorstep with transparent pricing and 1 Month warranty.',
   homeKeywords: 'electrician Tuni, home electric service, electrical repair',
   siteUrl: '',
   ogImageURL: '',

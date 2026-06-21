@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
   Bell,
   ChevronDown,
+  Heart,
   LogIn,
   LogOut,
   Moon,
@@ -20,12 +21,14 @@ import { useServiceCategories, useServices } from '../../hooks/useServices'
 import { useAuthStore } from '../../store/authStore'
 import { useScrollPosition } from '../../hooks/useScrollPosition'
 import { useCartStore } from '../../store/cartStore'
+import { useWishlistStore } from '../../store/wishlistStore'
 import { currency } from '../../utils/format'
 
 const navItems = [
   { label: 'Home', to: '/' },
   { label: 'Services', to: '/services', mega: true },
   { label: 'Products', to: '/products' },
+  { label: 'Daily Work', to: '/daily-work' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
   { label: 'Blog', to: '/blog' },
@@ -36,6 +39,7 @@ const roleMenu = {
     ['My Dashboard', '/dashboard'],
     ['My Bookings', '/dashboard/bookings'],
     ['My Orders', '/dashboard?tab=orders'],
+    ['My Wishlist', '/customer/wishlist'],
     ['My Coupons', '/dashboard/coupons'],
     ['Profile', '/dashboard/profile'],
   ],
@@ -59,6 +63,7 @@ export default function WebNavbar() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const cartCount = useCartStore((state) => state.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0))
+  const wishlistCount = useWishlistStore((state) => state.ids.length)
   const { products } = useProducts()
   const { services } = useServices({ onlyActive: true })
   const { categories } = useServiceCategories({ includeAll: false })
@@ -188,13 +193,25 @@ export default function WebNavbar() {
             </button>
             <NotificationBell />
             <Link
+              to="/customer/wishlist"
+              className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-950 text-white hover:border-red-600 hover:bg-red-600/10 focus-ring"
+              aria-label="Open wishlist"
+            >
+              <Heart size={18} />
+              {wishlistCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-black text-white">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+            <Link
               to="/cart"
-              className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0F172A] hover:border-amber-300 hover:bg-amber-50 focus-ring dark:border-white/10 dark:bg-gray-900 dark:text-gray-100"
+              className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-950 text-white hover:border-red-600 hover:bg-red-600/10 focus-ring"
               aria-label="Open cart"
             >
               <ShoppingCart size={18} />
               {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#F59E0B] px-1 text-[11px] font-black text-[#0F172A]">
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-black text-white">
                   {cartCount}
                 </span>
               )}

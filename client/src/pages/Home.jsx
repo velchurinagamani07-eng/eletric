@@ -22,6 +22,9 @@ import { useCartStore } from '../store/cartStore'
 import { currency } from '../utils/format'
 import { getDefaultImage, getServiceImage, handleImageFallback } from '../utils/defaultImages'
 import { getCategoryIcon } from '../utils/categoryIcons'
+import WishlistButton from '../components/WishlistButton'
+import RecommendedServices from '../components/RecommendedServices'
+import { getRecentServiceHistory } from '../utils/recommendations'
 
 const fallbackSlides = [
   {
@@ -38,7 +41,7 @@ const fallbackSlides = [
   },
   {
     id: 'warranty',
-    badge: '3 Month Warranty',
+    badge: '1 Month Warranty',
     badgeColor: '#F59E0B',
     headline: 'Verified electricians for every home visit',
     rightImageURL: '/default-images/services/wiring.png',
@@ -99,6 +102,10 @@ export default function Home() {
   const cartTotal = cartItems.reduce((sum, item) => sum + Number(item.basePrice || item.price || 0) * Number(item.quantity || 1), 0)
   const cartCount = cartItems.reduce((sum, item) => sum + Number(item.quantity || 1), 0)
   const recommendedProducts = products.slice(0, 3)
+  const browsingSeed = useMemo(() => {
+    const recent = getRecentServiceHistory()[0]
+    return services.find((service) => service.id === recent?.id || service.slug === recent?.id) || null
+  }, [services])
   const validCategories = useMemo(
     () => categories.filter((category) => category.slug && !('specialization' in category) && !('photoURL' in category)),
     [categories],
@@ -138,7 +145,7 @@ export default function Home() {
         </script>
       </Helmet>
 
-      <main className="overflow-x-hidden bg-surface pb-6 lg:pb-0">
+      <main className="overflow-x-hidden bg-[#0A0A0A] pb-6 text-white lg:pb-0">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-8">
           <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
             <div className="space-y-5 pr-2">
@@ -192,13 +199,20 @@ export default function Home() {
 
             <PromoSlider slides={slides} activeSlide={activeSlide} setActiveSlide={setActiveSlide} />
 
+            <RecommendedServices
+              currentService={browsingSeed}
+              title={browsingSeed ? 'Recommended for You' : 'Most Popular Services'}
+              subtitle={browsingSeed ? `Based on ${browsingSeed.name}` : 'Trusted services customers book most often.'}
+              className="rounded-lg border border-zinc-800 bg-black/20 p-4"
+            />
+
             <div className="mt-4 lg:hidden">
               <CartSummary items={cartItems} total={cartTotal} count={cartCount} />
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-navy sm:grid-cols-4 lg:hidden">
-              {['3 Month Warranty', 'Same-Day Service', 'Verified Workers', 'Transparent Price'].map((label) => (
-                <span key={label} className="rounded-2xl border border-surface-border bg-white px-3 py-2 shadow-sm">
+            <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-white sm:grid-cols-4 lg:hidden">
+              {['1 Month Warranty', 'Same-Day Service', 'Verified Workers', 'Transparent Price'].map((label) => (
+                <span key={label} className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 shadow-sm">
                   {label}
                 </span>
               ))}
@@ -439,7 +453,7 @@ function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
   const hasDiscount = Number(service.salePrice || 0) > 0 && Number(service.salePrice) < Number(service.basePrice)
   const price = hasDiscount ? Number(service.salePrice) : Number(service.basePrice)
   return (
-    <article className="w-[230px] shrink-0 overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
+    <article className="w-[190px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-card sm:w-[230px]">
       <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-[4/3] overflow-hidden bg-gray-100">
         <img
           src={getServiceImage(service)}
@@ -452,29 +466,30 @@ function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
           className="h-full w-full object-cover transition duration-300 hover:scale-105"
         />
         {hasDiscount && (
-          <span className="absolute left-3 top-3 rounded-full bg-green-600 px-2 py-1 text-[10px] font-black text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2 py-1 text-[10px] font-black text-white">
             Offer
           </span>
         )}
+        <WishlistButton service={service} className="absolute right-2 top-2" />
       </Link>
       <div className="p-4">
-        <h3 className="truncate text-sm font-bold text-navy">{service.name}</h3>
+        <h3 className="truncate text-sm font-bold text-white">{service.name}</h3>
         <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-gray-500">
-          <Star size={12} fill="currentColor" className="text-primary" /> 4.8 <span>|</span> {service.duration}
+          <Star size={12} fill="currentColor" className="text-red-500" /> 4.8 <span>|</span> {service.duration}
         </p>
-        <p className="mt-2 text-sm font-extrabold text-navy">
+        <p className="mt-2 text-sm font-extrabold text-red-400">
           {currency(price)}
           {hasDiscount && <span className="ml-2 text-xs font-semibold text-gray-400 line-through">{currency(service.basePrice)}</span>}
         </p>
         <ul className="mt-2 space-y-1">
           {(service.includes || []).slice(0, 2).map((item) => (
             <li key={item} className="flex items-start gap-1 text-xs text-gray-500">
-              <CheckCircle2 className="mt-0.5 shrink-0 text-green-600" size={12} /> {item}
+              <CheckCircle2 className="mt-0.5 shrink-0 text-green-500" size={12} /> {item}
             </li>
           ))}
         </ul>
         {quantity > 0 ? (
-          <div className="mt-4 grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-2xl border border-primary bg-primary-light text-sm font-extrabold text-navy">
+          <div className="mt-4 grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-lg border border-red-700 bg-red-600/10 text-sm font-extrabold text-white">
             <button type="button" onClick={onRemove} className="grid h-10 place-items-center" aria-label={`Remove ${service.name}`}>
               <Minus size={15} />
             </button>

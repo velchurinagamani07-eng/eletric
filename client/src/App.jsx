@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import WebNavbar from './components/Navbar/WebNavbar'
 import MobileNavbar from './components/Navbar/MobileNavbar'
@@ -10,14 +10,19 @@ import ElectricLoader from './components/ElectricLoader'
 import AnnouncementBar from './components/AnnouncementBar'
 import EntrySplash from './components/EntrySplash'
 import { useAuthStore } from './store/authStore'
+import { useCartStore } from './store/cartStore'
+import { useWishlistStore } from './store/wishlistStore'
 
 const Home = lazy(() => import('./pages/Home'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
+const DailyWork = lazy(() => import('./pages/DailyWork'))
+const TVDisplay = lazy(() => import('./pages/TVDisplay'))
 const Services = lazy(() => import('./pages/Services'))
 const ServiceDetail = lazy(() => import('./pages/ServiceDetail'))
 const Booking = lazy(() => import('./pages/Booking'))
 const Cart = lazy(() => import('./pages/Cart'))
+const MyWishlist = lazy(() => import('./pages/MyWishlist'))
 const ReceiptPage = lazy(() => import('./pages/ReceiptPage'))
 const UserDashboard = lazy(() => import('./pages/UserDashboard'))
 const WorkerDashboard = lazy(() => import('./pages/WorkerDashboard'))
@@ -39,6 +44,7 @@ const ManageWorkers = lazy(() => import('./admin/ManageWorkers'))
 const ManageServices = lazy(() => import('./admin/ManageServices'))
 const ManageCoupons = lazy(() => import('./admin/ManageCoupons'))
 const ManageBanners = lazy(() => import('./admin/ManageBanners'))
+const ManageDailyWork = lazy(() => import('./admin/ManageDailyWork'))
 const ManageProducts = lazy(() => import('./admin/ManageProducts'))
 const IncomeGraphs = lazy(() => import('./admin/IncomeGraphs'))
 const WorkerGraphs = lazy(() => import('./admin/WorkerGraphs'))
@@ -52,34 +58,34 @@ const WorkerProfile = lazy(() => import('./worker/WorkerProfile'))
 export default function App() {
   const { pathname } = useLocation()
   const initAuthListener = useAuthStore((state) => state.initAuthListener)
+  const user = useAuthStore((state) => state.user)
+  const authReady = useAuthStore((state) => state.authReady)
+  const syncCartForUser = useCartStore((state) => state.syncForUser)
+  const syncWishlistForUser = useWishlistStore((state) => state.syncForUser)
   const isAdminOrWorker = ['/admin', '/worker'].some((path) => pathname.startsWith(path))
-  const showPublicChrome = !isAdminOrWorker
-  const [announcementVisible, setAnnouncementVisible] = useState(
-    () => sessionStorage.getItem('hes-announcement-hidden') !== 'true',
-  )
-  const showAnnouncement = showPublicChrome && announcementVisible
+  const isTvDisplay = pathname === '/tv'
+  const suppressEntrySplash = pathname === '/daily-work'
+  const showPublicChrome = !isAdminOrWorker && !isTvDisplay
+  const showAnnouncement = showPublicChrome
 
   useEffect(() => initAuthListener(), [initAuthListener])
+  useEffect(() => {
+    if (!authReady) return
+    syncCartForUser(user)
+    syncWishlistForUser(user)
+  }, [authReady, syncCartForUser, syncWishlistForUser, user])
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary resetKey={pathname}>
       <div
-        className="min-h-screen bg-[#FAFAFA] text-gray-800 transition-colors dark:bg-gray-950 dark:text-gray-100"
+        className="min-h-screen overflow-x-hidden bg-[#0A0A0A] text-gray-100 transition-colors"
         style={{ '--announcement-offset': showAnnouncement ? '40px' : '0px' }}
       >
-        {showPublicChrome && <EntrySplash />}
-        {showPublicChrome && (
-          <AnnouncementBar
-            visible={showAnnouncement}
-            onClose={() => {
-              sessionStorage.setItem('hes-announcement-hidden', 'true')
-              setAnnouncementVisible(false)
-            }}
-          />
-        )}
+        {showPublicChrome && !suppressEntrySplash && <EntrySplash />}
+        {showPublicChrome && <AnnouncementBar visible={showAnnouncement} />}
         {showPublicChrome && <WebNavbar />}
         {showPublicChrome && <MobileNavbar />}
-        <div className={showPublicChrome ? `${showAnnouncement ? 'pt-9 lg:pt-[104px]' : 'pt-0 lg:pt-16'} pb-24 transition-[padding] duration-300 lg:pb-0` : ''}>
+        <div className={showPublicChrome ? `${showAnnouncement ? 'pt-8 lg:pt-[100px]' : 'pt-0 lg:pt-16'} pb-24 transition-[padding] duration-300 lg:pb-0` : ''}>
           <Suspense fallback={<ElectricLoader />}>
             <Routes>
             <Route path="/" element={<Home />} />
@@ -88,9 +94,13 @@ export default function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/products/:slug" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/customer/wishlist" element={<MyWishlist />} />
+            <Route path="/wishlist" element={<MyWishlist />} />
             <Route path="/receipt/:bookingId" element={<ReceiptPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/daily-work" element={<DailyWork />} />
+            <Route path="/tv" element={<TVDisplay />} />
             <Route path="/faq" element={<StaticPage type="faq" />} />
             <Route path="/blog" element={<StaticPage type="blog" />} />
             <Route path="/privacy-policy" element={<StaticPage type="privacy" />} />
@@ -212,6 +222,7 @@ export default function App() {
             <Route path="coupons" element={<ManageCoupons />} />
             <Route path="products" element={<ManageProducts />} />
             <Route path="splash" element={<ManageBanners initialSection="splash" />} />
+            <Route path="daily-work" element={<ManageDailyWork />} />
             <Route path="income" element={<IncomeGraphs />} />
             <Route path="worker-graphs" element={<WorkerGraphs />} />
             <Route path="notifications" element={<AdminNotifications />} />

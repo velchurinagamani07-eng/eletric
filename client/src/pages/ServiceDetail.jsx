@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -9,6 +9,8 @@ import { currency } from '../utils/format'
 import { getServiceImage, handleImageFallback } from '../utils/defaultImages'
 import { useCartStore } from '../store/cartStore'
 import { useServices } from '../hooks/useServices'
+import RecommendedServices from '../components/RecommendedServices'
+import { recordServiceView } from '../utils/recommendations'
 
 export default function ServiceDetail() {
   const { slug } = useParams()
@@ -17,14 +19,18 @@ export default function ServiceDetail() {
   const [selectedImage, setSelectedImage] = useState('')
   const addItem = useCartStore((state) => state.addItem)
 
+  useEffect(() => {
+    if (service) recordServiceView(service)
+  }, [service])
+
   if (!service && loading) {
     return <ElectricLoader compact />
   }
 
   if (!service) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-950 dark:text-white">Service not found</h1>
+      <main className="mx-auto max-w-3xl bg-[#0A0A0A] px-4 py-16 text-center text-white">
+        <h1 className="text-2xl font-bold">Service not found</h1>
         <Link to="/services" className="btn-primary mt-5">
           Back to Services
         </Link>
@@ -53,9 +59,9 @@ export default function ServiceDetail() {
         </script>
       </Helmet>
 
-      <main className="bg-gray-50 py-10 dark:bg-gray-950">
+      <main className="bg-[#0A0A0A] py-8 pb-28 text-white lg:py-10 lg:pb-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <Link to="/services" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-amber-600 dark:text-gray-300">
+          <Link to="/services" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-400">
             <ArrowLeft size={17} /> Services / {service.name}
           </Link>
 
@@ -73,7 +79,7 @@ export default function ServiceDetail() {
                 ))}
               </div>
               <div className="hidden lg:block">
-                <div className="overflow-hidden rounded-lg bg-gray-200 shadow-xl">
+                <div className="overflow-hidden rounded-lg bg-zinc-900 shadow-xl">
                   <img
                     src={mainImage}
                     alt={service.name}
@@ -89,7 +95,7 @@ export default function ServiceDetail() {
                         key={`${service.id}-gallery-${src || index}`}
                         onClick={() => setSelectedImage(src)}
                         className={`h-24 w-28 shrink-0 overflow-hidden rounded-lg border ${
-                          mainImage === src ? 'border-amber-500' : 'border-gray-200'
+                          mainImage === src ? 'border-red-600' : 'border-zinc-800'
                         }`}
                       >
                         <img
@@ -105,43 +111,43 @@ export default function ServiceDetail() {
               </div>
             </div>
 
-            <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900 sm:p-7">
-              <span className="badge bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200">
-                <ShieldCheck size={14} className="mr-1" /> 3-Month Warranty Included
+            <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 shadow-sm sm:p-7">
+              <span className="badge bg-red-600/15 text-red-400">
+                <ShieldCheck size={14} className="mr-1" /> 1 Month Warranty Included
               </span>
-              <h1 className="mt-4 text-3xl font-extrabold text-gray-950 dark:text-white">{service.name}</h1>
-              <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-300">{service.description}</p>
+              <h1 className="mt-4 text-2xl font-extrabold text-white md:text-4xl">{service.name}</h1>
+              <p className="mt-4 text-sm leading-7 text-gray-300">{service.description}</p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg bg-amber-50 p-4 dark:bg-amber-500/10">
-                  <IndianRupee className="text-amber-600" size={20} />
+                <div className="rounded-lg bg-black/40 p-4">
+                  <IndianRupee className="text-red-500" size={20} />
                   <p className="mt-2 text-xs text-gray-500">Starting price</p>
-                  <p className="text-lg font-extrabold text-gray-950 dark:text-white">{currency(service.basePrice)}</p>
+                  <p className="text-lg font-extrabold text-white">{currency(service.basePrice)}</p>
                 </div>
-                <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-500/10">
+                <div className="rounded-lg bg-black/40 p-4">
                   <Clock className="text-blue-600" size={20} />
                   <p className="mt-2 text-xs text-gray-500">Duration</p>
-                  <p className="text-lg font-extrabold text-gray-950 dark:text-white">{service.duration}</p>
+                  <p className="text-lg font-extrabold text-white">{service.duration}</p>
                 </div>
-                <div className="rounded-lg bg-emerald-50 p-4 dark:bg-emerald-500/10">
+                <div className="rounded-lg bg-black/40 p-4">
                   <CalendarDays className="text-emerald-600" size={20} />
                   <p className="mt-2 text-xs text-gray-500">Slots</p>
-                  <p className="text-lg font-extrabold text-gray-950 dark:text-white">6 daily</p>
+                  <p className="text-lg font-extrabold text-white">6 daily</p>
                 </div>
               </div>
 
               <div className="mt-6">
-                <h2 className="font-bold text-gray-950 dark:text-white">What's included</h2>
+                <h2 className="font-bold text-white">What's included</h2>
                 <div className="mt-3 grid gap-2">
                   {service.includes.map((item) => (
-                    <p key={item} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                    <p key={item} className="flex items-center gap-2 text-sm text-gray-300">
                       <CheckCircle2 className="text-emerald-500" size={17} /> {item}
                     </p>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-6 overflow-hidden rounded-lg border border-gray-100 dark:border-white/10">
+              <div className="mt-6 overflow-hidden rounded-lg border border-zinc-800">
                 {[
                   ['Base price', currency(service.basePrice)],
                   ['Labor estimate', currency(service.labor)],
@@ -152,8 +158,8 @@ export default function ServiceDetail() {
                     key={label}
                     className={`flex items-center justify-between px-4 py-3 text-sm ${
                       index === 3
-                        ? 'bg-gray-950 font-bold text-white'
-                        : 'border-b border-gray-100 text-gray-600 dark:border-white/10 dark:text-gray-300'
+                        ? 'bg-red-600 font-bold text-white'
+                        : 'border-b border-zinc-800 text-gray-300'
                     }`}
                   >
                     <span>{label}</span>
@@ -163,10 +169,10 @@ export default function ServiceDetail() {
               </div>
 
               <div className="mt-6">
-                <h2 className="font-bold text-gray-950 dark:text-white">Available time slots</h2>
+                <h2 className="font-bold text-white">Available time slots</h2>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {timeSlots.slice(0, 4).map((slot) => (
-                    <span key={slot} className="rounded-lg border border-gray-200 px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:border-white/10 dark:text-gray-200">
+                    <span key={slot} className="rounded-lg border border-zinc-800 px-3 py-2 text-center text-xs font-semibold text-gray-300">
                       {slot}
                     </span>
                   ))}
@@ -188,7 +194,24 @@ export default function ServiceDetail() {
                   <ShoppingCart size={17} /> Add to Cart
                 </button>
               </div>
+
+              <RecommendedServices
+                currentService={service}
+                title="Complete Your Service With"
+                subtitle="Related repairs customers often add with this booking."
+              />
             </section>
+          </div>
+        </div>
+        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-zinc-800 bg-black/95 p-3 backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-7xl items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-gray-400">Starting price</p>
+              <p className="truncate text-lg font-extrabold text-white">{currency(service.basePrice)}</p>
+            </div>
+            <Link to={`/book/${service.id || service.slug}`} className="btn-primary min-h-12 px-5">
+              Book Now
+            </Link>
           </div>
         </div>
       </main>

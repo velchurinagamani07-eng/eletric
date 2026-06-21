@@ -24,7 +24,7 @@ export default function PaymentReceipt({ booking }) {
   const issueDate = formatDate(booking.createdAt || new Date().toISOString())
   const paymentDate = isPaidStatus(paymentStatus) ? formatDate(booking.paidAt || booking.approvedAt || booking.paymentDate || booking.createdAt) : '-'
   const warrantyUntil = booking.date ? new Date(`${booking.date}T00:00:00`) : new Date()
-  warrantyUntil.setMonth(warrantyUntil.getMonth() + 3)
+  warrantyUntil.setMonth(warrantyUntil.getMonth() + 1)
 
   const whatsappText = encodeURIComponent(
     `Receipt ${booking.bookingId || booking.id}: ${booking.serviceName} - ${currency(booking.amount)}. ${receiptUrl}`,
@@ -144,7 +144,7 @@ export default function PaymentReceipt({ booking }) {
             <div className="flex items-center gap-3">
               <ShieldCheck size={24} />
               <div>
-                <h2 className="font-black">3 Months Warranty Included</h2>
+                <h2 className="font-black">1 Month Warranty Included</h2>
                 <p className="mt-1 text-sm font-semibold">Valid until {warrantyUntil.toISOString().slice(0, 10)}. Claim support: +91 {settings.phone}</p>
               </div>
             </div>

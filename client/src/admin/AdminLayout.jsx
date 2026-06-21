@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   BellRing,
+  CalendarDays,
   ChartNoAxesCombined,
   ClipboardList,
   ExternalLink,
@@ -34,6 +35,7 @@ const links = [
   { label: 'Products', to: '/admin/products', icon: PackageSearch },
   { label: 'Coupons', to: '/admin/coupons', icon: Gift },
   { label: 'Entry Splash', to: '/admin/splash', icon: Sparkles },
+  { label: 'Daily Work', to: '/admin/daily-work', icon: CalendarDays },
   { label: 'Income', to: '/admin/income', icon: ChartNoAxesCombined },
   { label: 'Notifications', to: '/admin/notifications', icon: BellRing },
   { label: 'Settings', to: '/admin/settings', icon: Settings },

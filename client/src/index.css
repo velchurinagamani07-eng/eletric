@@ -3,22 +3,22 @@
 @tailwind utilities;
 
 :root {
-  color: #1A1D23;
-  background: #F7F8FA;
-  --clr-primary: #F59E0B;
-  --clr-primary-dark: #D97706;
-  --clr-primary-light: #FEF3C7;
-  --clr-primary-glow: rgba(245, 158, 11, 0.25);
-  --clr-navy: #0A1628;
-  --clr-navy-mid: #1E3A5F;
-  --clr-navy-card: #132038;
+  color: #FFFFFF;
+  background: #0A0A0A;
+  --clr-primary: #DC2626;
+  --clr-primary-dark: #991B1B;
+  --clr-primary-light: #FEE2E2;
+  --clr-primary-glow: rgba(220, 38, 38, 0.25);
+  --clr-navy: #0A0A0A;
+  --clr-navy-mid: #161616;
+  --clr-navy-card: #212121;
   --clr-white: #FFFFFF;
-  --clr-bg: #F7F8FA;
-  --clr-surface: #FFFFFF;
-  --clr-border: #E8ECF0;
-  --clr-border-dark: #D1D9E0;
-  --clr-text: #1A1D23;
-  --clr-text-soft: #4B5563;
+  --clr-bg: #0A0A0A;
+  --clr-surface: #161616;
+  --clr-border: #27272A;
+  --clr-border-dark: #3F3F46;
+  --clr-text: #FFFFFF;
+  --clr-text-soft: #D1D5DB;
   --clr-text-muted: #9CA3AF;
   --clr-success: #16A34A;
   --clr-success-bg: #F0FDF4;
@@ -61,7 +61,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-  background: #F7F8FA;
+  overflow-x: hidden;
+  background: #0A0A0A;
 }
 
 h1,
@@ -117,7 +118,7 @@ textarea {
   transform: scaleX(0);
   transform-origin: left;
   border-radius: 999px;
-  background: #f5a623;
+  background: #dc2626;
   transition: transform 180ms ease;
 }
 
@@ -127,27 +128,27 @@ textarea {
 }
 
 .focus-ring {
-  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
 }
 
 .panel {
-  @apply rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900;
+  @apply rounded-lg border border-zinc-800 bg-zinc-900 text-white shadow-sm;
 }
 
 .field {
-  @apply w-full rounded-2xl border border-surface-border bg-white px-4 py-3 text-sm font-body text-navy outline-none transition-all duration-150 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary-light dark:border-white/10 dark:bg-gray-950 dark:text-gray-100;
+  @apply w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-body text-white outline-none transition-all duration-150 placeholder:text-gray-500 focus:border-red-600 focus:ring-2 focus:ring-red-600/20;
 }
 
 .btn-primary {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-amber transition-all duration-150 hover:bg-primary-dark active:scale-[0.97] focus-ring disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-red transition-all duration-150 hover:bg-red-700 active:scale-[0.97] focus-ring disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-secondary {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-surface-border bg-white px-6 py-3 text-sm font-semibold text-navy transition-all duration-150 hover:border-primary hover:bg-primary-light active:scale-[0.97] focus-ring dark:border-white/10 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-amber-500/10;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:border-red-600 hover:bg-red-600/10 active:scale-[0.97] focus-ring;
 }
 
 .btn-ghost {
-  @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 transition-all duration-150 hover:bg-surface hover:text-navy;
+  @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-400 transition-all duration-150 hover:bg-zinc-800 hover:text-white;
 }
 
 .btn-danger {
@@ -192,11 +193,11 @@ textarea {
 }
 
 .card {
-  @apply rounded-3xl border border-surface-border bg-white shadow-card transition-shadow duration-200 hover:shadow-hover dark:border-white/10 dark:bg-gray-900;
+  @apply rounded-3xl border border-zinc-800 bg-zinc-900 text-white shadow-card transition-shadow duration-200 hover:shadow-hover;
 }
 
 .drawer-link {
-  @apply flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-left text-sm font-semibold text-gray-700 transition hover:bg-primary-light hover:text-navy;
+  @apply flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-left text-sm font-semibold text-gray-300 transition hover:bg-red-600/10 hover:text-red-400;
 }
 
 .category-strip::after {
@@ -211,17 +212,17 @@ textarea {
 }
 
 .eyebrow {
-  @apply text-xs font-bold uppercase tracking-[0.16em] text-primary;
+  @apply text-xs font-bold uppercase tracking-[0.16em] text-red-500;
 }
 
 .section-title {
-  @apply font-display text-2xl font-extrabold text-navy sm:text-3xl dark:text-white;
+  @apply font-display text-2xl font-extrabold text-white sm:text-3xl;
 }
 
 .premium-card {
-  border: 1px solid #E8EDF2;
+  border: 1px solid #27272A;
   border-radius: 16px;
-  background: #FFFFFF;
+  background: #161616;
   box-shadow: 0 1px 3px rgba(15, 39, 68, 0.06), 0 1px 2px rgba(15, 39, 68, 0.04);
   transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -241,13 +242,13 @@ textarea {
 }
 
 .navbar-fixed.is-scrolled {
-  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 24px rgba(220, 38, 38, 0.14);
 }
 
 .skeleton-shimmer {
   position: relative;
   overflow: hidden;
-  background: #F1F5F9;
+  background: #27272A;
 }
 
 .skeleton-shimmer::after {
@@ -255,12 +256,12 @@ textarea {
   inset: 0;
   content: '';
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
+  background: linear-gradient(90deg, transparent, #3F3F46, transparent);
   animation: shimmer 1.5s infinite;
 }
 
 .chatbot-glow {
-  animation: amber-glow 2.4s ease-in-out infinite;
+  animation: red-glow 2.4s ease-in-out infinite;
 }
 
 .spark-particle {
@@ -274,9 +275,75 @@ textarea {
   animation: bolt-draw 0.8s ease-out forwards;
 }
 
+.announcement-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.timeline-car {
+  top: calc(2.25rem + (100% - 4.5rem) * var(--timeline-progress, 0));
+  transform: translateY(-50%);
+  transition: top 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: car-settle 1.5s ease both;
+}
+
+.live-pulse {
+  animation: live-pulse 1.2s ease-out infinite;
+}
+
+.live-blink {
+  animation: live-blink 1.2s ease-in-out infinite;
+}
+
 @keyframes shimmer {
   to {
     transform: translateX(100%);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes announcementFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.65);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes live-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.58;
+  }
+}
+
+@keyframes car-settle {
+  0%, 100% {
+    transform: translateY(-50%);
+  }
+  58% {
+    transform: translateY(calc(-50% - 4px));
   }
 }
 
@@ -302,10 +369,19 @@ textarea {
 
 @keyframes amber-glow {
   0%, 100% {
-    box-shadow: 0 0 0 rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 0 rgba(220, 38, 38, 0.35);
   }
   50% {
-    box-shadow: 0 0 34px rgba(245, 158, 11, 0.55);
+    box-shadow: 0 0 34px rgba(220, 38, 38, 0.55);
+  }
+}
+
+@keyframes red-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(220, 38, 38, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(220, 38, 38, 0.55);
   }
 }
 

@@ -15,6 +15,7 @@ const privateCollections = new Set([
   'coupons',
   'support_tickets',
   'wallet_transactions',
+  'chatbot_unanswered',
 ])
 
 const toMillis = (value) => {

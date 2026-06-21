@@ -32,7 +32,7 @@ export default function Footer() {
           </div>
           <p className="mt-5 max-w-md text-sm leading-6 text-gray-600 dark:text-gray-300">
             Licensed home electricians for fans, wiring, sockets, MCB, lighting, inverter wiring and emergency
-            repairs with transparent pricing and a 3-month warranty.
+            repairs with transparent pricing and a 1 Month warranty.
           </p>
           <p className="mt-5 text-sm font-semibold text-gray-800 dark:text-gray-100">{settings.footerCredit}</p>
         </div>
@@ -85,6 +85,17 @@ export default function Footer() {
             ))}
           </div>
         </div>
+      </div>
+      <div className="mx-auto mt-8 flex max-w-7xl justify-end px-4 sm:px-6">
+        <a
+          href="/tv"
+          target="_blank"
+          rel="noreferrer"
+          className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-300 transition hover:text-amber-500 dark:text-gray-700 dark:hover:text-amber-400"
+          aria-label="Open TV display"
+        >
+          TV
+        </a>
       </div>
     </footer>
   )

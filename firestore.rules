@@ -81,7 +81,17 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /heroImages_home/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /announcement_messages/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /daily_work/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -117,6 +127,14 @@ service cloud.firestore {
             'updatedAt'
           ]));
       allow delete: if isAdmin();
+
+      match /cart/{itemId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+
+      match /wishlist/{itemId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
     }
 
     match /bookings/{id} {
@@ -144,17 +162,8 @@ service cloud.firestore {
     }
 
     match /workers/{workerId} {
-      allow read: if isAdmin() || isOwner(workerId) || resource.data.isActive == true;
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin()
-        || (isOwner(workerId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'photoURL',
-            'mobile',
-            'availability',
-            'profileCompleted',
-            'updatedAt'
-          ]));
+      allow read: if isAdmin() || isOwner(workerId);
+      allow write: if isAdmin();
     }
 
     match /payments/{id} {
@@ -219,6 +228,11 @@ service cloud.firestore {
     }
 
     match /chatbot_leads/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /chatbot_unanswered/{id} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
     }

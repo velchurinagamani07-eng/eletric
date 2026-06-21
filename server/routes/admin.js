@@ -18,7 +18,7 @@ router.post(
     if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid service payload.', errors: errors.array() })
 
     const { serviceName, category } = req.body
-    const prompt = `Write a professional, SEO-friendly 3-sentence service description for a home electrical service called "${serviceName}" in the category "${category}". Focus on benefits, safety, and the 3-month warranty. Keep it under 60 words.`
+    const prompt = `Write a professional, SEO-friendly 3-sentence service description for a home electrical service called "${serviceName}" in the category "${category}". Focus on benefits, safety, and the 1-month warranty. Keep it under 60 words.`
 
     if (process.env.ANTHROPIC_API_KEY) {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -40,7 +40,7 @@ router.post(
     }
 
     return res.json({
-      description: `${serviceName} is completed by verified electricians with safe diagnosis, clean workmanship, and transparent pricing. We focus on reliable wiring practices, appliance protection, and careful final testing. Every completed ${category} service includes a 3-month warranty.`,
+      description: `${serviceName} is completed by verified electricians with safe diagnosis, clean workmanship, and transparent pricing. We focus on reliable wiring practices, appliance protection, and careful final testing. Every completed ${category} service includes a 1-month warranty.`,
       prompt,
     })
   }),
@@ -80,9 +80,13 @@ router.post(
       name: req.body.name,
       email: req.body.email,
       mobile: req.body.mobile,
+      phone: req.body.phone || req.body.mobile,
       specialization: req.body.specialization || '',
+      specializations: Array.isArray(req.body.specializations) ? req.body.specializations : [],
+      serviceAreas: Array.isArray(req.body.serviceAreas) ? req.body.serviceAreas : [],
       photoURL: req.body.photoURL || '',
       isActive: true,
+      status: 'active',
       totalJobsCompleted: 0,
       earnings: 0,
       rating: 0,
@@ -102,9 +106,13 @@ router.post(
       name: workerDoc.name,
       email: workerDoc.email,
       mobile: workerDoc.mobile,
+      phone: workerDoc.phone,
       specialization: workerDoc.specialization,
+      specializations: workerDoc.specializations,
+      serviceAreas: workerDoc.serviceAreas,
       photoURL: workerDoc.photoURL,
       isActive: workerDoc.isActive,
+      status: workerDoc.status,
       totalJobsCompleted: workerDoc.totalJobsCompleted,
       earnings: workerDoc.earnings,
       rating: workerDoc.rating,

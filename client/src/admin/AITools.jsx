@@ -4,7 +4,7 @@ import { Bot, Copy, Sparkles } from 'lucide-react'
 
 const templates = {
   service:
-    'Write a concise premium service description for: [service name]. Include safety, transparent pricing, and 3-month warranty in Tuni.',
+    'Write a concise premium service description for: [service name]. Include safety, transparent pricing, and 1 Month warranty in Tuni.',
   product:
     'Write a product description for: [product name]. Mention brand, use case, installation fit, warranty, and why it is reliable.',
   notification:

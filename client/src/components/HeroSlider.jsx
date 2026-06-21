@@ -95,7 +95,7 @@ export default function HeroSlider() {
           </div>
           <div className="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              [hero?.badgeText1 || '3 Month Warranty', ShieldCheck],
+              [hero?.badgeText1 || '1 Month Warranty', ShieldCheck],
               [hero?.badgeText2 || 'Verified Workers', BadgeCheck],
               [hero?.badgeText3 || 'Same-day Service', Zap],
               [hero?.badgeText4 || '5-Star Rated', Star],

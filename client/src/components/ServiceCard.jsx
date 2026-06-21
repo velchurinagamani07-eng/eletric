@@ -4,6 +4,7 @@ import { ArrowRight, Clock, ShoppingCart, ShieldCheck } from 'lucide-react'
 import { currency } from '../utils/format'
 import { getDefaultImage, getServiceImage, handleImageFallback } from '../utils/defaultImages'
 import { useCartStore } from '../store/cartStore'
+import WishlistButton from './WishlistButton'
 
 export default function ServiceCard({ service }) {
   const imageSrc = getServiceImage(service)
@@ -12,9 +13,9 @@ export default function ServiceCard({ service }) {
   const addItem = useCartStore((state) => state.addItem)
 
   return (
-    <article className="group h-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-gray-900">
+    <article className="group h-full overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-sm transition hover:-translate-y-1 hover:border-red-900/50 hover:shadow-xl">
       <Link to={detailPath} className="block">
-        <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800">
           <img
             src={imageSrc}
             alt={service.name}
@@ -22,24 +23,25 @@ export default function ServiceCard({ service }) {
             loading="lazy"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
+          <WishlistButton service={service} className="absolute right-2 top-2" />
         </div>
       </Link>
       <div className="p-3 sm:p-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0">
-            <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-950 dark:text-white sm:text-base">{service.name}</h3>
-            <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500 sm:text-sm sm:leading-6">{service.shortDescription}</p>
+            <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white sm:text-base">{service.name}</h3>
+            <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-400 sm:text-sm sm:leading-6">{service.shortDescription}</p>
           </div>
-          <span className="badge w-fit shrink-0 bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800 dark:bg-amber-500/15 dark:text-amber-200 sm:px-3 sm:py-1 sm:text-xs">
+          <span className="badge w-fit shrink-0 bg-red-600/15 px-2 py-0.5 text-[10px] text-red-400 sm:px-3 sm:py-1 sm:text-xs">
             {currency(service.basePrice)}
           </span>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-gray-500 sm:mt-4 sm:text-xs">
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-gray-400 sm:mt-4 sm:text-xs">
           <span className="inline-flex items-center gap-1">
             <Clock size={14} /> {service.duration}
           </span>
           <span className="inline-flex items-center gap-1">
-            <ShieldCheck size={14} /> 3 Month Warranty
+            <ShieldCheck size={14} /> 1 Month Warranty
           </span>
         </div>
         <div className="mt-4 flex gap-1.5 sm:gap-2">

@@ -135,7 +135,7 @@ export async function generateReceiptPDF(booking, productOrders = []) {
     body: [
       [
         `${booking.customer || booking.userName || 'Customer'}\n${booking.mobile || '-'}\n${booking.email || '-'}\n${booking.address ? Object.values(booking.address).filter(Boolean).join(', ') : '-'}`,
-        `${booking.serviceName}\nWorker: ${booking.workerName || 'To be assigned'}\nSchedule: ${booking.date || '-'} | ${booking.timeSlot || '-'}\nWarranty: 3 months`,
+        `${booking.serviceName}\nWorker: ${booking.workerName || 'To be assigned'}\nSchedule: ${booking.date || '-'} | ${booking.timeSlot || '-'}\nWarranty: 1 Month`,
       ],
     ],
     headStyles: { fillColor: navy, textColor: [255, 255, 255] },
@@ -207,7 +207,7 @@ export async function generateReceiptPDF(booking, productOrders = []) {
   doc.setTextColor(...navy)
   doc.setFontSize(11)
   doc.setFont('helvetica', 'bold')
-  doc.text('3 Months Warranty Included', 20, y + 9)
+  doc.text('1 Month Warranty Included', 20, y + 9)
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.text(`Claim contact: +91 ${settings.phone}`, 20, y + 16)

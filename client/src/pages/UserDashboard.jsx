@@ -9,6 +9,7 @@ import {
   Edit3,
   FileText,
   Gift,
+  Heart,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -30,6 +31,7 @@ const tabs = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'bookings', label: 'My Bookings', icon: FileText },
   { id: 'receipts', label: 'Receipts', icon: Download },
+  { id: 'wishlist', label: 'My Wishlist', icon: Heart, to: '/customer/wishlist' },
   { id: 'profile', label: 'Profile', icon: UserRound },
   { id: 'coupons', label: 'Coupons', icon: Gift },
 ]
@@ -326,7 +328,7 @@ export default function UserDashboard({ initialTab = 'overview' }) {
                   <button
                     type="button"
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => (tab.to ? navigate(tab.to) : setActiveTab(tab.id))}
                     className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${
                       activeTab === tab.id
                         ? 'bg-primary text-white shadow-amber'

@@ -9,7 +9,7 @@ import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 import { defaultAnnouncements } from '../data/announcements'
 import { uploadToImgBB } from '../utils/uploadToImgBB'
 
-const emptyAnnouncement = { id: '', text: '', href: '', order: 1, isActive: true }
+const emptyAnnouncement = { id: '', icon: '', text: '', phone: '', href: '', order: 1, isActive: true }
 const emptyPromoSlide = {
   id: '',
   badge: 'Super Saver',
@@ -73,7 +73,7 @@ const defaultServices = [
   basePrice,
   salePrice,
   duration,
-  warranty: '3 months',
+  warranty: '1 Month',
   inclusions,
   includes: inclusions,
   isActive: true,
@@ -124,7 +124,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
     email: settings.email,
     address: settings.address,
     homeTitle: 'DP Home Electric Services - Expert Electricians in Tuni',
-    homeDescription: 'Book licensed electricians at your doorstep with 3-month warranty.',
+    homeDescription: 'Book licensed electricians at your doorstep with 1 Month warranty.',
     homeKeywords: 'electrician Tuni, home electrical services, fan installation, wiring repair',
     footerText: settings.footerCredit,
   })
@@ -132,6 +132,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const [promoSlides, setPromoSlides] = useState([])
   const [promoForm, setPromoForm] = useState(emptyPromoSlide)
   const [announcementForm, setAnnouncementForm] = useState(emptyAnnouncement)
+  const [announcementSettings, setAnnouncementSettings] = useState({ rotationSpeedSeconds: 4 })
   const [saving, setSaving] = useState(false)
   const [seeding, setSeeding] = useState(false)
   const [cleaningCategories, setCleaningCategories] = useState(false)
@@ -160,15 +161,31 @@ export default function AdminSettings({ initialSection = 'company' }) {
         setPromoSlides(liveSlides)
       })
       .catch(() => {})
+    getDoc(doc(db, 'settings', 'announcementBar'))
+      .then((snap) => {
+        if (!alive || !snap.exists()) return
+        const data = snap.data()
+        const speed = Number(data.rotationSpeedSeconds || data.rotationSpeed || 4)
+        setAnnouncementSettings({ rotationSpeedSeconds: Number.isFinite(speed) ? speed : 4 })
+        if (!announcementItems.length && Array.isArray(data.messages) && data.messages.length) {
+          setAnnouncementItems(data.messages.map((message, index) => ({
+            ...message,
+            id: message.id || `announcement-${index + 1}`,
+            order: Number(message.order || index + 1),
+          })))
+        }
+      })
+      .catch(() => {})
     return () => {
       alive = false
     }
-  }, [])
+  }, [announcementItems.length, setAnnouncementItems])
 
   const updateCompany = (field, value) => setCompanyForm((current) => ({ ...current, [field]: value }))
   const updateHero = (field, value) => setHeroForm((current) => ({ ...current, [field]: value }))
   const updatePromo = (field, value) => setPromoForm((current) => ({ ...current, [field]: value }))
   const updateAnnouncement = (field, value) => setAnnouncementForm((current) => ({ ...current, [field]: value }))
+  const updateAnnouncementSettings = (field, value) => setAnnouncementSettings((current) => ({ ...current, [field]: value }))
 
   const testImageUpload = async (event) => {
     const file = event.target.files?.[0]
@@ -424,21 +441,27 @@ export default function AdminSettings({ initialSection = 'company' }) {
     try {
       const id = announcementForm.id || `announcement-${Date.now()}`
       const payload = {
+        icon: announcementForm.icon.trim(),
         text: announcementForm.text.trim(),
+        phone: announcementForm.phone.trim(),
         href: announcementForm.href.trim(),
         order: Number(announcementForm.order || sortedAnnouncements.length + 1),
         isActive: Boolean(announcementForm.isActive),
         updatedAt: db && isFirebaseConfigured ? serverTimestamp() : new Date().toISOString(),
       }
 
+      const nextItems = sortedAnnouncements.some((item) => item.id === id)
+        ? sortedAnnouncements.map((item) => (item.id === id ? { ...item, ...payload, id } : item))
+        : [{ id, ...payload }, ...sortedAnnouncements]
+
       if (db && isFirebaseConfigured) {
-        await setDoc(doc(db, 'announcement_messages', id), payload, { merge: true })
+        await Promise.all([
+          setDoc(doc(db, 'announcement_messages', id), payload, { merge: true }),
+          saveAnnouncementBarSettings(nextItems),
+        ])
       }
 
-      setAnnouncementItems((items) => {
-        const exists = items.some((item) => item.id === id)
-        return exists ? items.map((item) => (item.id === id ? { ...item, ...payload, id } : item)) : [{ id, ...payload }, ...items]
-      })
+      setAnnouncementItems(nextItems)
       setAnnouncementForm(emptyAnnouncement)
       toast.success('Announcement saved.')
     } catch (error) {
@@ -451,8 +474,14 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const removeAnnouncement = async (item) => {
     if (!window.confirm(`Delete '${item.text}'?`)) return
     try {
-      if (db && isFirebaseConfigured) await deleteDoc(doc(db, 'announcement_messages', item.id))
-      setAnnouncementItems((items) => items.filter((entry) => entry.id !== item.id))
+      const nextItems = sortedAnnouncements.filter((entry) => entry.id !== item.id)
+      if (db && isFirebaseConfigured) {
+        await Promise.all([
+          deleteDoc(doc(db, 'announcement_messages', item.id)),
+          saveAnnouncementBarSettings(nextItems),
+        ])
+      }
+      setAnnouncementItems(nextItems)
       toast.success('Announcement deleted.')
     } catch (error) {
       toast.error(error.message || 'Unable to delete announcement.')
@@ -468,9 +497,11 @@ export default function AdminSettings({ initialSection = 'company' }) {
     const second = { ...next, order: Number(item.order || index + 1) }
     try {
       if (db && isFirebaseConfigured) {
+        const nextItems = sortedAnnouncements.map((entry) => (entry.id === first.id ? first : entry.id === second.id ? second : entry))
         await Promise.all([
           setDoc(doc(db, 'announcement_messages', first.id), { order: first.order, updatedAt: serverTimestamp() }, { merge: true }),
           setDoc(doc(db, 'announcement_messages', second.id), { order: second.order, updatedAt: serverTimestamp() }, { merge: true }),
+          saveAnnouncementBarSettings(nextItems),
         ])
       }
       setAnnouncementItems((items) =>
@@ -481,9 +512,38 @@ export default function AdminSettings({ initialSection = 'company' }) {
     }
   }
 
+  const saveAnnouncementBarSettings = async (items = sortedAnnouncements) => {
+    if (!db || !isFirebaseConfigured) return
+    const messages = [...items]
+      .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+      .map(({ id, icon = '', text = '', phone = '', href = '', order = 1, isActive = true }) => ({
+        id,
+        icon,
+        text,
+        phone,
+        href,
+        order: Number(order || 1),
+        isActive: isActive !== false,
+      }))
+    await setDoc(doc(db, 'settings', 'announcementBar'), {
+      rotationSpeedSeconds: Number(announcementSettings.rotationSpeedSeconds || 4),
+      messages,
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+  }
+
+  const saveAnnouncementSettings = async () => {
+    try {
+      await saveAnnouncementBarSettings()
+      toast.success('Announcement rotation settings saved.')
+    } catch (error) {
+      toast.error(error.message || 'Unable to save announcement settings.')
+    }
+  }
+
   return (
     <section className="grid gap-5">
-      <div className="flex gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-gray-900">
+      <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-sm">
         {[
           ['company', 'Company'],
           ['hero', 'Hero Section'],
@@ -496,7 +556,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
             key={id}
             onClick={() => setSection(id)}
             className={`min-h-11 rounded-lg px-4 text-sm font-semibold ${
-              section === id ? 'bg-amber-100 text-amber-800' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5'
+              section === id ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
             }`}
           >
             {label}
@@ -716,24 +776,50 @@ export default function AdminSettings({ initialSection = 'company' }) {
 
       {section === 'announcements' && (
         <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-          <form onSubmit={saveAnnouncement} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900">
-            <h2 className="font-bold text-navy-900 dark:text-white">Announcement Bar</h2>
-            <p className="mt-1 text-sm text-gray-500">Public-only messages above the navbar.</p>
+          <form onSubmit={saveAnnouncement} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
+            <h2 className="font-bold text-white">Announcement Bar</h2>
+            <p className="mt-1 text-sm text-gray-400">Rotating public messages above the navbar.</p>
             <div className="mt-5 grid gap-4">
               <label>
-                <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Message text</span>
-                <input className="field" value={announcementForm.text} onChange={(event) => updateAnnouncement('text', event.target.value)} />
+                <span className="mb-2 block text-sm font-medium text-gray-300">Rotation speed (seconds)</span>
+                <div className="flex gap-2">
+                  <input
+                    className="field"
+                    type="number"
+                    min="2"
+                    max="12"
+                    value={announcementSettings.rotationSpeedSeconds}
+                    onChange={(event) => updateAnnouncementSettings('rotationSpeedSeconds', event.target.value)}
+                  />
+                  <button type="button" className="btn-secondary shrink-0" onClick={saveAnnouncementSettings}>
+                    Save Speed
+                  </button>
+                </div>
+              </label>
+              <div className="grid gap-4 sm:grid-cols-[110px_1fr]">
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Icon</span>
+                  <input className="field" placeholder="⚡" value={announcementForm.icon} onChange={(event) => updateAnnouncement('icon', event.target.value)} />
+                </label>
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Message text</span>
+                  <input className="field" value={announcementForm.text} onChange={(event) => updateAnnouncement('text', event.target.value)} />
+                </label>
+              </div>
+              <label>
+                <span className="mb-2 block text-sm font-medium text-gray-300">Tap-to-call phone</span>
+                <input className="field" placeholder="9398724704" value={announcementForm.phone} onChange={(event) => updateAnnouncement('phone', event.target.value)} />
               </label>
               <label>
-                <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Optional link</span>
+                <span className="mb-2 block text-sm font-medium text-gray-300">Optional link</span>
                 <input className="field" placeholder="tel:9398724704 or /services" value={announcementForm.href} onChange={(event) => updateAnnouncement('href', event.target.value)} />
               </label>
               <label>
-                <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Sort order</span>
+                <span className="mb-2 block text-sm font-medium text-gray-300">Sort order</span>
                 <input className="field" type="number" min="1" value={announcementForm.order} onChange={(event) => updateAnnouncement('order', event.target.value)} />
               </label>
-              <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300">
-                <input type="checkbox" className="h-4 w-4 accent-amber-500" checked={announcementForm.isActive} onChange={(event) => updateAnnouncement('isActive', event.target.checked)} />
+              <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-gray-300">
+                <input type="checkbox" className="h-4 w-4 accent-red-600" checked={announcementForm.isActive} onChange={(event) => updateAnnouncement('isActive', event.target.checked)} />
                 Active
               </label>
             </div>
@@ -747,21 +833,23 @@ export default function AdminSettings({ initialSection = 'company' }) {
             </div>
           </form>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900">
-            <h3 className="font-bold text-navy-900 dark:text-white">Messages</h3>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
+            <h3 className="font-bold text-white">Messages</h3>
             <div className="mt-4 grid gap-3">
               {sortedAnnouncements.map((item) => (
-                <article key={item.id} className="rounded-lg border border-gray-100 p-4 dark:border-white/10">
+                <article key={item.id} className="rounded-lg border border-zinc-800 bg-black/30 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-semibold text-gray-950 dark:text-white">{item.text}</p>
-                      <p className="mt-1 text-xs font-semibold text-gray-400">{item.href || 'No link'} | Order {item.order} | {item.isActive === false ? 'Hidden' : 'Active'}</p>
+                      <p className="font-semibold text-white">{item.icon ? `${item.icon} ` : ''}{item.text}</p>
+                      <p className="mt-1 text-xs font-semibold text-gray-400">
+                        {item.phone ? `Call ${item.phone}` : item.href || 'No link'} | Order {item.order} | {item.isActive === false ? 'Hidden' : 'Active'}
+                      </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10" aria-label="Move up" onClick={() => moveAnnouncement(item, -1)}><ArrowUp size={16} /></button>
-                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10" aria-label="Move down" onClick={() => moveAnnouncement(item, 1)}><ArrowDown size={16} /></button>
-                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10" aria-label="Edit" onClick={() => setAnnouncementForm({ ...item, href: item.href || '', order: item.order || 1, isActive: item.isActive !== false })}><Edit3 size={16} /></button>
-                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-red-600 hover:bg-red-50" aria-label="Delete" onClick={() => removeAnnouncement(item)}><Trash2 size={16} /></button>
+                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-300 hover:bg-zinc-800" aria-label="Move up" onClick={() => moveAnnouncement(item, -1)}><ArrowUp size={16} /></button>
+                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-300 hover:bg-zinc-800" aria-label="Move down" onClick={() => moveAnnouncement(item, 1)}><ArrowDown size={16} /></button>
+                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-300 hover:bg-zinc-800" aria-label="Edit" onClick={() => setAnnouncementForm({ ...emptyAnnouncement, ...item, href: item.href || '', phone: item.phone || '', icon: item.icon || '', order: item.order || 1, isActive: item.isActive !== false })}><Edit3 size={16} /></button>
+                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-red-500 hover:bg-red-600/10" aria-label="Delete" onClick={() => removeAnnouncement(item)}><Trash2 size={16} /></button>
                     </div>
                   </div>
                 </article>

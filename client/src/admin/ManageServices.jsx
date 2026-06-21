@@ -65,7 +65,7 @@ export default function ManageServices() {
     }
     update(
       'description',
-      `${form.name || 'This service'} is handled by verified electricians in Tuni with safe diagnosis, clean workmanship, transparent pricing, and a 3-month service warranty.`,
+      `${form.name || 'This service'} is handled by verified electricians in Tuni with safe diagnosis, clean workmanship, transparent pricing, and a 1 Month service warranty.`,
     )
   }
 

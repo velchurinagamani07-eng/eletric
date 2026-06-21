@@ -6,6 +6,7 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   CircleUserRound,
+  Heart,
   HelpCircle,
   Home,
   Info,
@@ -14,6 +15,7 @@ import {
   Menu,
   PackageSearch,
   Phone,
+  ShoppingCart,
   Settings,
   UserRound,
   X,
@@ -21,6 +23,8 @@ import {
 } from 'lucide-react'
 import { settings } from '../../data/catalog'
 import { useAuthStore } from '../../store/authStore'
+import { useCartStore } from '../../store/cartStore'
+import { useWishlistStore } from '../../store/wishlistStore'
 import ConfirmDialog from '../ConfirmDialog'
 
 const sparkParticles = [
@@ -33,6 +37,7 @@ const browseLinks = [
   { label: 'Home', to: '/', icon: Home },
   { label: 'Services', to: '/services', icon: Settings },
   { label: 'Products', to: '/products', icon: PackageSearch },
+  { label: 'Daily Work', to: '/daily-work', icon: CalendarDays },
   { label: 'About', to: '/about', icon: Info },
   { label: 'Contact', to: '/contact', icon: Phone },
   { label: 'FAQ', to: '/faq', icon: HelpCircle },
@@ -41,6 +46,7 @@ const browseLinks = [
 const accountLinks = [
   { label: 'My Bookings', to: '/dashboard/bookings', icon: CalendarDays },
   { label: 'My Orders', to: '/dashboard', icon: PackageSearch },
+  { label: 'My Wishlist', to: '/customer/wishlist', icon: Heart },
   { label: 'My Coupons', to: '/dashboard/coupons', icon: BadgePercent },
   { label: 'Profile Settings', to: '/dashboard/profile', icon: UserRound },
 ]
@@ -52,9 +58,9 @@ export default function MobileNavbar() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const cartCount = useCartStore((state) => state.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0))
+  const wishlistCount = useWishlistStore((state) => state.ids.length)
   const isHome = location.pathname === '/'
-  const firstName = user?.name?.split(' ')?.[0] || ''
-  const profileTo = user ? '/dashboard/profile' : `/login?returnUrl=${encodeURIComponent('/dashboard/profile')}`
 
   const closeAndGo = (to) => {
     setDrawerOpen(false)
@@ -167,16 +173,16 @@ export default function MobileNavbar() {
         )}
       </AnimatePresence>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-gray-100 bg-white pb-[max(env(safe-area-inset-bottom),0px)] shadow-nav lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-zinc-800 bg-black pb-[max(env(safe-area-inset-bottom),0px)] shadow-nav lg:hidden">
         <MobileTab to="/services" icon={Settings} label="Services" />
-        <MobileTab to="/products" icon={PackageSearch} label="Products" />
+        <MobileTab to="/customer/wishlist" icon={Heart} label="Wishlist" badge={wishlistCount} />
         <NavLink
           to="/"
-          className="relative flex min-h-full flex-col items-center justify-center gap-0.5 overflow-visible text-[10px] font-semibold text-primary"
+          className="relative flex min-h-full flex-col items-center justify-center gap-0.5 overflow-visible text-[10px] font-semibold text-red-500"
         >
-          <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-primary text-white shadow-amber">
+          <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-red-600 text-white shadow-red">
             <motion.span
-              className="absolute inset-0 rounded-2xl bg-amber-400"
+              className="absolute inset-0 rounded-2xl bg-red-500"
               initial={{ opacity: 0.9, scale: 1 }}
               animate={{ opacity: [0.9, 0.55, 0.9], scale: [1, 1.06, 1] }}
               transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
@@ -193,7 +199,7 @@ export default function MobileNavbar() {
           </span>
           <span>Home</span>
         </NavLink>
-        <MobileTab to={profileTo} icon={user ? UserRound : LogIn} label={user ? firstName || 'Profile' : 'Login'} />
+        <MobileTab to="/cart" icon={ShoppingCart} label="Cart" badge={cartCount} />
         <button
           type="button"
           className="relative flex min-h-full flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-gray-400"
@@ -220,17 +226,24 @@ export default function MobileNavbar() {
   )
 }
 
-function MobileTab({ to, icon: Icon, label }) {
+function MobileTab({ to, icon: Icon, label, badge = 0 }) {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
         `relative flex min-h-full flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${
-          isActive ? 'text-primary before:absolute before:left-[20%] before:right-[20%] before:top-0 before:h-0.5 before:rounded-b before:bg-primary' : 'text-gray-400'
+          isActive ? 'text-red-500 before:absolute before:left-[20%] before:right-[20%] before:top-0 before:h-0.5 before:rounded-b before:bg-red-600' : 'text-gray-400'
         }`
       }
     >
-      <Icon size={21} />
+      <span className="relative">
+        <Icon size={21} />
+        {badge > 0 && (
+          <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white">
+            {badge}
+          </span>
+        )}
+      </span>
       <span className="max-w-[64px] truncate">{label}</span>
     </NavLink>
   )

@@ -14,19 +14,19 @@ export const settings = {
 export const defaultHero = {
   headline: 'Expert home electrical services in Tuni',
   subheadline:
-    'Fast, reliable electricians for fan installation, wiring, sockets, AC fitting, inverter work and emergency repairs with a 3-month warranty.',
+    'Fast, reliable electricians for fan installation, wiring, sockets, AC fitting, inverter work and emergency repairs with a 1 Month warranty.',
   ctaText: 'Book a Service',
   ctaLink: '/booking',
   secondaryCtaText: 'View Services',
   secondaryCtaLink: '/services',
   badgeText: 'Trusted Electricians in Tuni',
-  badgeText1: '3 Month Warranty',
+  badgeText1: '1 Month Warranty',
   badgeText2: '50+ Workers',
   badgeText3: 'Same-day Service',
   badgeText4: 'Verified',
   customers: 500,
   workers: 50,
-  warranty: '3 Month Warranty',
+  warranty: '1 Month Warranty',
   rating: '5-Star Rated',
   images: [],
   isActive: true,
@@ -54,7 +54,7 @@ export const services = [
     category: 'fans',
     shortDescription: 'Safe ceiling or wall fan installation with balanced mounting and testing.',
     description:
-      'Get a professionally mounted fan with secure wiring, balanced fitting, and safety checks. Our electricians verify switch control, regulator response, and load stability before handover. Every booking includes a 3-month service warranty.',
+      'Get a professionally mounted fan with secure wiring, balanced fitting, and safety checks. Our electricians verify switch control, regulator response, and load stability before handover. Every booking includes a 1 Month service warranty.',
     basePrice: 299,
     duration: '45-60 min',
     localImage: '/default-images/fan.jpg',
@@ -72,7 +72,7 @@ export const services = [
     category: 'fans',
     shortDescription: 'Noise, speed, capacitor and wiring faults handled at your doorstep.',
     description:
-      'Resolve fan noise, speed drop, capacitor issues, and minor wiring faults with doorstep support. We diagnose the fault before replacing parts so pricing stays transparent. Repairs are covered by a 3-month warranty.',
+      'Resolve fan noise, speed drop, capacitor issues, and minor wiring faults with doorstep support. We diagnose the fault before replacing parts so pricing stays transparent. Repairs are covered by a 1 Month warranty.',
     basePrice: 199,
     duration: '30-45 min',
     localImage: '/default-images/fan-repair.jpg',
@@ -90,7 +90,7 @@ export const services = [
     category: 'fans',
     shortDescription: 'Remove old fan and install a new one with secure fittings.',
     description:
-      'Replace old or unsafe fans with neat dismantling, new fixture installation, and wiring verification. Our worker checks bracket condition and speed controls before completion. Service comes with a 3-month workmanship warranty.',
+      'Replace old or unsafe fans with neat dismantling, new fixture installation, and wiring verification. Our worker checks bracket condition and speed controls before completion. Service comes with a 1 Month workmanship warranty.',
     basePrice: 349,
     duration: '60 min',
     localImage: '/default-images/fan-replace.jpg',
@@ -108,7 +108,7 @@ export const services = [
     category: 'fans',
     shortDescription: 'Careful fan dismantling with wire isolation and fixture safety.',
     description:
-      'Remove ceiling or wall fans safely without damaging wiring or the ceiling point. We isolate open wires and leave the point ready for future work. A 3-month safety assurance is included for the handled point.',
+      'Remove ceiling or wall fans safely without damaging wiring or the ceiling point. We isolate open wires and leave the point ready for future work. A 1 Month safety assurance is included for the handled point.',
     basePrice: 149,
     duration: '20-30 min',
     localImage: '/default-images/fan-remove.jpg',
@@ -126,7 +126,7 @@ export const services = [
     category: 'wiring',
     shortDescription: 'New wiring, rewiring, load checks, and fault correction.',
     description:
-      'Upgrade unsafe wiring or add new electrical lines with proper load planning and insulated routing. We inspect the circuit and recommend safe wire gauges for long-term reliability. All completed work carries a 3-month warranty.',
+      'Upgrade unsafe wiring or add new electrical lines with proper load planning and insulated routing. We inspect the circuit and recommend safe wire gauges for long-term reliability. All completed work carries a 1 Month warranty.',
     basePrice: 499,
     duration: '90-180 min',
     localImage: '/default-images/wiring.jpg',
@@ -144,7 +144,7 @@ export const services = [
     category: 'sockets',
     shortDescription: 'Add or replace sockets with clean wall fitting and load testing.',
     description:
-      'Install new sockets for appliances, chargers, and workstations with neat fitting and reliable wiring. We confirm polarity, earthing, and load suitability before use. Installation includes a 3-month warranty.',
+      'Install new sockets for appliances, chargers, and workstations with neat fitting and reliable wiring. We confirm polarity, earthing, and load suitability before use. Installation includes a 1 Month warranty.',
     basePrice: 149,
     duration: '30-45 min',
     localImage: '/default-images/socket.jpg',
@@ -162,7 +162,7 @@ export const services = [
     category: 'sockets',
     shortDescription: 'Loose switches, burnt points, spark issues and board repairs.',
     description:
-      'Fix damaged switch boards, sparking points, loose plates, and burnt modules with a clean replacement plan. Our electrician checks the connected load to reduce repeat failures. Workmanship is covered for 3 months.',
+      'Fix damaged switch boards, sparking points, loose plates, and burnt modules with a clean replacement plan. Our electrician checks the connected load to reduce repeat failures. Workmanship is covered for 1 Month.',
     basePrice: 199,
     duration: '45-75 min',
     localImage: '/default-images/switchboard.jpg',
@@ -180,7 +180,7 @@ export const services = [
     category: 'mcb',
     shortDescription: 'MCB tripping, fuse replacement, DB checks and safety upgrades.',
     description:
-      'Handle MCB trips, fuse failures, and distribution box issues with accurate load diagnosis. We identify overloads or short circuits before replacement so the fix is safe. Service includes a 3-month warranty.',
+      'Handle MCB trips, fuse failures, and distribution box issues with accurate load diagnosis. We identify overloads or short circuits before replacement so the fix is safe. Service includes a 1 Month warranty.',
     basePrice: 349,
     duration: '60-90 min',
     localImage: '/default-images/mcb.jpg',
@@ -198,7 +198,7 @@ export const services = [
     category: 'lights',
     shortDescription: 'LED, panel, chandelier and outdoor light installation.',
     description:
-      'Install LED lights, panels, ceiling fixtures, and outdoor lights with secure mounting and wiring. We check switch control and insulation before finishing. Every installation gets a 3-month warranty.',
+      'Install LED lights, panels, ceiling fixtures, and outdoor lights with secure mounting and wiring. We check switch control and insulation before finishing. Every installation gets a 1 Month warranty.',
     basePrice: 199,
     duration: '30-75 min',
     localImage: '/default-images/light.jpg',
@@ -216,7 +216,7 @@ export const services = [
     category: 'wiring',
     shortDescription: 'Heavy load geyser point wiring with safety and earthing checks.',
     description:
-      'Prepare or repair geyser wiring with attention to load capacity, insulation, and earthing. We use safe routing and verify the circuit before connecting the appliance. Work is backed by a 3-month warranty.',
+      'Prepare or repair geyser wiring with attention to load capacity, insulation, and earthing. We use safe routing and verify the circuit before connecting the appliance. Work is backed by a 1 Month warranty.',
     basePrice: 299,
     duration: '60-90 min',
     localImage: '/default-images/geyser.jpg',
@@ -234,7 +234,7 @@ export const services = [
     category: 'wiring',
     shortDescription: 'Dedicated AC power point wiring, MCB and switch fitting.',
     description:
-      'Create a dedicated AC electrical point with correct wire gauge, MCB planning, and switch fitting. The circuit is tested for heavy load stability and safe operation. Workmanship includes a 3-month warranty.',
+      'Create a dedicated AC electrical point with correct wire gauge, MCB planning, and switch fitting. The circuit is tested for heavy load stability and safe operation. Workmanship includes a 1 Month warranty.',
     basePrice: 599,
     duration: '120-180 min',
     localImage: '/default-images/ac.jpg',
@@ -252,7 +252,7 @@ export const services = [
     category: 'backup',
     shortDescription: 'Inverter wiring, backup circuit setup and changeover checks.',
     description:
-      'Set up inverter wiring and backup circuits with safe routing and load separation. We verify changeover behavior and connected appliances before handover. The service carries a 3-month warranty.',
+      'Set up inverter wiring and backup circuits with safe routing and load separation. We verify changeover behavior and connected appliances before handover. The service carries a 1 Month warranty.',
     basePrice: 799,
     duration: '120-240 min',
     localImage: '/default-images/inverter.jpg',
@@ -270,7 +270,7 @@ export const services = [
     category: 'wiring',
     shortDescription: 'Earthing inspection and correction for appliance safety.',
     description:
-      'Improve home electrical safety with earthing checks, correction work, and grounding recommendations. We inspect shock risks and appliance points before completing the fix. Work includes a 3-month service warranty.',
+      'Improve home electrical safety with earthing checks, correction work, and grounding recommendations. We inspect shock risks and appliance points before completing the fix. Work includes a 1 Month service warranty.',
     basePrice: 999,
     duration: '180-300 min',
     localImage: '/default-images/earthing.jpg',
@@ -288,7 +288,7 @@ export const services = [
     category: 'security',
     shortDescription: 'Camera wiring routes, power points and neat cable management.',
     description:
-      'Run CCTV wiring with clean routes, protected cable paths, and reliable camera power points. We plan visibility, cable reach, and basic safety before installation. Work is supported by a 3-month warranty.',
+      'Run CCTV wiring with clean routes, protected cable paths, and reliable camera power points. We plan visibility, cable reach, and basic safety before installation. Work is supported by a 1 Month warranty.',
     basePrice: 499,
     duration: '90-180 min',
     localImage: '/default-images/cctv.jpg',
@@ -306,7 +306,7 @@ export const services = [
     category: 'mcb',
     shortDescription: 'Urgent fault tracing for burning smell, tripping and sparks.',
     description:
-      'Book quick diagnosis for short circuits, burning smells, sparks, or repeated MCB trips. Our electrician isolates the affected line and recommends safe repair before restoring power. Repair work includes a 3-month warranty.',
+      'Book quick diagnosis for short circuits, burning smells, sparks, or repeated MCB trips. Our electrician isolates the affected line and recommends safe repair before restoring power. Repair work includes a 1 Month warranty.',
     basePrice: 399,
     duration: '60-120 min',
     localImage: '/default-images/short.jpg',
@@ -323,7 +323,7 @@ export const banners = [
   {
     id: 'festival-safety',
     title: 'Festival Lighting Safety Check',
-    subtitle: 'Book decorative light wiring and load checks with 3-month warranty.',
+    subtitle: 'Book decorative light wiring and load checks with 1 Month warranty.',
     ctaText: 'Book lighting',
     ctaLink: '/services?category=lights',
     imageURL: image('photo-1512389142860-9c449e58a543'),

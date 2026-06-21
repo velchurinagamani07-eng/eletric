@@ -49,7 +49,7 @@ async function seed() {
         slug,
         name,
         category,
-        description: `${name} by verified electricians with transparent pricing, safety checks, and 3-month warranty.`,
+        description: `${name} by verified electricians with transparent pricing, safety checks, and 1 Month warranty.`,
         basePrice,
         imageURL: `/default-images/services/${imageName}`,
         duration: '45-90 min',
@@ -70,25 +70,25 @@ async function seed() {
 
   batch.set(db.collection('settings').doc('seo'), {
     homeTitle: 'Home Electric Services - Expert Electricians in Tuni',
-    homeDescription: 'Book licensed electricians in Tuni with 3-month warranty.',
+    homeDescription: 'Book licensed electricians in Tuni with 1 Month warranty.',
     homeKeywords: 'electrician Tuni, home electrical services, fan installation Tuni, wiring repair',
   })
 
   batch.set(db.collection('settings').doc('hero'), {
     headline: 'Expert Home Electrical Services in Tuni',
-    subheadline: 'Fast, reliable electricians for fan installation, wiring, sockets, AC fitting, inverter work and emergency repairs with a 3-month warranty.',
+    subheadline: 'Fast, reliable electricians for fan installation, wiring, sockets, AC fitting, inverter work and emergency repairs with a 1 Month warranty.',
     ctaText: 'Book a Service',
     ctaLink: '/booking',
     secondaryCtaText: 'View Services',
     secondaryCtaLink: '/services',
     badgeText: 'Trusted Electricians in Tuni',
-    badgeText1: '3 Month Warranty',
+    badgeText1: '1 Month Warranty',
     badgeText2: '50+ Workers',
     badgeText3: 'Same-day Service',
     badgeText4: 'Verified',
     customers: 500,
     workers: 50,
-    warranty: '3 Month Warranty',
+    warranty: '1 Month Warranty',
     rating: '5-Star Rated',
     isActive: true,
   })

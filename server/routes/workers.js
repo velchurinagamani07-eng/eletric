@@ -12,7 +12,7 @@ router.get(
   '/',
   asyncHandler(async (req, res) => {
     if (!db) return res.json({ workers: [], demo: true })
-    const snapshot = await db.collection('workers').limit(100).get()
+    const snapshot = await db.collection('workers').orderBy('createdAt', 'desc').limit(100).get()
     return res.json({ workers: snapshot.docs.map((doc) => ({ uid: doc.id, ...doc.data() })) })
   }),
 )
@@ -45,9 +45,13 @@ router.post(
       name: req.body.name,
       email: req.body.email,
       mobile: req.body.mobile,
+      phone: req.body.phone || req.body.mobile,
       specialization: req.body.specialization || '',
+      specializations: Array.isArray(req.body.specializations) ? req.body.specializations : [],
+      serviceAreas: Array.isArray(req.body.serviceAreas) ? req.body.serviceAreas : [],
       photoURL: req.body.photoURL || '',
       isActive: true,
+      status: 'active',
       totalJobsCompleted: 0,
       earnings: 0,
       rating: 0,
@@ -67,9 +71,13 @@ router.post(
       name: workerDoc.name,
       email: workerDoc.email,
       mobile: workerDoc.mobile,
+      phone: workerDoc.phone,
       specialization: workerDoc.specialization,
+      specializations: workerDoc.specializations,
+      serviceAreas: workerDoc.serviceAreas,
       photoURL: workerDoc.photoURL,
       isActive: workerDoc.isActive,
+      status: workerDoc.status,
       totalJobsCompleted: workerDoc.totalJobsCompleted,
       earnings: workerDoc.earnings,
       rating: workerDoc.rating,
