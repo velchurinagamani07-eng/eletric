@@ -1,17 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://homeelectricservices.in/</loc></url>
-  <url><loc>https://homeelectricservices.in/services</loc></url>
-  <url><loc>https://homeelectricservices.in/about</loc></url>
-  <url><loc>https://homeelectricservices.in/contact</loc></url>
-  <url><loc>https://homeelectricservices.in/faq</loc></url>
-  <url><loc>https://homeelectricservices.in/blog</loc></url>
-  <url><loc>https://homeelectricservices.in/privacy-policy</loc></url>
-  <url><loc>https://homeelectricservices.in/terms</loc></url>
-  <url><loc>https://homeelectricservices.in/services/fan-installation</loc></url>
-  <url><loc>https://homeelectricservices.in/services/fan-repair</loc></url>
-  <url><loc>https://homeelectricservices.in/services/wiring-rewiring</loc></url>
-  <url><loc>https://homeelectricservices.in/services/socket-installation</loc></url>
-  <url><loc>https://homeelectricservices.in/services/mcb-fuse-box</loc></url>
-  <url><loc>https://homeelectricservices.in/services/short-circuit-repair</loc></url>
+
+<urlset
+xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+<url>
+<loc>https://www.homeelectricservices.com/</loc>
+<priority>1.0</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/about</loc>
+<priority>0.9</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/contact</loc>
+<priority>0.9</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/services</loc>
+<priority>1.0</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/products</loc>
+<priority>0.9</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/blog</loc>
+<priority>0.8</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/faq</loc>
+<priority>0.8</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/privacy-policy</loc>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://www.homeelectricservices.com/terms</loc>
+<priority>0.5</priority>
+</url>
+
 </urlset>
