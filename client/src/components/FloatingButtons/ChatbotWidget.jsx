@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
-import { BadgePercent, Bot, CalendarSearch, MessageSquare, Phone, Send, ShieldCheck, Sparkles, Wrench, X } from 'lucide-react'
+import { BadgePercent, Bot, MessageSquare, Phone, Send, ShieldCheck, Sparkles, Wrench, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { settings } from '../../data/catalog'
 import { db, isFirebaseConfigured } from '../../firebase/config'
@@ -10,7 +10,6 @@ import { useAuthStore } from '../../store/authStore'
 
 const quickLinks = [
   { id: 'book', label: 'Book', icon: Wrench, to: '/services' },
-  { id: 'track', label: 'Track', icon: CalendarSearch, to: '/dashboard/bookings', auth: true },
   { id: 'call', label: 'Call', icon: Phone, href: `tel:+91${settings.phone}` },
   { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, href: `https://wa.me/91${settings.whatsapp}?text=${encodeURIComponent('Hello, I need electrical service')}` },
   { id: 'quote', label: 'Quote', icon: Sparkles, quote: true },
@@ -35,11 +34,7 @@ export default function ChatbotWidget() {
       else window.open(link.href, '_blank', 'noopener,noreferrer')
       return
     }
-    if (link.auth && !user) {
-      navigate(`/login?returnUrl=${encodeURIComponent(link.to)}`)
-    } else {
-      navigate(link.to)
-    }
+    navigate(link.to)
     setOpen(false)
   }
 
@@ -143,7 +138,7 @@ export default function ChatbotWidget() {
             </AnimatePresence>
 
             <p className="mt-3 flex items-center gap-1 text-xs font-semibold text-gray-400">
-              <BadgePercent size={13} /> Complete a paid booking to earn a Rs. 50 coupon.
+              <BadgePercent size={13} /> Fast phone and WhatsApp support for urgent electrical work.
             </p>
           </motion.div>
         )}

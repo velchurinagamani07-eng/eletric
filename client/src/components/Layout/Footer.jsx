@@ -32,7 +32,7 @@ export default function Footer() {
           </div>
           <p className="mt-5 max-w-md text-sm leading-6 text-gray-600 dark:text-gray-300">
             Licensed home electricians for fans, wiring, sockets, MCB, lighting, inverter wiring and emergency
-            repairs with transparent pricing and a 1 Month warranty.
+            repairs with transparent pricing and a 3 months service warranty on eligible work.
           </p>
           <p className="mt-5 text-sm font-semibold text-gray-800 dark:text-gray-100">{settings.footerCredit}</p>
         </div>
@@ -46,12 +46,12 @@ export default function Footer() {
             <Link className="text-gray-600 hover:text-amber-600 dark:text-gray-300" to="/booking">
               Book Now
             </Link>
-            <Link className="text-gray-600 hover:text-amber-600 dark:text-gray-300" to="/dashboard">
-              My Bookings
+            <Link className="text-gray-600 hover:text-amber-600 dark:text-gray-300" to="/contact">
+              Contact
             </Link>
-            <Link className="text-gray-600 hover:text-amber-600 dark:text-gray-300" to="/login">
-              Login
-            </Link>
+            <a className="text-gray-600 hover:text-amber-600 dark:text-gray-300" href="https://wa.me/919642908090" target="_blank" rel="noreferrer">
+              WhatsApp
+            </a>
           </div>
         </div>
 
@@ -85,17 +85,6 @@ export default function Footer() {
             ))}
           </div>
         </div>
-      </div>
-      <div className="mx-auto mt-8 flex max-w-7xl justify-end px-4 sm:px-6">
-        <a
-          href="/tv"
-          target="_blank"
-          rel="noreferrer"
-          className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-300 transition hover:text-amber-500 dark:text-gray-700 dark:hover:text-amber-400"
-          aria-label="Open TV display"
-        >
-          TV
-        </a>
       </div>
     </footer>
   )

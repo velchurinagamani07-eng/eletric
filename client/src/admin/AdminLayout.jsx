@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   BellRing,
-  CalendarDays,
   ChartNoAxesCombined,
   ClipboardList,
   ExternalLink,
@@ -17,10 +16,10 @@ import {
   Settings,
   Smartphone,
   Sparkles,
-  UserRound,
   Users,
   Wrench,
   X,
+  MessageCircle,
 } from 'lucide-react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { useAuthStore } from '../store/authStore'
@@ -29,13 +28,12 @@ const links = [
   { label: 'Dashboard', to: '/admin/dashboard', icon: Gauge },
   { label: 'Bookings', to: '/admin/bookings', icon: ClipboardList },
   { label: 'Payment Records', to: '/admin/payments', icon: CreditCard },
-  { label: 'Customers', to: '/admin/customers', icon: UserRound },
+  { label: 'Enquiries', to: '/admin/enquiries', icon: MessageCircle },
   { label: 'Workers', to: '/admin/workers', icon: Users },
   { label: 'Services', to: '/admin/services', icon: Wrench },
   { label: 'Products', to: '/admin/products', icon: PackageSearch },
   { label: 'Coupons', to: '/admin/coupons', icon: Gift },
   { label: 'Entry Splash', to: '/admin/splash', icon: Sparkles },
-  { label: 'Daily Work', to: '/admin/daily-work', icon: CalendarDays },
   { label: 'Income', to: '/admin/income', icon: ChartNoAxesCombined },
   { label: 'Notifications', to: '/admin/notifications', icon: BellRing },
   { label: 'Settings', to: '/admin/settings', icon: Settings },

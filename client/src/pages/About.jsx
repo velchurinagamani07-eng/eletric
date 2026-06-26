@@ -43,10 +43,10 @@ const timeline = [
   ['2016', 'Joins Manchian Engineering College', 'Enrolled in Electrical Engineering, driven by a childhood curiosity about how electricity works.'],
   ['2020', 'Graduates with B.E. in Electrical Engineering', 'Completed his degree with a specialization in residential electrical systems and safety.'],
   ['2020', 'Returns to Tuni, Founds DP Home Electric Services', 'Instead of a corporate desk, chose to serve his hometown. Started with a small team and a big promise.'],
-  ['2021', 'First 100 Customers Served', 'Quality work, honest pricing, and the 1 Month warranty made customers return and refer.'],
+  ['2021', 'First 100 Customers Served', 'Quality work, honest pricing, and warranty-backed service made customers return and refer.'],
   ['2022', 'Team Grows to 10 Verified Workers', 'Expanded to cover more areas around Tuni. Each worker personally trained and verified.'],
   ['2023', '500+ Happy Customers', 'Became one of the most-booked home electrician services in Tuni with a 4.8-star average rating.'],
-  ['2024', 'Launched Digital Booking Platform', 'Customers can book, pay, and track services from anywhere.'],
+  ['2024', 'Launched Digital Booking Platform', 'Customers can book services through phone and WhatsApp from anywhere.'],
   ['2025', '50+ Workers, Covering East Godavari', 'Serving Tuni, Peddapuram, Rajanagaram and beyond while keeping the mission unchanged.'],
 ]
 
@@ -60,21 +60,21 @@ const stats = [
 const values = [
   [Zap, 'Safety First', 'Every job follows practical electrical safety standards. No shortcuts, ever.'],
   [IndianRupee, 'Fair Pricing', 'Transparent quotes before work begins. No hidden charges or surprise bills.'],
-  [ShieldCheck, 'Warranty Always', '1 Month warranty on every completed job. If it fails, we fix it.'],
+  [ShieldCheck, 'Warranty Always', '3 months service warranty on eligible completed jobs. If it fails, we fix it.'],
 ]
 
 const howItWorks = [
   ['1', 'Choose a Service', 'Browse 50+ electrical services from fan installation to full house wiring.'],
-  ['2', 'Schedule & Pay', 'Pick your date, time slot, and pay via UPI. Instant confirmation.'],
+  ['2', 'Share Details', 'Send your address and preferred time through WhatsApp for admin confirmation.'],
   ['3', 'Expert Arrives', 'A verified electrician reaches your home at the scheduled time.'],
-  ['4', 'Done + 1M Warranty', 'Work completed. A 1 Month warranty certificate is issued on every repair.'],
+  ['4', 'Done + Warranty', 'Work completed with 3 months service warranty on eligible repairs.'],
 ]
 
 const whyChoose = [
   [UserCheck, 'Verified Workers', 'All workers are ID-verified, background-checked, and personally trained by Dilip.'],
   [CalendarCheck, 'Same-Day Service', 'Book before 2 PM for same-day service in Tuni. Emergency slots available.'],
   [BadgeCheck, 'Transparent Pricing', 'Exact price shown before any work begins. Zero hidden charges or surprise bills.'],
-  [ShieldCheck, '1 Month Warranty', 'Every completed repair comes with a 1 Month warranty backed by our word.'],
+  [ShieldCheck, '3 Months Warranty', 'Eligible completed repairs come with service warranty backed by our word.'],
 ]
 
 export default function About() {
@@ -182,7 +182,7 @@ export default function About() {
                 'Manepalli Dilip Kumar grew up in Tuni, Andhra Pradesh, a town where unreliable electrical work was a daily frustration for families. Watching neighbours struggle with faulty wiring, unsafe switches, and overpriced contractors planted a seed that would shape his entire future.',
                 'He pursued his passion at Manchian Engineering College, where he earned his degree in Electrical Engineering. More than textbooks, it was the hands-on labs and real-world field projects that convinced him: the real classroom was in the homes of ordinary people.',
                 'After graduating, instead of taking a corporate job far from home, Dilip came back to Tuni with a simple mission: give every home access to skilled, honest, and warranty-backed electrical services. In 2020, he founded DP Home Electric Services and has not looked back since.',
-                'Today, DP Home Electric Services serves hundreds of families across Tuni and nearby areas. Every job comes with a 1 Month warranty, transparent pricing, and the same personal care that Dilip showed on his very first assignment.',
+                'Today, DP Home Electric Services serves hundreds of families across Tuni and nearby areas. Eligible jobs come with service warranty, transparent pricing, and the same personal care that Dilip showed on his very first assignment.',
               ].map((para) => (
                 <p key={para} className="mt-4 text-sm leading-7 text-gray-600">{para}</p>
               ))}
@@ -329,7 +329,7 @@ export default function About() {
             <h2 className="font-display text-2xl font-extrabold text-white sm:text-3xl">
               Ready for safe, reliable electrical service?
             </h2>
-            <p className="mt-2 text-sm text-white/85">Same-day service in Tuni. 1 Month warranty guaranteed.</p>
+            <p className="mt-2 text-sm text-white/85">Same-day service in Tuni. 3 months service warranty on eligible work.</p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link to="/services" className="rounded-2xl bg-white px-8 py-3.5 text-sm font-bold text-navy shadow transition hover:bg-amber-50 active:scale-[0.97]">
                 Book a Service <ArrowRight size={16} className="inline" />

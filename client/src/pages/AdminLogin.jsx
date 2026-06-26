@@ -1,5 +1,5 @@
-import Login from './Login'
+import PanelLogin from './PanelLogin'
 
 export default function AdminLogin() {
-  return <Login portal="admin" expectedRoles={['admin', 'superadmin']} allowGoogle={false} />
+  return <PanelLogin portal="admin" expectedRoles={['admin', 'superadmin']} />
 }

@@ -2,29 +2,23 @@ import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  BadgePercent,
   BriefcaseBusiness,
-  CalendarDays,
   CircleUserRound,
-  Heart,
   HelpCircle,
   Home,
   Info,
-  LogIn,
   LogOut,
   Menu,
   PackageSearch,
   Phone,
   ShoppingCart,
   Settings,
-  UserRound,
   X,
   Zap,
 } from 'lucide-react'
 import { settings } from '../../data/catalog'
 import { useAuthStore } from '../../store/authStore'
 import { useCartStore } from '../../store/cartStore'
-import { useWishlistStore } from '../../store/wishlistStore'
 import ConfirmDialog from '../ConfirmDialog'
 
 const sparkParticles = [
@@ -37,18 +31,9 @@ const browseLinks = [
   { label: 'Home', to: '/', icon: Home },
   { label: 'Services', to: '/services', icon: Settings },
   { label: 'Products', to: '/products', icon: PackageSearch },
-  { label: 'Daily Work', to: '/daily-work', icon: CalendarDays },
   { label: 'About', to: '/about', icon: Info },
   { label: 'Contact', to: '/contact', icon: Phone },
   { label: 'FAQ', to: '/faq', icon: HelpCircle },
-]
-
-const accountLinks = [
-  { label: 'My Bookings', to: '/dashboard/bookings', icon: CalendarDays },
-  { label: 'My Orders', to: '/dashboard', icon: PackageSearch },
-  { label: 'My Wishlist', to: '/customer/wishlist', icon: Heart },
-  { label: 'My Coupons', to: '/dashboard/coupons', icon: BadgePercent },
-  { label: 'Profile Settings', to: '/dashboard/profile', icon: UserRound },
 ]
 
 export default function MobileNavbar() {
@@ -59,8 +44,8 @@ export default function MobileNavbar() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const cartCount = useCartStore((state) => state.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0))
-  const wishlistCount = useWishlistStore((state) => state.ids.length)
   const isHome = location.pathname === '/'
+  const isStaff = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'worker'
 
   const closeAndGo = (to) => {
     setDrawerOpen(false)
@@ -118,24 +103,13 @@ export default function MobileNavbar() {
               </header>
 
               <section className="border-b border-surface-border px-4 py-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-primary text-lg font-extrabold text-white">
-                    {user?.photoURL ? <img src={user.photoURL} alt="" className="h-full w-full object-cover" /> : (user?.name || 'G').slice(0, 1).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-bold text-navy">{user?.name || 'Guest User'}</p>
-                    <p className="text-xs text-gray-500">{user?.mobile || user?.email || 'Login to manage bookings'}</p>
-                    <span className="mt-1 inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
-                      {user?.role || 'guest'}
-                    </span>
-                  </div>
-                </div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">DP Home Electric Services</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-gray-600">Call +91 {settings.phone} or book any service through WhatsApp.</p>
               </section>
 
               <DrawerSection title="Browse" links={browseLinks} onGo={closeAndGo} />
-              <DrawerSection title="My Account" links={accountLinks} onGo={closeAndGo} disabled={!user} />
 
-              {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'worker') && (
+              {isStaff && (
                 <section className="border-t border-surface-border px-4 py-4">
                   {user?.role === 'admin' || user?.role === 'superadmin' ? (
                     <button type="button" className="drawer-link" onClick={() => closeAndGo('/admin/dashboard')}>
@@ -146,26 +120,23 @@ export default function MobileNavbar() {
                       <BriefcaseBusiness size={18} /> My Jobs
                     </button>
                   )}
-                </section>
-              )}
-
-              <div className="mt-auto border-t border-surface-border p-4">
-                {user ? (
                   <button
                     type="button"
-                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 text-sm font-bold text-red-600"
+                    className="drawer-link text-red-600"
                     onClick={() => {
                       setDrawerOpen(false)
                       setConfirmLogout(true)
                     }}
                   >
-                    <LogOut size={17} /> Logout
+                    <LogOut size={18} /> Logout
                   </button>
-                ) : (
-                  <button type="button" className="btn-primary w-full" onClick={() => closeAndGo('/login')}>
-                    <LogIn size={17} /> Login
-                  </button>
-                )}
+                </section>
+              )}
+
+              <div className="mt-auto border-t border-surface-border p-4">
+                <a className="btn-primary w-full" href={`tel:+91${settings.phone}`}>
+                  <Phone size={17} /> Call Now
+                </a>
                 <p className="mt-4 text-center text-xs font-semibold text-gray-400">Website by WayzenTech 9398724704</p>
               </div>
             </motion.aside>
@@ -175,7 +146,7 @@ export default function MobileNavbar() {
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-zinc-800 bg-black pb-[max(env(safe-area-inset-bottom),0px)] shadow-nav lg:hidden">
         <MobileTab to="/services" icon={Settings} label="Services" />
-        <MobileTab to="/customer/wishlist" icon={Heart} label="Wishlist" badge={wishlistCount} />
+        <MobileTab to="/products" icon={PackageSearch} label="Products" />
         <NavLink
           to="/"
           className="relative flex min-h-full flex-col items-center justify-center gap-0.5 overflow-visible text-[10px] font-semibold text-red-500"
@@ -212,7 +183,7 @@ export default function MobileNavbar() {
       <ConfirmDialog
         open={confirmLogout}
         title={`Log out of ${user?.name || 'your'} account?`}
-        description={`You're currently signed in as a ${user?.role || 'user'}.\nYou'll need to sign in again to access your dashboard.`}
+        description={`You're currently signed in as a ${user?.role || 'staff'}.\nYou'll need to sign in again to access your panel.`}
         confirmLabel="Log Out"
         confirmVariant="danger"
         onClose={() => setConfirmLogout(false)}
@@ -249,19 +220,13 @@ function MobileTab({ to, icon: Icon, label, badge = 0 }) {
   )
 }
 
-function DrawerSection({ title, links, onGo, disabled = false }) {
+function DrawerSection({ title, links, onGo }) {
   return (
     <section className="border-t border-surface-border px-4 py-4">
       <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-gray-400">{title}</p>
       <div className="grid gap-1">
         {links.map(({ label, to, icon: Icon }) => (
-          <button
-            key={label}
-            type="button"
-            className="drawer-link disabled:cursor-not-allowed disabled:opacity-45"
-            onClick={() => onGo(disabled ? '/login' : to)}
-            disabled={disabled}
-          >
+          <button key={label} type="button" className="drawer-link" onClick={() => onGo(to)}>
             <Icon size={18} /> {label}
           </button>
         ))}

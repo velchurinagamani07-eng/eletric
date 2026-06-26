@@ -8,45 +8,37 @@ import { useAuthStore } from '../store/authStore'
 const routeForRole = (role) => {
   if (role === 'admin' || role === 'superadmin') return '/admin/dashboard'
   if (role === 'worker') return '/worker/dashboard'
-  return '/dashboard'
+  return '/'
 }
 
 const copy = {
-  customer: {
-    title: 'Customer Login',
-    eyebrow: 'DP Home Electric Services',
-    description: 'Manage bookings, receipts, coupons and your service profile.',
-    panelTitle: 'Welcome back',
-    panelSub: 'Sign in with your registered customer account.',
-  },
   admin: {
     title: 'Admin Login',
     eyebrow: 'Admin Portal',
-    description: 'Role-verified access for bookings, workers, products, banners and settings.',
+    description: 'Role-verified access for bookings, enquiries, workers, products, banners and settings.',
     panelTitle: 'Admin access',
     panelSub: 'Use a Firebase account with admin or superadmin role.',
   },
   worker: {
     title: 'Worker Login',
     eyebrow: 'Worker Portal',
-    description: 'Check assigned jobs, history and field notifications.',
+    description: 'Check assigned jobs, job history and field notifications.',
     panelTitle: 'Worker access',
     panelSub: 'Use your Firebase worker account created by admin.',
   },
 }
 
-export default function Login({ expectedRoles = null, portal = 'customer', allowGoogle = true }) {
+export default function PanelLogin({ expectedRoles = null, portal = 'admin' }) {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
-  const googleLogin = useAuthStore((state) => state.googleLogin)
   const resetPassword = useAuthStore((state) => state.resetPassword)
   const logout = useAuthStore((state) => state.logout)
   const isLoading = useAuthStore((state) => state.isLoading)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const text = copy[portal] || copy.customer
+  const text = copy[portal] || copy.admin
 
   const finishLogin = async (profile) => {
     if (profile.isActive === false || profile.status === 'suspended') {
@@ -122,7 +114,7 @@ export default function Login({ expectedRoles = null, portal = 'customer', allow
                   <span className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">Email</span>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
-                    <input className="field min-h-12 pl-10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                    <input className="field min-h-12 pl-11" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
                   </div>
                 </label>
                 <label>
@@ -130,7 +122,7 @@ export default function Login({ expectedRoles = null, portal = 'customer', allow
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
                     <input
-                      className="field min-h-12 pl-10 pr-10"
+                      className="field min-h-12 pl-11 pr-10"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
@@ -164,33 +156,6 @@ export default function Login({ expectedRoles = null, portal = 'customer', allow
                   {isLoading ? 'Signing in...' : 'Login'}
                 </button>
               </form>
-
-              {allowGoogle && (
-                <button
-                  type="button"
-                  className="btn-secondary mt-4 w-full"
-                  onClick={async () => {
-                    try {
-                      const profile = await googleLogin()
-                      await finishLogin(profile)
-                      toast.success('Signed in with Google')
-                    } catch (error) {
-                      toast.error(error.message || 'Google sign-in failed.')
-                    }
-                  }}
-                >
-                  Continue with Google
-                </button>
-              )}
-
-              {portal === 'customer' && (
-                <p className="mt-5 text-center text-sm text-gray-500">
-                  New customer?{' '}
-                  <Link to="/register" className="font-bold text-amber-700 hover:text-amber-600">
-                    Create account
-                  </Link>
-                </p>
-              )}
             </section>
           </div>
         </section>

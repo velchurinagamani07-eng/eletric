@@ -8,11 +8,11 @@ const pageContent = {
   faq: {
     title: 'FAQ',
     heading: 'Frequently Asked Questions',
-    description: 'Answers about booking, pricing, warranty, payments, and service visits.',
+    description: 'Answers about booking, pricing, warranty, WhatsApp enquiries, and service visits.',
     items: [
       ['How soon can I book?', 'Same-day slots are available when a verified electrician is free in your area.'],
-      ['Do services include warranty?', 'Completed workmanship includes a 1 month warranty. Parts follow supplier warranty.'],
-      ['Can I reschedule?', 'Pending bookings can be rescheduled by contacting support or using your booking panel.'],
+      ['Do services include warranty?', 'Completed workmanship includes a 3 months service warranty on eligible work. Parts follow supplier warranty.'],
+      ['Can I reschedule?', 'Service visits can be rescheduled by contacting support on phone or WhatsApp.'],
       ['How is price calculated?', 'Base labor is shown upfront. Any parts or extra work are confirmed before completion.'],
     ],
   },
@@ -31,8 +31,8 @@ const pageContent = {
     heading: 'Privacy Policy',
     description: 'How DP Home Electric Services handles customer booking and contact information.',
     items: [
-      ['Data we collect', 'Name, phone, address, booking details, payment references, and uploaded service photos.'],
-      ['How we use data', 'To schedule services, assign workers, issue receipts, provide warranty, and support customers.'],
+      ['Data we collect', 'Name, phone, address, enquiry details, payment references when applicable, and uploaded service photos.'],
+      ['How we use data', 'To schedule services, assign workers, issue receipts when applicable, provide warranty, and support customers.'],
       ['Data access', 'Admin users manage service data. Workers only receive job details needed to complete assigned work.'],
     ],
   },
@@ -42,21 +42,21 @@ const pageContent = {
     description: 'Service terms for booking home electrical work in Tuni and nearby areas.',
     items: [
       ['Bookings', 'Bookings are confirmed after service, address, date, and contact details are provided.'],
-      ['Payments', 'Payments may be collected online or as agreed for the booking. Receipts are issued after payment.'],
-      ['Warranty', 'Warranty covers workmanship for 1 month and excludes misuse, external damage, and unrelated faults.'],
+      ['Payments', 'Payments may be collected as agreed after admin confirms the visit and estimate. Receipts are issued when applicable.'],
+      ['Warranty', 'Warranty covers eligible workmanship for 3 months and excludes misuse, external damage, and unrelated faults.'],
     ],
   },
   success: {
-    title: 'Payment Success',
-    heading: 'Payment Successful',
-    description: 'Your booking payment is confirmed. You can view booking status and receipts from your dashboard.',
-    items: [['Next step', 'Admin will assign a verified electrician and you will receive booking updates.']],
+    title: 'Request Sent',
+    heading: 'Request Sent',
+    description: 'Your service request has been received. DP Home Electric Services will confirm details by phone or WhatsApp.',
+    items: [['Next step', 'Admin will review your request and assign a verified electrician when confirmed.']],
   },
   failed: {
-    title: 'Payment Failed',
-    heading: 'Payment Failed',
-    description: 'Your payment could not be completed. You can retry checkout or contact support.',
-    items: [['Need help?', `Call +91 ${settings.phone} or use WhatsApp support for payment help.`]],
+    title: 'Request Help',
+    heading: 'Need Help?',
+    description: 'If a WhatsApp request did not open or send, contact support directly.',
+    items: [['Need help?', `Call +91 ${settings.phone} or use WhatsApp support for service help.`]],
   },
 }
 

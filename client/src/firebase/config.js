@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
 import { getMessaging, isSupported } from 'firebase/messaging'
 import { getStorage } from 'firebase/storage'
@@ -13,6 +13,9 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 }
+
+// Firebase Auth must include the production domain in Authorized domains.
+// Public customers do not sign in; only admin and worker email/password auth is used.
 
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId,
@@ -35,7 +38,6 @@ export const db = firebaseApp
     })()
   : null
 export const storage = firebaseApp ? getStorage(firebaseApp) : null
-export const googleProvider = firebaseApp ? new GoogleAuthProvider() : null
 
 export const messagingPromise = firebaseApp
   ? isSupported().then((supported) => (supported ? getMessaging(firebaseApp) : null))

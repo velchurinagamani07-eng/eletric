@@ -1,5 +1,5 @@
-import Login from './Login'
+import PanelLogin from './PanelLogin'
 
 export default function WorkerLogin() {
-  return <Login portal="worker" expectedRoles={['worker']} allowGoogle={false} />
+  return <PanelLogin portal="worker" expectedRoles={['worker']} />
 }

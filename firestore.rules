@@ -42,7 +42,6 @@ service cloud.firestore {
 
     function bookingVisible() {
       return isAdmin()
-        || isOwner(resource.data.userId)
         || (isWorker() && resource.data.workerUID == request.auth.uid);
     }
 
@@ -81,17 +80,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /heroImages_home/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
     match /announcement_messages/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /daily_work/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -108,7 +97,7 @@ service cloud.firestore {
 
     match /reviews/{id} {
       allow read: if true;
-      allow create: if signedIn();
+      allow create: if true;
       allow update, delete: if isAdmin();
     }
 
@@ -139,26 +128,15 @@ service cloud.firestore {
 
     match /bookings/{id} {
       allow read: if bookingVisible();
-      allow create: if signedIn() && isActive() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAdmin();
       allow update: if isAdmin()
-        || (isWorker() && resource.data.workerUID == request.auth.uid)
-        || (isOwner(resource.data.userId)
-          && isActive()
-          && resource.data.status in ['pending', 'confirmed']
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'paymentStatus',
-            'paymentId',
-            'paymentMethod',
-            'screenshotURL',
-            'paymentSubmittedAt',
-            'paymentRejectionReason',
-            'cancellationReason',
-            'cancelledAt',
-            'upiId',
-            'status',
-            'updatedAt'
-          ]));
+        || (isWorker() && resource.data.workerUID == request.auth.uid);
       allow delete: if isAdmin();
+    }
+
+    match /enquiries/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
 
     match /workers/{workerId} {
@@ -167,12 +145,8 @@ service cloud.firestore {
     }
 
     match /payments/{id} {
-      allow read: if isAdmin() || isOwner(resource.data.userId);
-      allow create: if signedIn()
-        && isActive()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.paymentMethod == 'UPI'
-        && request.resource.data.paymentStatus in ['paid', 'pending_verification'];
+      allow read: if isAdmin();
+      allow create: if isAdmin();
       allow update, delete: if isAdmin();
     }
 
@@ -197,16 +171,8 @@ service cloud.firestore {
     }
 
     match /coupons/{id} {
-      allow read: if signedIn();
-      allow create: if isAdmin()
-        || (signedIn()
-          && isActive()
-          && request.resource.data.assignedToUserId == request.auth.uid
-          && request.resource.data.userId == request.auth.uid
-          && request.resource.data.type == 'flat'
-          && request.resource.data.value == 50
-          && request.resource.data.isActive == true
-          && request.resource.data.singleUse == true);
+      allow read: if isAdmin();
+      allow create: if isAdmin();
       allow update, delete: if isAdmin();
     }
 

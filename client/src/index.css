@@ -136,7 +136,13 @@ textarea {
 }
 
 .field {
-  @apply w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-body text-white outline-none transition-all duration-150 placeholder:text-gray-500 focus:border-red-600 focus:ring-2 focus:ring-red-600/20;
+  @apply w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-body text-white outline-none transition-all duration-150 placeholder:text-gray-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
 }
 
 .btn-primary {
@@ -276,7 +282,7 @@ textarea {
 }
 
 .announcement-marquee {
-  animation: marquee 25s linear infinite;
+  animation: marquee 28s linear infinite;
 }
 
 .timeline-car {

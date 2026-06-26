@@ -1,15 +1,12 @@
 import { create } from 'zustand'
 import {
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signOut,
-  updateProfile,
 } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
-import { auth, db, googleProvider, isFirebaseConfigured } from '../firebase/config'
+import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { auth, db, isFirebaseConfigured } from '../firebase/config'
 
 const storageKey = 'home-electric-user'
 const authReadyTimeoutMs = 8000
@@ -38,7 +35,8 @@ const assertFirebaseAuth = () => {
   }
 }
 
-const normalizeRole = (role) => (role === 'customer' ? 'user' : role || 'user')
+const panelRoles = new Set(['admin', 'superadmin', 'worker'])
+const normalizeRole = (role) => (panelRoles.has(role) ? role : 'unauthorized')
 
 const loadRoleProfile = async (firebaseUser) => {
   assertFirebaseAuth()
@@ -50,17 +48,20 @@ const loadRoleProfile = async (firebaseUser) => {
   }
 
   const data = snap.data()
+  const role = normalizeRole(data.role)
+  if (!panelRoles.has(role)) {
+    throw new Error('This account is not authorized for the admin or worker panels.')
+  }
+
   return {
     uid: firebaseUser.uid,
-    name: data.name || firebaseUser.displayName || 'HomeElectric User',
+    name: data.name || firebaseUser.displayName || 'HomeElectric Staff',
     email: data.email || firebaseUser.email || '',
     mobile: data.mobile || firebaseUser.phoneNumber || '',
     photoURL: data.photoURL || firebaseUser.photoURL || '',
-    role: normalizeRole(data.role),
+    role,
     isActive: data.isActive !== false && data.status !== 'suspended',
     status: data.status || (data.isActive === false ? 'suspended' : 'active'),
-    addressBook: data.addressBook || [],
-    birthday: data.birthday || '',
   }
 }
 
@@ -131,77 +132,6 @@ export const useAuthStore = create((set, get) => ({
       assertFirebaseAuth()
       const credential = await signInWithEmailAndPassword(auth, email, password)
       const profile = await loadRoleProfile(credential.user)
-      persistUser(profile)
-      set({ user: profile, isLoading: false, authReady: true })
-      return profile
-    } catch (error) {
-      set({ isLoading: false, authReady: true })
-      throw error
-    }
-  },
-
-  googleLogin: async () => {
-    set({ isLoading: true })
-    try {
-      assertFirebaseAuth()
-      if (!googleProvider) throw new Error('Google sign-in is not configured.')
-
-      const credential = await signInWithPopup(auth, googleProvider)
-      const userRef = doc(db, 'users', credential.user.uid)
-      const snap = await getDoc(userRef)
-
-      if (!snap.exists()) {
-        await setDoc(userRef, {
-          name: credential.user.displayName || 'Google User',
-          email: credential.user.email || '',
-          mobile: credential.user.phoneNumber || '',
-          photoURL: credential.user.photoURL || '',
-          role: 'user',
-          isActive: true,
-          status: 'active',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        })
-      }
-
-      const profile = await loadRoleProfile(credential.user)
-      if (profile.role !== 'user') {
-        await signOut(auth).catch(() => {})
-        throw new Error('Google sign-in is available for customer accounts only.')
-      }
-
-      persistUser(profile)
-      set({ user: profile, isLoading: false, authReady: true })
-      return profile
-    } catch (error) {
-      set({ isLoading: false, authReady: true })
-      throw error
-    }
-  },
-
-  register: async ({ name, mobile, email, password }) => {
-    set({ isLoading: true })
-    try {
-      assertFirebaseAuth()
-      const credential = await createUserWithEmailAndPassword(auth, email, password)
-      await updateProfile(credential.user, { displayName: name })
-      const profile = {
-        uid: credential.user.uid,
-        name,
-        mobile,
-        email,
-        photoURL: '',
-        role: 'user',
-        isActive: true,
-        status: 'active',
-        addressBook: [],
-        birthday: '',
-      }
-      await setDoc(doc(db, 'users', credential.user.uid), {
-        ...profile,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      })
       persistUser(profile)
       set({ user: profile, isLoading: false, authReady: true })
       return profile

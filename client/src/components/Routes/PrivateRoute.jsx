@@ -17,7 +17,7 @@ export default function PrivateRoute({ children, roles, role }) {
       ? '/admin/login'
       : allowedRoles?.includes('worker')
         ? '/worker/login'
-        : '/login'
+        : '/'
     return <Navigate to={`${loginPath}?returnUrl=${encodeURIComponent(location.pathname)}`} replace />
   }
 

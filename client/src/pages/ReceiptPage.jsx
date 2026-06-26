@@ -45,8 +45,8 @@ export default function ReceiptPage() {
           <title>Receipt Not Found | DP Home Electric Services | Tuni, Andhra Pradesh</title>
         </Helmet>
         <h1 className="text-2xl font-bold text-gray-950 dark:text-white">Receipt not found</h1>
-        <Link to="/customer/bookings" className="btn-primary mt-5">
-          Back to Bookings
+        <Link to="/services" className="btn-primary mt-5">
+          Browse Services
         </Link>
       </main>
     )

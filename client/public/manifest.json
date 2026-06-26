@@ -1,7 +1,7 @@
 {
   "name": "DP Home Electric Services Admin",
   "short_name": "DP Electric",
-  "description": "Admin and booking dashboard for DP Home Electric Services.",
+  "description": "Admin and worker dashboard for DP Home Electric Services.",
   "start_url": "/admin/dashboard",
   "scope": "/",
   "display": "standalone",

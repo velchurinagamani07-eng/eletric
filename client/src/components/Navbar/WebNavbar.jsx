@@ -1,69 +1,39 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
-  Bell,
   ChevronDown,
-  Heart,
-  LogIn,
-  LogOut,
   Moon,
   Search,
   ShoppingCart,
   Sun,
-  UserRound,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import NotificationBell from '../NotificationBell'
-import ConfirmDialog from '../ConfirmDialog'
 import { settings } from '../../data/catalog'
 import { useProducts, productPrice } from '../../hooks/useProducts'
 import { useServiceCategories, useServices } from '../../hooks/useServices'
 import { useAuthStore } from '../../store/authStore'
 import { useScrollPosition } from '../../hooks/useScrollPosition'
 import { useCartStore } from '../../store/cartStore'
-import { useWishlistStore } from '../../store/wishlistStore'
 import { currency } from '../../utils/format'
 
 const navItems = [
   { label: 'Home', to: '/' },
   { label: 'Services', to: '/services', mega: true },
   { label: 'Products', to: '/products' },
-  { label: 'Daily Work', to: '/daily-work' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
   { label: 'Blog', to: '/blog' },
 ]
 
-const roleMenu = {
-  user: [
-    ['My Dashboard', '/dashboard'],
-    ['My Bookings', '/dashboard/bookings'],
-    ['My Orders', '/dashboard?tab=orders'],
-    ['My Wishlist', '/customer/wishlist'],
-    ['My Coupons', '/dashboard/coupons'],
-    ['Profile', '/dashboard/profile'],
-  ],
-  admin: [['Admin Panel', '/admin/dashboard']],
-  superadmin: [['Admin Panel', '/admin/dashboard']],
-  worker: [
-    ['My Jobs', '/worker/jobs'],
-    ['Job History', '/worker/history'],
-    ['Profile', '/worker/profile'],
-  ],
-}
-
 export default function WebNavbar() {
   const scrolled = useScrollPosition(10)
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
-  const [menuOpen, setMenuOpen] = useState(false)
   const [megaOpen, setMegaOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
-  const [confirmLogout, setConfirmLogout] = useState(false)
   const user = useAuthStore((state) => state.user)
-  const logout = useAuthStore((state) => state.logout)
   const cartCount = useCartStore((state) => state.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0))
-  const wishlistCount = useWishlistStore((state) => state.ids.length)
   const { products } = useProducts()
   const { services } = useServices({ onlyActive: true })
   const { categories } = useServiceCategories({ includeAll: false })
@@ -87,7 +57,11 @@ export default function WebNavbar() {
     return [...serviceMatches, ...productMatches]
   }, [products, searchText, services])
 
-  const menuLinks = roleMenu[user?.role] || roleMenu.user
+  const staffLink = user?.role === 'worker'
+    ? { label: 'My Jobs', to: '/worker/jobs' }
+    : (user?.role === 'admin' || user?.role === 'superadmin')
+      ? { label: 'Admin Panel', to: '/admin/dashboard' }
+      : null
 
   return (
     <>
@@ -191,19 +165,7 @@ export default function WebNavbar() {
             >
               <Search size={18} />
             </button>
-            <NotificationBell />
-            <Link
-              to="/customer/wishlist"
-              className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-950 text-white hover:border-red-600 hover:bg-red-600/10 focus-ring"
-              aria-label="Open wishlist"
-            >
-              <Heart size={18} />
-              {wishlistCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-black text-white">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+            {staffLink && <NotificationBell />}
             <Link
               to="/cart"
               className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-950 text-white hover:border-red-600 hover:bg-red-600/10 focus-ring"
@@ -225,65 +187,11 @@ export default function WebNavbar() {
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
 
-            <div className="relative">
-              {user ? (
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((value) => !value)}
-                  className="flex h-11 items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-2 pr-3 text-sm font-semibold text-[#0F172A] hover:border-amber-300 focus-ring dark:border-white/10 dark:bg-gray-900 dark:text-gray-100"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-100">
-                    {user.photoURL ? <img src={user.photoURL} alt="" className="h-8 w-8 object-cover" /> : <UserRound size={17} />}
-                  </span>
-                  <span className="max-w-28 truncate">{user.name || 'Account'}</span>
-                  <ChevronDown size={15} />
-                </button>
-              ) : (
-                <Link to="/login" className="btn-primary px-5">
-                  <LogIn size={17} /> Login
-                </Link>
-              )}
-
-              {menuOpen && user && (
-                <div className="absolute right-0 mt-3 w-64 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-xl dark:border-white/10 dark:bg-gray-950">
-                  {menuLinks.map(([label, to]) => (
-                    <button
-                      type="button"
-                      key={label}
-                      onClick={() => {
-                        setMenuOpen(false)
-                        navigate(to)
-                      }}
-                      className="block w-full px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-amber-50 dark:text-gray-100 dark:hover:bg-white/5"
-                    >
-                      {label}
-                    </button>
-                  ))}
-                  {(user.role === 'admin' || user.role === 'superadmin' || user.role === 'worker') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMenuOpen(false)
-                        navigate(user.role === 'worker' ? '/worker/notifications' : '/admin/notifications')
-                      }}
-                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-amber-50 dark:text-gray-100 dark:hover:bg-white/5"
-                    >
-                      <Bell size={16} /> Notifications
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false)
-                      setConfirmLogout(true)
-                    }}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                  >
-                    <LogOut size={16} /> Logout
-                  </button>
-                </div>
-              )}
-            </div>
+            {staffLink && (
+              <Link to={staffLink.to} className="btn-primary px-5">
+                {staffLink.label}
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -336,19 +244,6 @@ export default function WebNavbar() {
           </div>
         </div>
       )}
-      <ConfirmDialog
-        open={confirmLogout}
-        title={`Log out of ${user?.name || 'your'} account?`}
-        description={`You're currently signed in as a ${user?.role || 'user'}.\nYou'll need to sign in again to access your dashboard.`}
-        confirmLabel="Log Out"
-        confirmVariant="danger"
-        onClose={() => setConfirmLogout(false)}
-        onConfirm={async () => {
-          await logout()
-          setConfirmLogout(false)
-          navigate('/')
-        }}
-      />
     </>
   )
 }
