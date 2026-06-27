@@ -144,6 +144,55 @@ export default function MobileNavbar() {
         )}
       </AnimatePresence>
 
+      {/* Top Mobile Header */}
+      <header className="fixed top-[var(--announcement-offset,0px)] left-0 right-0 z-40 flex h-16 items-center justify-between border-b border-[#CBD5E1] bg-white px-4 shadow-sm transition-[top] duration-300 lg:hidden">
+        <Link to="/" className="flex items-center gap-2 font-display text-sm font-extrabold text-navy">
+          <span className="relative shrink-0">
+            <img
+              src="/logo.webp"
+              alt="DP Home Electric Services"
+              className="h-9 w-9 rounded-xl object-contain"
+              onError={(event) => {
+                event.currentTarget.style.display = 'none'
+                event.currentTarget.nextSibling.style.display = 'flex'
+              }}
+            />
+            <span
+              style={{ display: 'none' }}
+              className="h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-xs font-extrabold text-white"
+            >
+              DP
+            </span>
+          </span>
+          <div>
+            <span className="block text-sm font-black text-[#0F172A]">{settings.shortName}</span>
+            <span className="block text-[10px] font-semibold text-[#475569]">{settings.tagline}</span>
+          </div>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/cart"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-[#0F172A]"
+            aria-label="Open cart"
+          >
+            <ShoppingCart size={18} />
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-black text-white">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-[#0F172A]"
+            aria-label="Open drawer menu"
+          >
+            <Menu size={18} />
+          </button>
+        </div>
+      </header>
+
       <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-zinc-800 bg-black pb-[max(env(safe-area-inset-bottom),0px)] shadow-nav lg:hidden">
         <MobileTab to="/services" icon={Settings} label="Services" />
         <MobileTab to="/products" icon={PackageSearch} label="Products" />

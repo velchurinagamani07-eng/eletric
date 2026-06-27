@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import { MapPin, MessageCircle, Minus, Phone, Plus, ShoppingCart, Trash2, UserRound } from 'lucide-react'
 import { useCartStore } from '../store/cartStore'
@@ -28,14 +28,17 @@ function cartMessage({ items, total, form }) {
     `Name: ${form.name}`,
     `Mobile: ${cleanPhone(form.mobile)}`,
     `Address: ${form.address}`,
+    form.latitude && form.longitude ? `📍 Exact Location: https://www.google.com/maps/search/?api=1&query=${form.latitude},${form.longitude}` : '',
+    `Payment Method: ${form.paymentMethod === 'online' ? 'Paid Online (Razorpay)' : 'Cash on Delivery'}`,
+    `Payment Status: ${form.paymentStatus}`,
     '',
-    'Items:',
+    'Selected Items:',
     ...lines,
     '',
-    `Estimated Total: ${currency(total)}`,
+    `Total: ${currency(total)}`,
     form.notes ? `Notes: ${form.notes}` : '',
     '',
-    'Please confirm availability and final price.',
+    'Please confirm booking.',
   ].filter(Boolean).join('\n')
 }
 
@@ -47,6 +50,114 @@ export default function Cart() {
   const [form, setForm] = useState({ name: '', mobile: '', address: '', notes: '' })
   const [submitting, setSubmitting] = useState(false)
   const total = items.reduce((sum, item) => sum + Number(item.basePrice || item.price || 0) * Number(item.quantity || 1), 0)
+
+  const [paymentConfig, setPaymentConfig] = useState({
+    enableCOD: true,
+    enableOnline: false,
+    razorpayKeyId: '',
+  })
+  const [paymentMethod, setPaymentMethod] = useState('COD')
+  const [coords, setCoords] = useState(null)
+  const [detectingLocation, setDetectingLocation] = useState(false)
+
+  useEffect(() => {
+    if (!db || !isFirebaseConfigured) return
+    getDoc(doc(db, 'settings', 'payment_public'))
+      .then((snap) => {
+        if (snap.exists()) {
+          setPaymentConfig(snap.data())
+        }
+      })
+      .catch((err) => console.error('Error fetching payment config:', err))
+  }, [])
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.')
+      return
+    }
+    setDetectingLocation(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+        setCoords({ latitude, longitude })
+        try {
+          const provider = paymentConfig.geocodingProvider || 'Nominatim'
+          const apiKey = paymentConfig.geocodingApiKey || ''
+          let url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          if (provider === 'Custom' && apiKey) {
+            url = `https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${latitude}&lon=${longitude}&format=json`
+          }
+          const response = await fetch(url, {
+            headers: { 'User-Agent': 'DPHomeElectricServices/1.0' }
+          })
+          const data = await response.json()
+          const address = data.display_name || data.address?.road || `${latitude}, ${longitude}`
+          setForm((current) => ({ ...current, address }))
+          toast.success('Location detected and address updated!')
+        } catch (err) {
+          console.error('[Reverse Geocode Error]', err)
+          setForm((current) => ({ ...current, address: `${latitude}, ${longitude}` }))
+          toast.success('Coordinates captured. Enter address details.')
+        } finally {
+          setDetectingLocation(false)
+        }
+      },
+      (error) => {
+        console.error('[Geolocation Error]', error)
+        setDetectingLocation(false)
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location access denied — please enter your address manually.')
+        } else {
+          toast.error('Unable to retrieve location. Enter address manually.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
+  const geocodeAddressText = async (addressText) => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addressText)}&format=json&limit=1`
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'DPHomeElectricServices/1.0' }
+      })
+      const data = await res.json()
+      if (data && data[0]) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        }
+      }
+    } catch (err) {
+      console.warn('[Geocoding Fallback Error]', err)
+    }
+    return null
+  }
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true)
+        return
+      }
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
+  const saveBookingToDatabase = async (payload) => {
+    if (db && isFirebaseConfigured) {
+      const docRef = await addDoc(collection(db, 'bookings'), payload)
+      await addDoc(collection(db, 'enquiries'), {
+        ...payload,
+        bookingDocId: docRef.id
+      })
+    }
+  }
 
   const updateField = (key) => (event) => {
     setForm((current) => ({ ...current, [key]: event.target.value }))
@@ -72,12 +183,19 @@ export default function Cart() {
       return
     }
 
+    setSubmitting(true)
+    let finalCoords = coords
+    if (!finalCoords && form.address.trim()) {
+      finalCoords = await geocodeAddressText(form.address.trim())
+    }
+
     const enquiry = {
       source: 'website-cart',
       name: form.name.trim(),
       mobile,
-      service: 'Cart checkout',
       address: form.address.trim(),
+      latitude: finalCoords?.latitude || null,
+      longitude: finalCoords?.longitude || null,
       notes: form.notes.trim(),
       items: items.map((item) => ({
         id: item.id,
@@ -86,28 +204,117 @@ export default function Cart() {
         price: Number(item.basePrice || item.price || 0),
         itemType: item.itemType || 'service',
       })),
-      estimatedTotal: total,
+      amount: total,
+      totalAmount: total,
       status: 'new',
+      paymentMethod,
+      paymentStatus: paymentMethod === 'COD' ? 'Cash on Delivery — Pending Collection' : 'Pending',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     }
-    const message = cartMessage({ items, total, form: enquiry })
 
-    setSubmitting(true)
-    try {
-      if (db && isFirebaseConfigured) {
-        await addDoc(collection(db, 'enquiries'), enquiry)
+    if (paymentMethod === 'online') {
+      const isLoaded = await loadRazorpayScript()
+      if (!isLoaded) {
+        toast.error('Unable to load Razorpay Payment Gateway. Please try Cash on Delivery.')
+        setSubmitting(false)
+        return
       }
-    } catch (error) {
-      console.error('[Cart] Enquiry save failed:', error)
-      toast.error('Saved to WhatsApp only. Admin will still receive your request.')
+
+      let orderData
+      try {
+        const response = await fetch('/api/payments/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: total })
+        })
+        if (!response.ok) {
+          throw new Error('Order creation failed.')
+        }
+        orderData = await response.json()
+      } catch (err) {
+        console.error(err)
+        toast.error('Payment order creation failed. Please try Cash on Delivery.')
+        setSubmitting(false)
+        return
+      }
+
+      const options = {
+        key: orderData.razorpayKeyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'DP Home Electric Services',
+        description: `Cart Checkout - ${items.length} item(s)`,
+        order_id: orderData.orderId,
+        handler: async (rzpResponse) => {
+          setSubmitting(true)
+          try {
+            const verifyRes = await fetch('/api/payments/verify-signature', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: rzpResponse.razorpay_order_id,
+                razorpay_payment_id: rzpResponse.razorpay_payment_id,
+                razorpay_signature: rzpResponse.razorpay_signature,
+              })
+            })
+            const verifyData = await verifyRes.json()
+            if (verifyData.verified) {
+              toast.success('Payment verified successfully!')
+              const updatedEnquiry = {
+                ...enquiry,
+                paymentStatus: 'Paid',
+                razorpayPaymentId: rzpResponse.razorpay_payment_id,
+                razorpayOrderId: rzpResponse.razorpay_order_id,
+              }
+              await saveBookingToDatabase(updatedEnquiry)
+
+              const successMessage = cartMessage({ items, total, form: updatedEnquiry })
+              window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(successMessage)}`, '_blank', 'noopener,noreferrer')
+              await clear().catch(() => {})
+              toast.success('WhatsApp checkout prepared.')
+            } else {
+              toast.error('Payment verification failed.')
+            }
+          } catch (verifyErr) {
+            console.error(verifyErr)
+            toast.error('Verification failed. Admin will verify manually.')
+          } finally {
+            setSubmitting(false)
+          }
+        },
+        prefill: {
+          name: form.name,
+          contact: mobile,
+        },
+        theme: {
+          color: '#F59E0B',
+        },
+        modal: {
+          ondismiss: () => {
+            toast.error('Payment cancelled.')
+            setSubmitting(false)
+          }
+        }
+      }
+
+      const rzpInstance = new window.Razorpay(options)
+      rzpInstance.open()
+      return
+    }
+
+    try {
+      await saveBookingToDatabase(enquiry)
+      const codMessage = cartMessage({ items, total, form: enquiry })
+      window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(codMessage)}`, '_blank', 'noopener,noreferrer')
+      await clear().catch(() => {})
+      toast.success('WhatsApp checkout prepared.')
+    } catch (err) {
+      console.error('[Cart Save Error]', err)
+      toast.error('Submission failed.')
     } finally {
       setSubmitting(false)
     }
-
-    window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
-    await clear().catch(() => {})
-    toast.success('WhatsApp checkout prepared.')
   }
 
   return (
@@ -198,7 +405,17 @@ export default function Cart() {
                     </div>
                   </label>
                   <label>
-                    <span className="mb-1.5 block text-xs font-bold text-[#334155]">Address</span>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold text-[#334155]">Address</span>
+                      <button
+                        type="button"
+                        onClick={detectLocation}
+                        disabled={detectingLocation}
+                        className="inline-flex items-center gap-1 rounded border border-amber-600 px-2 py-0.5 text-[10px] font-bold text-amber-700 bg-white hover:bg-amber-50 disabled:opacity-50"
+                      >
+                        📍 {detectingLocation ? 'Locating...' : 'Use My Current Location'}
+                      </button>
+                    </div>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 text-[#94A3B8]" size={16} />
                       <textarea className="field min-h-20 resize-y pl-10 pt-2.5" value={form.address} onChange={updateField('address')} placeholder="Area and landmark" required />
@@ -208,7 +425,48 @@ export default function Cart() {
                     <span className="mb-1.5 block text-xs font-bold text-[#334155]">Notes</span>
                     <textarea className="field min-h-20 resize-y" value={form.notes} onChange={updateField('notes')} placeholder="Preferred time or problem details" />
                   </label>
-                  <button type="submit" className="btn-primary mt-1 w-full" disabled={submitting}>
+
+                  {/* Payment Method Selector */}
+                  {paymentConfig.enableOnline && (
+                    <div className="mt-3 border-t border-zinc-100 pt-3">
+                      <span className="mb-2 block text-xs font-bold text-[#334155]">Payment Method</span>
+                      <div className="grid gap-2 grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('COD')}
+                          className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
+                            paymentMethod === 'COD'
+                              ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
+                              : 'border-zinc-200 bg-white'
+                          }`}
+                        >
+                          <div>
+                            <span className="block font-bold text-[#0F172A]">COD</span>
+                            <span className="block text-[10px] text-gray-400">Cash on delivery</span>
+                          </div>
+                          <span>💵</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('online')}
+                          className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
+                            paymentMethod === 'online'
+                              ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
+                              : 'border-zinc-200 bg-white'
+                          }`}
+                        >
+                          <div>
+                            <span className="block font-bold text-[#0F172A]">Pay Online</span>
+                            <span className="block text-[10px] text-gray-400">Razorpay</span>
+                          </div>
+                          <span>💳</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
                     <MessageCircle size={17} /> {submitting ? 'Preparing...' : 'Send WhatsApp Enquiry'}
                   </button>
                 </form>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock, IndianRupee, ShieldCheck, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock, IndianRupee, ShieldCheck, ShoppingCart, Star } from 'lucide-react'
 import { timeSlots } from '../data/catalog'
 import ElectricLoader from '../components/ElectricLoader'
 import { currency } from '../utils/format'
@@ -67,14 +67,14 @@ export default function ServiceDetail() {
 
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
-              <div className="flex gap-2 overflow-x-auto rounded-2xl pb-1 snap-x snap-mandatory no-scrollbar lg:hidden">
+              <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory no-scrollbar lg:hidden -mx-4 sm:-mx-6">
                 {images.map((src, index) => (
                   <img
                     key={`${service.id}-mobile-gallery-${src || index}`}
                     src={src}
                     alt={`${service.name} photo ${index + 1}`}
                     onError={handleImageFallback}
-                    className="aspect-square w-full shrink-0 rounded-2xl object-cover snap-center"
+                    className="aspect-square w-full shrink-0 object-cover snap-center"
                   />
                 ))}
               </div>
@@ -116,6 +116,15 @@ export default function ServiceDetail() {
                 <ShieldCheck size={14} className="mr-1" /> 1 Month Warranty Included
               </span>
               <h1 className="mt-4 text-2xl font-extrabold text-white md:text-4xl">{service.name}</h1>
+              <div className="mt-2.5 flex items-center gap-2 text-sm text-gray-300">
+                <span className="flex items-center gap-1 text-amber-400">
+                  <Star size={15} fill="currentColor" />
+                  <span className="font-bold text-white">4.80</span>
+                </span>
+                <span>(2.5K bookings)</span>
+                <span>•</span>
+                <span>{service.duration}</span>
+              </div>
               <p className="mt-4 text-sm leading-7 text-gray-300">{service.description}</p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -203,13 +212,19 @@ export default function ServiceDetail() {
             </section>
           </div>
         </div>
-        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-zinc-800 bg-black/95 p-3 backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-zinc-800 bg-black/95 p-3 pb-[calc(12px+max(env(safe-area-inset-bottom),0px))] backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-7xl items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-400">Starting price</p>
-              <p className="truncate text-lg font-extrabold text-white">{currency(service.basePrice)}</p>
-            </div>
-            <Link to={`/book/${service.id || service.slug}`} className="btn-primary min-h-12 px-5">
+            <button
+              type="button"
+              className="btn-secondary flex-1 min-h-12 px-4 py-2"
+              onClick={() => {
+                addItem(service)
+                toast.success(`${service.name} added to cart.`)
+              }}
+            >
+              <ShoppingCart size={17} /> Add
+            </button>
+            <Link to={`/book/${service.id || service.slug}`} className="btn-primary flex-1 min-h-12 px-5">
               Book Now
             </Link>
           </div>

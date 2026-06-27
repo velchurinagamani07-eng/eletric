@@ -474,18 +474,22 @@ export async function updateBookingStatus(bookingId, status, extra = {}) {
   return { bookingId, status, ...extra }
 }
 
-export async function completeWorkerJob({ booking, workerName, photos = [] }) {
+export async function completeWorkerJob({ booking, workerName, photos = [], paymentStatus = null }) {
   const bookingId = booking?.bookingId || booking?.id
   if (!bookingId) throw new Error('Booking ID is missing.')
 
   if (canUseFirestore()) {
-    await updateDoc(doc(db, 'bookings', bookingId), {
+    const updatePayload = {
       status: 'completed',
       completionPhotos: photos,
       workCompletionPhotoURL: photos[0] || booking.workCompletionPhotoURL || '',
       completedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    })
+    }
+    if (paymentStatus) {
+      updatePayload.paymentStatus = paymentStatus
+    }
+    await updateDoc(doc(db, 'bookings', bookingId), updatePayload)
     await tryAddNotification({
       userId: booking.userId,
       role: 'user',

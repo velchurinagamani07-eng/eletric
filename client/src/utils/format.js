@@ -1,9 +1,11 @@
 export const currency = (value) => `Rs. ${Number(value || 0).toLocaleString('en-IN')}`
 
-export const fullAddress = (address = {}) =>
-  [address.flat, address.street, address.landmark, address.city, address.pincode]
+export const fullAddress = (address = {}) => {
+  if (typeof address === 'string') return address
+  return [address.flat, address.street, address.landmark, address.city, address.pincode]
     .filter(Boolean)
     .join(', ')
+}
 
 export const nextBookingId = () => `DP-${String(Date.now()).slice(-6)}`
 

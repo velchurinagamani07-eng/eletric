@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
-import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock } from 'lucide-react'
 import { defaultHero, settings } from '../data/catalog'
 import { db, isFirebaseConfigured } from '../firebase/config'
 import ImageUploader from '../components/ImageUploader'
@@ -133,6 +133,19 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const [promoForm, setPromoForm] = useState(emptyPromoSlide)
   const [announcementForm, setAnnouncementForm] = useState(emptyAnnouncement)
   const [announcementSettings, setAnnouncementSettings] = useState({ rotationSpeedSeconds: 4 })
+  const [paymentForm, setPaymentForm] = useState({
+    enableCOD: true,
+    enableOnline: false,
+    razorpayKeyId: '',
+    razorpayKeySecret: '',
+    testMode: true,
+    gstPercentage: 18,
+    gstIncluded: true,
+    allowPartial: false,
+    advancePercentage: 30,
+    geocodingProvider: 'Nominatim',
+    geocodingApiKey: '',
+  })
   const [saving, setSaving] = useState(false)
   const [seeding, setSeeding] = useState(false)
   const [cleaningCategories, setCleaningCategories] = useState(false)
@@ -176,6 +189,25 @@ export default function AdminSettings({ initialSection = 'company' }) {
         }
       })
       .catch(() => {})
+
+    getDoc(doc(db, 'settings', 'payment_public'))
+      .then((snap) => {
+        if (alive && snap.exists()) {
+          const data = snap.data()
+          setPaymentForm((current) => ({ ...current, ...data }))
+        }
+      })
+      .catch(() => {})
+
+    getDoc(doc(db, 'settings', 'payment_secret'))
+      .then((snap) => {
+        if (alive && snap.exists()) {
+          const data = snap.data()
+          setPaymentForm((current) => ({ ...current, ...data }))
+        }
+      })
+      .catch(() => {})
+
     return () => {
       alive = false
     }
@@ -186,6 +218,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const updatePromo = (field, value) => setPromoForm((current) => ({ ...current, [field]: value }))
   const updateAnnouncement = (field, value) => setAnnouncementForm((current) => ({ ...current, [field]: value }))
   const updateAnnouncementSettings = (field, value) => setAnnouncementSettings((current) => ({ ...current, [field]: value }))
+  const updatePayment = (field, value) => setPaymentForm((current) => ({ ...current, [field]: value }))
 
   const testImageUpload = async (event) => {
     const file = event.target.files?.[0]
@@ -541,6 +574,48 @@ export default function AdminSettings({ initialSection = 'company' }) {
     }
   }
 
+  const savePaymentSettings = async (event) => {
+    event.preventDefault()
+    
+    if (paymentForm.enableOnline) {
+      if (!paymentForm.razorpayKeyId || !paymentForm.razorpayKeySecret) {
+        toast.error('Razorpay Key ID and Key Secret are required when online payments are enabled.')
+        return
+      }
+    }
+
+    setSaving(true)
+    try {
+      if (db && isFirebaseConfigured) {
+        // Write public settings
+        await setDoc(doc(db, 'settings', 'payment_public'), {
+          enableCOD: paymentForm.enableCOD !== false,
+          enableOnline: paymentForm.enableOnline === true && paymentForm.razorpayKeyId !== '' && paymentForm.razorpayKeySecret !== '',
+          razorpayKeyId: paymentForm.razorpayKeyId,
+          testMode: paymentForm.testMode !== false,
+          gstPercentage: Number(paymentForm.gstPercentage ?? 18),
+          gstIncluded: paymentForm.gstIncluded !== false,
+          allowPartial: paymentForm.allowPartial === true,
+          advancePercentage: Number(paymentForm.advancePercentage ?? 30),
+          geocodingProvider: paymentForm.geocodingProvider || 'Nominatim',
+          geocodingApiKey: paymentForm.geocodingApiKey || '',
+          updatedAt: serverTimestamp(),
+        }, { merge: true })
+
+        // Write secret settings (only accessible by Admin/Backend)
+        await setDoc(doc(db, 'settings', 'payment_secret'), {
+          razorpayKeySecret: paymentForm.razorpayKeySecret,
+          updatedAt: serverTimestamp(),
+        }, { merge: true })
+      }
+      toast.success('Payment settings updated successfully.')
+    } catch (error) {
+      toast.error(error.message || 'Unable to save payment settings.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <section className="grid gap-5">
       <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-sm">
@@ -549,6 +624,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
           ['hero', 'Hero Section'],
           ['promo', 'Home Promo Slides'],
           ['announcements', 'Announcement Bar'],
+          ['payment', 'Payment Gateway'],
           ['tools', 'Developer Tools'],
         ].map(([id, label]) => (
           <button
@@ -857,6 +933,214 @@ export default function AdminSettings({ initialSection = 'company' }) {
             </div>
           </div>
         </section>
+      )}
+
+      {section === 'payment' && (
+        <form onSubmit={savePaymentSettings} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900">
+          <div>
+            <h2 className="font-bold text-navy-900 dark:text-white">Payment & Gateway Settings</h2>
+            <p className="mt-1 text-sm text-gray-500">Configure checkout payment methods, Razorpay credentials, and taxes.</p>
+          </div>
+
+          <div className="mt-5 space-y-6">
+            {/* Payment Toggles */}
+            <div className="grid gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded accent-amber-500"
+                  checked={paymentForm.enableCOD}
+                  onChange={(event) => updatePayment('enableCOD', event.target.checked)}
+                />
+                <div>
+                  <span className="block text-sm font-bold text-white">Enable Cash on Delivery (COD)</span>
+                  <span className="block text-xs text-gray-400">Allow customers to book now and pay cash to worker.</span>
+                </div>
+              </label>
+
+              <label className={`flex items-center gap-3 cursor-pointer ${(!paymentForm.razorpayKeyId || !paymentForm.razorpayKeySecret) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded accent-amber-500"
+                  disabled={!paymentForm.razorpayKeyId || !paymentForm.razorpayKeySecret}
+                  checked={paymentForm.enableOnline}
+                  onChange={(event) => {
+                    if (!paymentForm.razorpayKeyId || !paymentForm.razorpayKeySecret) {
+                      toast.error('Please configure and save Razorpay Key ID and Secret first.')
+                      return
+                    }
+                    updatePayment('enableOnline', event.target.checked)
+                  }}
+                />
+                <div>
+                  <span className="block text-sm font-bold text-white">Enable Online Payment (Razorpay)</span>
+                  <span className="block text-xs text-gray-400">Accept credit/debit cards, UPI, and wallets.</span>
+                </div>
+              </label>
+            </div>
+
+            {/* Razorpay Credentials */}
+            <div className="space-y-4 rounded-xl border border-zinc-800 p-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-1.5"><Lock size={15} /> Razorpay API Credentials</h3>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Razorpay Key ID</span>
+                  <input
+                    className="field"
+                    placeholder="rzp_test_..."
+                    value={paymentForm.razorpayKeyId || ''}
+                    onChange={(event) => updatePayment('razorpayKeyId', event.target.value)}
+                  />
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Razorpay Key Secret</span>
+                  <input
+                    type="password"
+                    className="field"
+                    placeholder="••••••••••••••••••••••••"
+                    value={paymentForm.razorpayKeySecret || ''}
+                    onChange={(event) => updatePayment('razorpayKeySecret', event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded accent-amber-500"
+                    checked={paymentForm.testMode}
+                    onChange={(event) => {
+                      const modeVal = event.target.checked
+                      if (!modeVal) {
+                        const confirmLive = window.confirm(
+                          '⚠️ WARNING: You are switching to LIVE MODE. Real financial transactions will be processed. Are you sure you want to proceed?'
+                        )
+                        if (!confirmLive) return
+                      }
+                      updatePayment('testMode', modeVal)
+                    }}
+                  />
+                  <div>
+                    <span className="block text-sm font-bold text-white">Sandbox / Test Mode</span>
+                    <span className="block text-xs text-gray-400">Use test API keys instead of production.</span>
+                  </div>
+                </label>
+
+                {!paymentForm.testMode && (
+                  <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+                    ⚠️ LIVE TRANSACTION MODE ACTIVE
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* GST & Taxes */}
+            <div className="space-y-4 rounded-xl border border-zinc-800 p-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-1.5"><CreditCard size={15} /> GST / Tax Settings</h3>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">GST Percentage (%)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    className="field"
+                    value={paymentForm.gstPercentage ?? 18}
+                    onChange={(event) => updatePayment('gstPercentage', Number(event.target.value))}
+                  />
+                </label>
+
+                <div className="flex items-center pt-6">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded accent-amber-500"
+                      checked={paymentForm.gstIncluded}
+                      onChange={(event) => updatePayment('gstIncluded', event.target.checked)}
+                    />
+                    <div>
+                      <span className="block text-sm font-bold text-white">Inclusive of GST</span>
+                      <span className="block text-xs text-gray-400">GST is already included in catalog base prices.</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Partial Advance Payment */}
+            <div className="space-y-4 rounded-xl border border-zinc-800 p-4">
+              <h3 className="text-sm font-bold text-white">Advance Payment (Online only)</h3>
+              
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded accent-amber-500"
+                  checked={paymentForm.allowPartial}
+                  onChange={(event) => updatePayment('allowPartial', event.target.checked)}
+                />
+                <div>
+                  <span className="block text-sm font-bold text-white">Allow Partial Advance Payment</span>
+                  <span className="block text-xs text-gray-400">Customers pay a fraction online to book, balance on job completion.</span>
+                </div>
+              </label>
+
+              {paymentForm.allowPartial && (
+                <div className="mt-3 max-w-xs animate-fadeIn">
+                  <label>
+                    <span className="mb-2 block text-sm font-medium text-gray-300">Advance Percentage (%)</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      className="field"
+                      value={paymentForm.advancePercentage ?? 30}
+                      onChange={(event) => updatePayment('advancePercentage', Number(event.target.value))}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {/* Geocoding Provider settings */}
+            <div className="space-y-4 rounded-xl border border-zinc-800 p-4">
+              <h3 className="text-sm font-bold text-white">Location / Geocoding Settings</h3>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Reverse Geocoding Provider</span>
+                  <select
+                    className="field"
+                    value={paymentForm.geocodingProvider || 'Nominatim'}
+                    onChange={(event) => updatePayment('geocodingProvider', event.target.value)}
+                  >
+                    <option value="Nominatim">Nominatim (Free, No Key)</option>
+                    <option value="Custom">Custom / Third-Party Provider</option>
+                  </select>
+                </label>
+
+                {paymentForm.geocodingProvider !== 'Nominatim' && (
+                  <label>
+                    <span className="mb-2 block text-sm font-medium text-gray-300">API Key</span>
+                    <input
+                      className="field"
+                      placeholder="Enter geocoding provider key"
+                      value={paymentForm.geocodingApiKey || ''}
+                      onChange={(event) => updatePayment('geocodingApiKey', event.target.value)}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" className="btn-primary mt-6" disabled={saving}>
+            <Save size={17} /> Save Payment Settings
+          </button>
+        </form>
       )}
 
       {section === 'tools' && (

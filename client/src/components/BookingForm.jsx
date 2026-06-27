@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore'
+import { currency } from '../utils/format'
 import toast from 'react-hot-toast'
 import { CalendarDays, CheckCircle2, Clock, MapPin, MessageCircle, Phone, UserRound, Wrench } from 'lucide-react'
 import { db, isFirebaseConfigured } from '../firebase/config'
@@ -51,6 +52,113 @@ export default function BookingForm() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [paymentConfig, setPaymentConfig] = useState({
+    enableCOD: true,
+    enableOnline: false,
+    razorpayKeyId: '',
+  })
+  const [paymentMethod, setPaymentMethod] = useState('COD')
+  const [coords, setCoords] = useState(null)
+  const [detectingLocation, setDetectingLocation] = useState(false)
+
+  useEffect(() => {
+    if (!db || !isFirebaseConfigured) return
+    getDoc(doc(db, 'settings', 'payment_public'))
+      .then((snap) => {
+        if (snap.exists()) {
+          setPaymentConfig(snap.data())
+        }
+      })
+      .catch((err) => console.error('Error fetching payment config:', err))
+  }, [])
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.')
+      return
+    }
+    setDetectingLocation(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+        setCoords({ latitude, longitude })
+        try {
+          const provider = paymentConfig.geocodingProvider || 'Nominatim'
+          const apiKey = paymentConfig.geocodingApiKey || ''
+          let url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          if (provider === 'Custom' && apiKey) {
+            url = `https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${latitude}&lon=${longitude}&format=json`
+          }
+          const response = await fetch(url, {
+            headers: { 'User-Agent': 'DPHomeElectricServices/1.0' }
+          })
+          const data = await response.json()
+          const address = data.display_name || data.address?.road || `${latitude}, ${longitude}`
+          setForm((current) => ({ ...current, address }))
+          toast.success('Location detected and address updated!')
+        } catch (err) {
+          console.error('[Reverse Geocode Error]', err)
+          setForm((current) => ({ ...current, address: `${latitude}, ${longitude}` }))
+          toast.success('Coordinates captured. Enter address details.')
+        } finally {
+          setDetectingLocation(false)
+        }
+      },
+      (error) => {
+        console.error('[Geolocation Error]', error)
+        setDetectingLocation(false)
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location access denied — please enter your address manually.')
+        } else {
+          toast.error('Unable to retrieve location. Enter address manually.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
+  const geocodeAddressText = async (addressText) => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addressText)}&format=json&limit=1`
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'DPHomeElectricServices/1.0' }
+      })
+      const data = await res.json()
+      if (data && data[0]) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        }
+      }
+    } catch (err) {
+      console.warn('[Geocoding Fallback Error]', err)
+    }
+    return null
+  }
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true)
+        return
+      }
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
+  const saveBookingToDatabase = async (payload) => {
+    if (db && isFirebaseConfigured) {
+      const docRef = await addDoc(collection(db, 'bookings'), payload)
+      await addDoc(collection(db, 'enquiries'), {
+        ...payload,
+        bookingDocId: docRef.id
+      })
+    }
+  }
 
   const serviceName = form.service || selectedService?.name || serviceLabelFromSlug(requestedService)
 
@@ -83,6 +191,12 @@ export default function BookingForm() {
       return
     }
 
+    setSubmitting(true)
+    let finalCoords = coords
+    if (!finalCoords && form.address.trim()) {
+      finalCoords = await geocodeAddressText(form.address.trim())
+    }
+
     const payload = {
       source: 'website-booking',
       name: form.name.trim(),
@@ -90,42 +204,158 @@ export default function BookingForm() {
       service: serviceName,
       serviceSlug: selectedService?.slug || requestedService || '',
       address: form.address.trim(),
+      latitude: finalCoords?.latitude || null,
+      longitude: finalCoords?.longitude || null,
       preferredDate: form.date || '',
       preferredTime: form.time || '',
       notes: form.notes.trim(),
       status: 'new',
+      paymentMethod,
+      paymentStatus: paymentMethod === 'COD' ? 'Cash on Delivery — Pending Collection' : 'Pending',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     }
 
-    const message = [
-      'New Service Enquiry - DP Home Electric Services',
-      `Name: ${payload.name}`,
-      `Mobile: ${payload.mobile}`,
-      `Service: ${payload.service}`,
-      `Address: ${payload.address}`,
-      `Preferred Date: ${payload.preferredDate || 'Not specified'}`,
-      `Preferred Time: ${payload.preferredTime || 'Not specified'}`,
-      payload.notes ? `Notes: ${payload.notes}` : '',
-      '',
-      'Please confirm availability and estimate.',
-    ].filter(Boolean).join('\n')
-
-    setSubmitting(true)
-    try {
-      if (db && isFirebaseConfigured) {
-        await addDoc(collection(db, 'enquiries'), payload)
+    if (paymentMethod === 'online') {
+      const isLoaded = await loadRazorpayScript()
+      if (!isLoaded) {
+        toast.error('Unable to load Razorpay Payment Gateway. Please try Cash on Delivery.')
+        setSubmitting(false)
+        return
       }
+
+      let orderData
+      try {
+        const response = await fetch('/api/payments/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: selectedService?.basePrice || 149 })
+        })
+        if (!response.ok) {
+          throw new Error('Order creation failed.')
+        }
+        orderData = await response.json()
+      } catch (err) {
+        console.error(err)
+        toast.error('Payment order creation failed. Please try Cash on Delivery.')
+        setSubmitting(false)
+        return
+      }
+
+      const options = {
+        key: orderData.razorpayKeyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'DP Home Electric Services',
+        description: `Booking for ${serviceName}`,
+        order_id: orderData.orderId,
+        handler: async (rzpResponse) => {
+          setSubmitting(true)
+          try {
+            const verifyRes = await fetch('/api/payments/verify-signature', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: rzpResponse.razorpay_order_id,
+                razorpay_payment_id: rzpResponse.razorpay_payment_id,
+                razorpay_signature: rzpResponse.razorpay_signature,
+              })
+            })
+            const verifyData = await verifyRes.json()
+            if (verifyData.verified) {
+              toast.success('Payment verified successfully!')
+              const updatedPayload = {
+                ...payload,
+                paymentStatus: 'Paid',
+                razorpayPaymentId: rzpResponse.razorpay_payment_id,
+                razorpayOrderId: rzpResponse.razorpay_order_id,
+                amount: selectedService?.basePrice || 149,
+                totalAmount: selectedService?.basePrice || 149,
+              }
+              await saveBookingToDatabase(updatedPayload)
+
+              const successMessage = [
+                'New Service Booking (Paid Online) - DP Home Electric Services',
+                `Name: ${payload.name}`,
+                `Mobile: ${payload.mobile}`,
+                `Service: ${payload.service}`,
+                `Address: ${payload.address}`,
+                payload.latitude && payload.longitude ? `📍 Exact Location: https://www.google.com/maps/search/?api=1&query=${payload.latitude},${payload.longitude}` : '',
+                `Preferred Date: ${payload.preferredDate || 'Not specified'}`,
+                `Preferred Time: ${payload.preferredTime || 'Not specified'}`,
+                `Payment Method: Paid Online (Razorpay)`,
+                `Amount Paid: ${currency(selectedService?.basePrice || 149)}`,
+                payload.notes ? `Notes: ${payload.notes}` : '',
+                '',
+                'Payment has been verified. Please confirm booking.',
+              ].filter(Boolean).join('\n')
+
+              window.open(whatsappUrl(successMessage), '_blank', 'noopener,noreferrer')
+              setConfirmed(true)
+            } else {
+              toast.error('Payment verification failed.')
+            }
+          } catch (verifyErr) {
+            console.error(verifyErr)
+            toast.error('Verification failed. Admin will verify manually.')
+          } finally {
+            setSubmitting(false)
+          }
+        },
+        prefill: {
+          name: form.name,
+          contact: mobile,
+        },
+        theme: {
+          color: '#F59E0B',
+        },
+        modal: {
+          ondismiss: () => {
+            toast.error('Payment cancelled.')
+            setSubmitting(false)
+          }
+        }
+      }
+
+      const rzpInstance = new window.Razorpay(options)
+      rzpInstance.open()
+      return
+    }
+
+    // Cash on Delivery Submit
+    try {
+      const finalPayload = {
+        ...payload,
+        amount: selectedService?.basePrice || 149,
+        totalAmount: selectedService?.basePrice || 149,
+      }
+      await saveBookingToDatabase(finalPayload)
+
+      const codMessage = [
+        'New Service Enquiry (COD) - DP Home Electric Services',
+        `Name: ${payload.name}`,
+        `Mobile: ${payload.mobile}`,
+        `Service: ${payload.service}`,
+        `Address: ${payload.address}`,
+        payload.latitude && payload.longitude ? `📍 Exact Location: https://www.google.com/maps/search/?api=1&query=${payload.latitude},${payload.longitude}` : '',
+        `Preferred Date: ${payload.preferredDate || 'Not specified'}`,
+        `Preferred Time: ${payload.preferredTime || 'Not specified'}`,
+        `Payment Method: Cash on Delivery`,
+        `Estimated Total: ${currency(selectedService?.basePrice || 149)}`,
+        payload.notes ? `Notes: ${payload.notes}` : '',
+        '',
+        'Please confirm availability and booking.',
+      ].filter(Boolean).join('\n')
+
+      window.open(whatsappUrl(codMessage), '_blank', 'noopener,noreferrer')
+      setConfirmed(true)
+      toast.success('WhatsApp message prepared.')
     } catch (firestoreError) {
-      console.error('[BookingForm] Enquiry save failed:', firestoreError)
-      toast.error('Saved to WhatsApp only. Admin will still receive your request.')
+      console.error('[BookingForm] Save failed:', firestoreError)
+      toast.error('Enquiry submission failed.')
     } finally {
       setSubmitting(false)
     }
-
-    window.open(whatsappUrl(message), '_blank', 'noopener,noreferrer')
-    setConfirmed(true)
-    toast.success('WhatsApp message prepared.')
   }
 
   if (confirmed) {
@@ -204,7 +434,17 @@ export default function BookingForm() {
               </div>
             </label>
             <label className="sm:col-span-2">
-              <span className="mb-2 block text-sm font-semibold text-[#334155]">Address</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-[#334155]">Address</span>
+                <button
+                  type="button"
+                  onClick={detectLocation}
+                  disabled={detectingLocation}
+                  className="inline-flex items-center gap-1 rounded-lg border border-amber-600 px-2.5 py-1 text-xs font-bold text-amber-700 bg-white hover:bg-amber-50 disabled:opacity-50"
+                >
+                  📍 {detectingLocation ? 'Locating...' : 'Use My Current Location'}
+                </button>
+              </div>
               <div className="relative">
                 <MapPin className="absolute left-3 top-4 text-[#94A3B8]" size={17} />
                 <textarea className="field min-h-24 resize-y pl-11 pt-3" value={form.address} onChange={updateField('address')} placeholder="House no, area, landmark" required />
@@ -234,6 +474,46 @@ export default function BookingForm() {
               <span className="mb-2 block text-sm font-semibold text-[#334155]">Notes</span>
               <textarea className="field min-h-24 resize-y" value={form.notes} onChange={updateField('notes')} placeholder="Problem details, product count, photos via WhatsApp, etc." />
             </label>
+
+            {/* Payment Method Selector */}
+            {paymentConfig.enableOnline && (
+              <div className="sm:col-span-2 mt-4 border-t border-zinc-100 pt-4">
+                <span className="mb-3 block text-sm font-semibold text-[#334155]">Select Payment Method</span>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('COD')}
+                    className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${
+                      paymentMethod === 'COD'
+                        ? 'border-amber-500 bg-amber-500/5 ring-2 ring-amber-500/20'
+                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                    }`}
+                  >
+                    <div>
+                      <span className="block font-bold text-[#0F172A]">Cash on Delivery</span>
+                      <span className="block text-xs text-gray-500">Pay cash directly to worker</span>
+                    </div>
+                    <span className="text-xl">💵</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('online')}
+                    className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${
+                      paymentMethod === 'online'
+                        ? 'border-amber-500 bg-amber-500/5 ring-2 ring-amber-500/20'
+                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                    }`}
+                  >
+                    <div>
+                      <span className="block font-bold text-[#0F172A]">Pay Online</span>
+                      <span className="block text-xs text-gray-500">Secure payments via Razorpay</span>
+                    </div>
+                    <span className="text-xl">💳</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">

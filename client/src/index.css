@@ -239,7 +239,7 @@ textarea:focus {
 }
 
 .navbar-fixed {
-  position: fixed;
+  position: sticky;
   top: var(--announcement-offset, 0px);
   z-index: 50;
   width: 100%;
@@ -399,4 +399,18 @@ textarea:focus {
   body {
     background: #fff;
   }
+}
+
+/* Spacing overrides for inputs with leading/trailing icons to prevent overlap */
+.field.pl-10, input.pl-10, textarea.pl-10, select.pl-10 {
+  padding-left: 2.5rem !important;
+}
+.field.pl-11, input.pl-11, textarea.pl-11, select.pl-11 {
+  padding-left: 2.75rem !important;
+}
+.field.pl-12, input.pl-12, textarea.pl-12, select.pl-12 {
+  padding-left: 3rem !important;
+}
+.field.pr-10, input.pr-10, textarea.pr-10, select.pr-10 {
+  padding-right: 2.5rem !important;
 }

@@ -208,8 +208,10 @@ export default function ManageBookings() {
                 <td className="px-4 py-8 text-center text-gray-500" colSpan="9">No bookings found.</td>
               </tr>
             ) : filtered.map((booking) => {
-              const workerMobile = workerItems.find((item) => (item.uid || item.id) === booking.workerUID)?.mobile || ''
-              const details = `New Job Assignment\nCustomer: ${booking.customer}\nMobile: ${booking.mobile}\nAddress: ${fullAddress(booking.address)}\nService: ${booking.serviceName}\nDate: ${booking.date}\nTime: ${booking.timeSlot}`
+              const mapLink = booking.latitude && booking.longitude
+                ? `https://www.google.com/maps/search/?api=1&query=${booking.latitude},${booking.longitude}`
+                : `https://maps.google.com/?q=${encodeURIComponent(fullAddress(booking.address))}`
+              const details = `New Job Assignment\nCustomer: ${booking.customer}\nMobile: ${booking.mobile}\nAddress: ${fullAddress(booking.address)}\n📍 Map Link: ${mapLink}\nService: ${booking.serviceName}\nDate: ${booking.date}\nTime: ${booking.timeSlot}`
               const bookingKey = booking.id || booking.bookingId
               return (
                 <tr key={booking.id} className="align-top">
@@ -290,18 +292,54 @@ export default function ManageBookings() {
                 ['Mobile', detailBooking.mobile || '-'],
                 ['Service', detailBooking.serviceName || '-'],
                 ['Schedule', `${detailBooking.date || '-'} | ${detailBooking.timeSlot || '-'}`],
-                ['Address', fullAddress(detailBooking.address)],
+                ['Address', (
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">{fullAddress(detailBooking.address)}</p>
+                    <a
+                      href={
+                        detailBooking.latitude && detailBooking.longitude
+                          ? `https://www.google.com/maps/search/?api=1&query=${detailBooking.latitude},${detailBooking.longitude}`
+                          : `https://maps.google.com/?q=${encodeURIComponent(fullAddress(detailBooking.address))}`
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1.5 inline-flex items-center gap-1 text-xs font-black text-amber-600 hover:text-amber-500 hover:underline"
+                    >
+                      📍 Open in Google Maps
+                    </a>
+                  </div>
+                )],
                 ['Worker', detailBooking.workerName || 'To be assigned'],
                 ['Status', detailBooking.status || 'pending'],
-                ['Payment', detailBooking.paymentStatus || 'pending'],
+                ['Payment', detailBooking.paymentMethod ? `${detailBooking.paymentMethod} (${detailBooking.paymentStatus || 'pending'})` : (detailBooking.paymentStatus || 'pending')],
                 ['Amount', currency(detailBooking.totalAmount ?? detailBooking.amount)],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-lg border border-gray-100 p-3 dark:border-white/10">
                   <p className="text-xs font-bold uppercase tracking-wide text-gray-400">{label}</p>
-                  <p className="mt-1 font-semibold text-gray-800 dark:text-gray-100">{value}</p>
+                  <div className="mt-1 font-semibold text-gray-800 dark:text-gray-100">{value}</div>
                 </div>
               ))}
             </div>
+
+            {detailBooking.paymentStatus !== 'Paid' && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const bookingId = detailBooking.id || detailBooking.bookingId
+                    await updateBookingStatus(bookingId, detailBooking.status, { paymentStatus: 'Paid' })
+                    setDetailBooking((current) => ({ ...current, paymentStatus: 'Paid' }))
+                    setBookings((items) => items.map((item) => item.id === bookingId ? { ...item, paymentStatus: 'Paid' } : item))
+                    toast.success('Booking payment status marked as Paid.')
+                  } catch (err) {
+                    toast.error('Unable to update payment status.')
+                  }
+                }}
+                className="btn-primary mt-5 w-full"
+              >
+                Mark Booking as Paid (Cash Collected)
+              </button>
+            )}
           </aside>
         </div>
       )}

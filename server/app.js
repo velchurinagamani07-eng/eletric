@@ -12,6 +12,7 @@ const notificationsRouter = require('./routes/notifications')
 const chatbotRouter = require('./routes/chatbot')
 const contactRouter = require('./routes/contact')
 const uploadsRouter = require('./routes/uploads')
+const paymentsRouter = require('./routes/payments')
 const { isFirebaseAdminConfigured } = require('./services/firebaseAdmin')
 
 const app = express()
@@ -54,6 +55,7 @@ app.use('/api/uploads', uploadsRouter)
 app.use('/api/notifications', notificationsRouter)
 app.use('/api/chatbot', chatbotRouter)
 app.use('/api/contact', contactRouter)
+app.use('/api/payments', paymentsRouter)
 
 app.use((req, res) => {
   res.status(404).json({ message: 'API route not found.' })

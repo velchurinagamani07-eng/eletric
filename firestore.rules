@@ -66,7 +66,7 @@ service cloud.firestore {
     }
 
     match /settings/{id} {
-      allow read: if true;
+      allow read: if id != 'payment_secret' || isAdmin();
       allow write: if isAdmin();
     }
 

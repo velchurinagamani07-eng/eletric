@@ -67,7 +67,7 @@ export default function WebNavbar() {
     <>
       <header
         className={`navbar-fixed hidden border-b bg-white/95 backdrop-blur-xl dark:border-white/10 dark:bg-gray-950/95 lg:block ${
-          scrolled ? 'is-scrolled border-[#E2E8F0]' : 'border-transparent'
+          scrolled ? 'shadow-md border-[#E2E8F0]' : 'border-transparent'
         }`}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">

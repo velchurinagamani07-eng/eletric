@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { CheckCircle2, MapPin, Play, UploadCloud } from 'lucide-react'
 import { statusColors } from '../data/catalog'
-import { fullAddress } from '../utils/format'
+import { fullAddress, currency } from '../utils/format'
 import UploadWorkPhoto from './UploadWorkPhoto'
 import { completeWorkerJob, updateBookingStatus } from '../utils/firebaseUploads'
 import { db, isFirebaseConfigured } from '../firebase/config'
@@ -72,10 +72,22 @@ export default function MyJobs({ workerId }) {
       return
     }
 
+    const isCOD = job.paymentMethod === 'COD' || !['online', 'paid'].includes(String(job.paymentMethod).toLowerCase())
+    let paymentStatus = job.paymentStatus || 'pending'
+    if (isCOD && paymentStatus !== 'Paid') {
+      const amount = job.totalAmount ?? job.amount ?? 149
+      const confirmed = window.confirm(`Did you collect Rs. ${amount} in cash from the customer?`)
+      if (!confirmed) {
+        toast.error('Please collect payment from the customer before completing the job.')
+        return
+      }
+      paymentStatus = 'Paid'
+    }
+
     setCompletingId(job.id)
     try {
-      const completed = await completeWorkerJob({ booking: job, workerName: job.workerName, photos })
-      setJobs((items) => items.map((item) => (item.id === job.id ? { ...item, ...completed } : item)))
+      const completed = await completeWorkerJob({ booking: job, workerName: job.workerName, photos, paymentStatus })
+      setJobs((items) => items.map((item) => (item.id === job.id ? { ...item, ...completed, paymentStatus } : item)))
       toast.success('Job marked complete.')
     } catch (err) {
       toast.error(err.message || 'Unable to complete job.')
@@ -116,7 +128,21 @@ export default function MyJobs({ workerId }) {
               <p className="mt-2 text-sm text-gray-500">
                 {job.customer} | {job.mobile}
               </p>
-              <p className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Amount: {currency(job.totalAmount ?? job.amount ?? 149)}
+                </span>
+                {job.paymentMethod === 'COD' || !['online', 'paid'].includes(String(job.paymentMethod).toLowerCase()) ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-black text-amber-800 dark:bg-amber-500/20 dark:text-amber-300">
+                    💵 Collect Cash: {currency(job.totalAmount ?? job.amount ?? 149)}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-black text-green-800 dark:bg-green-500/20 dark:text-green-300">
+                    ✅ Already Paid Online
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 flex items-center gap-2 text-sm text-gray-500">
                 <MapPin size={16} /> {fullAddress(job.address)}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -127,7 +153,11 @@ export default function MyJobs({ workerId }) {
                   className="btn-secondary"
                   target="_blank"
                   rel="noreferrer"
-                  href={`https://maps.google.com/?q=${encodeURIComponent(fullAddress(job.address))}`}
+                  href={
+                    job.latitude && job.longitude
+                      ? `https://www.google.com/maps/search/?api=1&query=${job.latitude},${job.longitude}`
+                      : `https://maps.google.com/?q=${encodeURIComponent(fullAddress(job.address))}`
+                  }
                 >
                   View on Map
                 </a>

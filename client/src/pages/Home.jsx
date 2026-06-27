@@ -86,7 +86,7 @@ export default function Home() {
     if (slides.length < 2) return undefined
     const timer = window.setInterval(() => {
       setActiveSlide((index) => (index + 1) % slides.length)
-    }, 2000)
+    }, 4000)
     return () => window.clearInterval(timer)
   }, [slides.length])
 
@@ -150,18 +150,18 @@ export default function Home() {
           <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
             <div className="space-y-5 pr-2">
               <section>
-                <h1 className="font-display text-2xl font-extrabold leading-tight text-navy">{settings.companyName}</h1>
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                  <span className="inline-flex items-center gap-1">
+                <h1 className="font-display text-2xl font-extrabold leading-tight text-white">{settings.companyName}</h1>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                  <span className="inline-flex items-center gap-1 text-gray-200">
                     <Star size={14} fill="currentColor" className="text-amber-400" />
                     <span className="font-semibold">4.80</span>
                     <span className="text-gray-400">(2.5K bookings)</span>
                   </span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-600/20 px-2 py-0.5 text-xs font-semibold text-green-400">
                     <Zap size={13} fill="currentColor" /> Instant
                   </span>
                 </div>
-                <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+                <p className="mt-1.5 flex items-center gap-1 text-sm text-gray-400">
                   <Clock size={13} /> In ~30 mins
                 </p>
               </section>
@@ -176,39 +176,40 @@ export default function Home() {
           </aside>
 
           <section className="min-w-0 w-full">
-            <section className="mb-4 lg:hidden">
-              <h1 className="font-display text-2xl font-extrabold leading-tight text-navy">{settings.companyName}</h1>
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                <span className="inline-flex items-center gap-1">
+            {/* Mobile Hero Header */}
+            <section className="mb-4 px-4 lg:hidden">
+              <h1 className="font-display text-2xl font-extrabold leading-tight text-white">{settings.companyName}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                <span className="inline-flex items-center gap-1 text-gray-200">
                   <Star size={14} fill="currentColor" className="text-amber-400" />
                   <span className="font-semibold">4.80</span>
                   <span className="text-gray-400">(2.5K bookings)</span>
                 </span>
-                <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-600/20 px-2 py-0.5 text-xs font-semibold text-green-400">
                   <Zap size={13} fill="currentColor" /> Instant
                 </span>
-                <span className="inline-flex items-center gap-1 text-gray-500">
+                <span className="inline-flex items-center gap-1 text-gray-400">
                   <Clock size={13} /> In ~30 mins
                 </span>
               </div>
-              <div className="mt-4 rounded-2xl border border-surface-border bg-white p-4 shadow-card">
-                <h2 className="mb-3 text-sm font-bold text-navy">Select a service</h2>
-                <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} />
-              </div>
             </section>
 
+            {/* Banner Slider */}
             <PromoSlider slides={slides} activeSlide={activeSlide} setActiveSlide={setActiveSlide} />
 
+            {/* Select a Service (appears AFTER the banner on mobile) */}
+            <section className="mt-6 px-4 lg:hidden">
+              <h2 className="mb-4 text-lg font-bold text-white">Select a service</h2>
+              <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} isDark />
+            </section>
+
+            {/* Recommended for You */}
             <RecommendedServices
               currentService={browsingSeed}
               title={browsingSeed ? 'Recommended for You' : 'Most Popular Services'}
               subtitle={browsingSeed ? `Based on ${browsingSeed.name}` : 'Trusted services customers book most often.'}
-              className="rounded-lg border border-zinc-800 bg-black/20 p-4"
+              className="rounded-lg border border-zinc-800 bg-black/20 p-4 mt-6"
             />
-
-            <div className="mt-4 lg:hidden">
-              <CartSummary items={cartItems} total={cartTotal} count={cartCount} />
-            </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-white sm:grid-cols-4 lg:hidden">
               {['1 Month Warranty', 'Same-Day Service', 'Verified Workers', 'Transparent Price'].map((label) => (
@@ -229,7 +230,7 @@ export default function Home() {
                 >
                   <div className="mb-4 flex items-end justify-between gap-3">
                     <div>
-                      <h2 className="font-display text-2xl font-extrabold text-navy">{category.name}</h2>
+                      <h2 className="font-display text-2xl font-extrabold text-white">{category.name}</h2>
                       <p className="mt-1 text-sm text-gray-500">Doorstep service by verified electricians</p>
                     </div>
                     <Link to={`/services?category=${category.id}`} className="hidden items-center gap-1 text-sm font-bold text-primary sm:inline-flex">
@@ -310,31 +311,31 @@ export default function Home() {
   )
 }
 
-function CategoryGrid({ categories, onOpen, onMore }) {
+function CategoryGrid({ categories, onOpen, onMore, isDark }) {
   const displayCategories = categories.length > 9 ? categories.slice(0, 8) : categories.slice(0, 9)
   const moreCount = categories.length > 9 ? categories.length - 8 : 0
 
   return (
     <div className="grid w-full grid-cols-3 gap-x-2 gap-y-4">
       {displayCategories.map((category) => (
-        <CategoryTile key={category.id} category={category} onClick={() => onOpen(category)} />
+        <CategoryTile key={category.id} category={category} onClick={() => onOpen(category)} isDark={isDark} />
       ))}
       {moreCount > 0 && (
         <button type="button" onClick={onMore} className="group flex flex-col items-center gap-1.5 focus:outline-none">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-amber-300 bg-amber-50 text-sm font-bold text-amber-600 transition-all group-hover:border-amber-400 group-hover:bg-amber-100">
+          <div className={`flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed ${isDark ? 'border-zinc-700 bg-zinc-900 text-zinc-400' : 'border-amber-300 bg-amber-50 text-amber-600 group-hover:border-amber-400 group-hover:bg-amber-100'} text-sm font-bold transition-all`}>
             +{moreCount}
           </div>
-          <span className="text-center text-[11px] font-medium text-gray-700 group-hover:text-amber-600">More</span>
+          <span className={`text-center text-[11px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} group-hover:text-amber-600`}>More</span>
         </button>
       )}
     </div>
   )
 }
 
-function CategoryTile({ category, onClick }) {
+function CategoryTile({ category, onClick, isDark }) {
   return (
     <button type="button" onClick={onClick} className="group flex min-w-0 flex-col items-center gap-1.5 focus:outline-none">
-      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 border-surface-border bg-amber-50 shadow-sm transition-all group-hover:border-amber-400">
+      <div className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 ${isDark ? 'border-zinc-800 bg-zinc-900' : 'border-surface-border bg-amber-50 shadow-sm'} transition-all group-hover:border-amber-400`}>
         {category.imageURL || category.iconURL ? (
           <img
             src={category.imageURL || category.iconURL}
@@ -350,7 +351,7 @@ function CategoryTile({ category, onClick }) {
           <CategoryIcon category={category} />
         )}
       </div>
-      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-gray-700 group-hover:text-amber-600">
+      <span className={`line-clamp-2 w-full text-center text-[11px] font-medium leading-tight ${isDark ? 'text-gray-300' : 'text-gray-700'} group-hover:text-amber-600`}>
         {category.name}
       </span>
     </button>
@@ -377,12 +378,23 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id || activeSlide}
-          className="grid min-h-[280px] grid-cols-1 md:grid-cols-2"
+          className="grid min-h-[210px] md:min-h-[280px] grid-cols-1 md:grid-cols-2 cursor-grab active:cursor-grabbing"
           initial={{ opacity: 0, x: 18 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -18 }}
           transition={{ duration: 0.35 }}
           style={{ backgroundColor: slide.bgColor || '#FEF3C7' }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.6}
+          onDragEnd={(event, info) => {
+            const swipeThreshold = 50
+            if (info.offset.x < -swipeThreshold) {
+              setActiveSlide((index) => (index + 1) % slides.length)
+            } else if (info.offset.x > swipeThreshold) {
+              setActiveSlide((index) => (index - 1 + slides.length) % slides.length)
+            }
+          }}
         >
           <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
             {slide.badge && (
@@ -406,7 +418,7 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
               </Link>
             )}
           </div>
-          <div className="relative min-h-[220px] min-w-0 overflow-hidden">
+          <div className="relative hidden md:block min-h-[220px] min-w-0 overflow-hidden">
             {imageURL ? (
               <img
                 src={imageURL}
@@ -544,7 +556,7 @@ function CartSummary({ items, total }) {
           <ShoppingCart size={20} />
         </span>
         <div>
-          <h2 className="font-display text-lg font-extrabold text-navy">Cart</h2>
+          <h2 className="font-display text-lg font-extrabold text-white">Cart</h2>
           <p className="text-xs font-semibold text-gray-500">{items.length ? `${items.length} selected item(s)` : 'No items in your cart'}</p>
         </div>
       </div>
@@ -553,14 +565,14 @@ function CartSummary({ items, total }) {
           <div className="mt-4 max-h-44 space-y-2 overflow-y-auto pr-1">
             {items.map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2 text-sm">
-                <span className="line-clamp-1 font-semibold text-navy">{item.name}</span>
+                <span className="line-clamp-1 font-semibold text-gray-200">{item.name}</span>
                 <span className="font-bold text-primary">x{item.quantity || 1}</span>
               </div>
             ))}
           </div>
           <div className="mt-4 flex items-center justify-between border-t border-surface-border pt-4 text-sm">
             <span className="font-semibold text-gray-500">Total</span>
-            <span className="font-display text-xl font-extrabold text-navy">{currency(total)}</span>
+            <span className="font-display text-xl font-extrabold text-white">{currency(total)}</span>
           </div>
           <Link to="/cart" className="btn-primary mt-4 w-full">
             Proceed to checkout
