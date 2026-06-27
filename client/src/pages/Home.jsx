@@ -369,21 +369,18 @@ function CategoryIcon({ category }) {
 
 function PromoSlider({ slides, activeSlide, setActiveSlide }) {
   const slide = slides[activeSlide % slides.length] || fallbackSlides[0]
-  const buttonColor = /^#/.test(String(slide.badgeColor || '')) ? slide.badgeColor : '#F59E0B'
-  const badgeColor = /^#/.test(String(slide.badgeColor || '')) ? slide.badgeColor : '#16A34A'
   const imageURL = slide.rightImageURL || slide.imageURL || ''
 
   return (
-    <section className="relative w-full min-w-0 overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
+    <section className="relative w-full min-w-0 overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-lg">
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id || activeSlide}
-          className="grid min-h-[180px] md:min-h-[280px] grid-cols-[1.4fr_0.6fr] md:grid-cols-2 cursor-grab active:cursor-grabbing"
-          initial={{ opacity: 0, x: 18 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -18 }}
-          transition={{ duration: 0.35 }}
-          style={{ backgroundColor: slide.bgColor || '#FEF3C7' }}
+          className="flex flex-col cursor-grab active:cursor-grabbing"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.6}
@@ -396,31 +393,11 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
             }
           }}
         >
-          <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
-            {slide.badge && (
-              <span
-                className="mb-4 inline-flex w-fit rounded-xl px-3 py-1.5 text-xs font-bold text-white"
-                style={{ backgroundColor: badgeColor }}
-              >
-                {slide.badge}
-              </span>
-            )}
-            <h2 className="max-w-md font-display text-3xl font-extrabold leading-tight text-[#1A1D23] sm:text-4xl">
-              {slide.headline || 'Affordable repairs starting at just Rs. 149'}
-            </h2>
-            {slide.ctaText && (
-              <Link
-                to={slide.ctaLink || '/services'}
-                className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.97]"
-                style={{ backgroundColor: buttonColor }}
-              >
-                {slide.ctaText} <ArrowRight size={17} />
-              </Link>
-            )}
-          </div>
-          <div className="relative min-h-[120px] md:min-h-[220px] min-w-0 overflow-hidden">
+          {/* Top Image (60-65% height ratio) */}
+          <div className="relative h-[220px] sm:h-[300px] md:h-[360px] w-full overflow-hidden rounded-t-[24px] bg-zinc-100">
             {imageURL ? (
-              <img
+              <motion.img
+                key={`${slide.id || activeSlide}-image`}
                 src={imageURL}
                 alt={slide.headline || 'Electrical service'}
                 width="720"
@@ -431,32 +408,64 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
                   event.currentTarget.style.display = 'none'
                   event.currentTarget.nextSibling.style.display = 'flex'
                 }}
-                className="absolute inset-0 h-full w-full object-cover"
+                initial={{ scale: 1.05 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                className="h-full w-full object-cover rounded-t-[24px]"
               />
             ) : null}
             <div
               style={{ display: imageURL ? 'none' : 'flex' }}
-              className="absolute inset-0 flex-col items-center justify-center gap-2 bg-white/35 text-center backdrop-blur-sm"
+              className="absolute inset-0 flex-col items-center justify-center gap-2 bg-zinc-200 text-center"
             >
-              <ImageIcon className="text-gray-300" size={32} />
-              <p className="max-w-[180px] text-xs font-semibold text-gray-400">Upload right-side image from Admin Settings</p>
+              <ImageIcon className="text-gray-400" size={32} />
+              <p className="max-w-[180px] text-xs font-semibold text-gray-400">Upload slider image from Admin Settings</p>
+            </div>
+          </div>
+
+          {/* Bottom Content Area */}
+          <div className="p-6 flex flex-col gap-3.5 bg-white text-[#1A1D23]">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
+              ⚡ {slide.badge || 'Super Saver'}
+            </span>
+
+            <h2 className="font-display text-2xl font-black leading-tight text-gray-900 sm:text-3xl md:text-4xl">
+              {slide.headline || 'Affordable repairs starting at just Rs. 149'}
+            </h2>
+
+            {slide.subtext && (
+              <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                {slide.subtext}
+              </p>
+            )}
+
+            <div className="mt-2 flex flex-col gap-4">
+              <Link
+                to={slide.ctaLink || '/services'}
+                className="inline-flex w-full md:w-fit justify-center items-center gap-2 rounded-2xl bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {slide.ctaText || 'Book Now'} <ArrowRight size={17} />
+              </Link>
+
+              {slides.length > 1 && (
+                <div className="flex justify-center gap-1.5">
+                  {slides.map((item, index) => (
+                    <button
+                      key={item.id || index}
+                      type="button"
+                      aria-label={`Show slide ${index + 1}`}
+                      onClick={() => setActiveSlide(index)}
+                      className={`h-2 rounded-full transition-all ${
+                        index === (activeSlide % slides.length) ? 'w-6 bg-red-600' : 'w-2 bg-zinc-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
-      {slides.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-          {slides.map((item, index) => (
-            <button
-              key={item.id || index}
-              type="button"
-              aria-label={`Show slide ${index + 1}`}
-              onClick={() => setActiveSlide(index)}
-              className={`h-2 rounded-full transition-all ${index === activeSlide ? 'w-7 bg-primary' : 'w-2 bg-white/80'}`}
-            />
-          ))}
-        </div>
-      )}
     </section>
   )
 }
