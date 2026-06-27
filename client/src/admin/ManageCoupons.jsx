@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore'
-import { Gift, Plus, Shuffle, Trash2 } from 'lucide-react'
+import { Gift, Pencil, Plus, Save, Shuffle, Trash2 } from 'lucide-react'
 import { db, isFirebaseConfigured } from '../firebase/config'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 
@@ -9,6 +9,7 @@ const randomCode = () => Math.random().toString(36).slice(2, 10).toUpperCase()
 
 export default function ManageCoupons() {
   const { items: coupons, setItems: setCoupons, loading, error } = useFirestoreCollection('coupons', [], 'createdAt')
+  const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({
     code: '',
     type: 'flat',
@@ -21,37 +22,75 @@ export default function ManageCoupons() {
   const addCoupon = async (event) => {
     event.preventDefault()
     const id = form.code.trim().toLowerCase()
+    const existing = coupons.find((item) => item.id === id)
     const payload = {
-        ...form,
-        code: form.code.trim().toUpperCase(),
-        value: Number(form.value),
-        minOrder: Number(form.minOrder),
-        maxUses: Number(form.maxUses),
-        usedCount: 0,
-        isActive: true,
-        userId: null,
-        singleUse: false,
-        updatedAt: db && isFirebaseConfigured ? serverTimestamp() : new Date().toISOString(),
-      }
+      ...form,
+      code: form.code.trim().toUpperCase(),
+      value: Number(form.value),
+      minOrder: Number(form.minOrder),
+      maxUses: Number(form.maxUses),
+      usedCount: existing ? (existing.usedCount ?? 0) : 0,
+      isActive: existing ? (existing.isActive !== false) : true,
+      userId: existing ? (existing.userId || null) : null,
+      singleUse: existing ? (existing.singleUse || false) : false,
+      updatedAt: db && isFirebaseConfigured ? serverTimestamp() : new Date().toISOString(),
+    }
     try {
       if (db && isFirebaseConfigured) {
-        await setDoc(doc(db, 'coupons', id), {
-          ...payload,
-          createdAt: serverTimestamp(),
-        }, { merge: true })
+        await setDoc(
+          doc(db, 'coupons', id),
+          {
+            ...payload,
+            createdAt: existing?.createdAt || serverTimestamp(),
+          },
+          { merge: true },
+        )
       }
       setCoupons((items) => [{ id, ...payload }, ...items.filter((item) => item.id !== id)])
-      toast.success('Coupon added.')
+      toast.success(editingId ? 'Coupon updated.' : 'Coupon added.')
+      setForm({
+        code: '',
+        type: 'flat',
+        value: 100,
+        minOrder: 199,
+        maxUses: 100,
+        expiresAt: '2026-12-31',
+      })
+      setEditingId(null)
     } catch (err) {
-      toast.error(err.message || 'Unable to add coupon.')
+      toast.error(err.message || 'Unable to save coupon.')
     }
   }
 
+  const editCoupon = (coupon) => {
+    setEditingId(coupon.id)
+    setForm({
+      code: coupon.code || '',
+      type: coupon.type || 'flat',
+      value: coupon.value ?? 100,
+      minOrder: coupon.minOrder ?? 199,
+      maxUses: coupon.maxUses ?? 100,
+      expiresAt: coupon.expiresAt || '2026-12-31',
+    })
+  }
+
   const removeCoupon = async (coupon) => {
+    if (!window.confirm(`Are you sure you want to delete coupon '${coupon.code}'? This cannot be undone.`)) return
     try {
       if (db && isFirebaseConfigured) await deleteDoc(doc(db, 'coupons', coupon.id))
       setCoupons((items) => items.filter((item) => item.id !== coupon.id))
       toast.success('Coupon deleted.')
+      if (editingId === coupon.id) {
+        setEditingId(null)
+        setForm({
+          code: '',
+          type: 'flat',
+          value: 100,
+          minOrder: 199,
+          maxUses: 100,
+          expiresAt: '2026-12-31',
+        })
+      }
     } catch (err) {
       toast.error(err.message || 'Unable to delete coupon.')
     }
@@ -77,7 +116,9 @@ export default function ManageCoupons() {
           <input className="field" type="number" placeholder="Max uses" value={form.maxUses} onChange={(event) => setForm((value) => ({ ...value, maxUses: event.target.value }))} />
           <input className="field" type="date" value={form.expiresAt} onChange={(event) => setForm((value) => ({ ...value, expiresAt: event.target.value }))} />
         </div>
-        <button type="submit" className="btn-primary mt-4"><Plus size={17} /> Add Coupon</button>
+        <button type="submit" className="btn-primary mt-4">
+          {editingId ? <Save size={17} /> : <Plus size={17} />} {editingId ? 'Save Coupon' : 'Add Coupon'}
+        </button>
       </form>
 
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900">
@@ -113,9 +154,14 @@ export default function ManageCoupons() {
                   <td>{coupon.expiresAt}</td>
                   <td>{coupon.isActive ? 'Active' : 'Inactive'}</td>
                   <td>
-                    <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-red-600 hover:bg-red-50" onClick={() => removeCoupon(coupon)} aria-label="Delete coupon">
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex gap-2">
+                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10" onClick={() => editCoupon(coupon)} aria-label="Edit coupon">
+                        <Pencil size={16} />
+                      </button>
+                      <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-red-600 hover:bg-red-50" onClick={() => removeCoupon(coupon)} aria-label="Delete coupon">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

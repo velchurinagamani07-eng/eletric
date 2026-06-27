@@ -73,7 +73,7 @@ export default function App() {
         {showPublicChrome && <AnnouncementBar visible={showAnnouncement} />}
         {showPublicChrome && <WebNavbar />}
         {showPublicChrome && <MobileNavbar />}
-        <div className={showPublicChrome ? `${showAnnouncement ? 'pt-8 lg:pt-[100px]' : 'pt-0 lg:pt-16'} pb-24 transition-[padding] duration-300 lg:pb-0` : ''}>
+        <div className={showPublicChrome ? `${showAnnouncement ? 'pt-[104px] lg:pt-[100px]' : 'pt-16 lg:pt-16'} pb-24 transition-[padding] duration-300 lg:pb-0` : ''}>
           <Suspense fallback={<ElectricLoader />}>
             <Routes>
               <Route path="/" element={<Home />} />

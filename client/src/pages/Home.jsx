@@ -378,7 +378,7 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id || activeSlide}
-          className="grid min-h-[210px] md:min-h-[280px] grid-cols-1 md:grid-cols-2 cursor-grab active:cursor-grabbing"
+          className="grid min-h-[180px] md:min-h-[280px] grid-cols-[1.4fr_0.6fr] md:grid-cols-2 cursor-grab active:cursor-grabbing"
           initial={{ opacity: 0, x: 18 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -18 }}
@@ -418,7 +418,7 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
               </Link>
             )}
           </div>
-          <div className="relative hidden md:block min-h-[220px] min-w-0 overflow-hidden">
+          <div className="relative min-h-[120px] md:min-h-[220px] min-w-0 overflow-hidden">
             {imageURL ? (
               <img
                 src={imageURL}

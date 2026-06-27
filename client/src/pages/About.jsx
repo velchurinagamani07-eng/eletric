@@ -304,7 +304,17 @@ export default function About() {
               {workers.map((worker) => (
                 <motion.article key={worker.id} className="card p-5 text-center" whileHover={{ y: -4 }}>
                   {worker.photoURL ? (
-                    <img src={worker.photoURL} alt={worker.name} className="mx-auto h-20 w-20 rounded-full object-cover" loading="lazy" width="80" height="80" />
+                    <img
+                      src={worker.photoURL || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'}
+                      alt={worker.name}
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'
+                      }}
+                      className="mx-auto h-20 w-20 rounded-full object-cover"
+                      loading="lazy"
+                      width="80"
+                      height="80"
+                    />
                   ) : (
                     <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-2xl font-extrabold text-white">
                       {worker.name?.charAt(0)?.toUpperCase() || 'W'}

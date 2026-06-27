@@ -96,7 +96,7 @@ export default function AdminDashboard() {
         <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="card p-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-navy dark:text-white">Recent bookings</h2>
+              <h2 className="font-bold text-white">Recent bookings</h2>
               <Link to="/admin/bookings" className="inline-flex items-center gap-1 text-sm font-bold text-primary">
                 Manage <ArrowRight size={15} />
               </Link>
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
                     </tr>
                   ) : bookings.slice(0, 7).map((booking) => (
                     <tr key={booking.id}>
-                      <td className="py-3 font-semibold text-navy dark:text-white">{booking.bookingId || booking.id}</td>
+                      <td className="py-3 font-semibold text-white">{booking.bookingId || booking.id}</td>
                       <td>{booking.customer || '-'}</td>
                       <td>{booking.serviceName || '-'}</td>
                       <td className="capitalize">{String(booking.status || 'pending').replace(/-/g, ' ')}</td>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="card p-4">
-            <h2 className="flex items-center gap-2 font-bold text-navy dark:text-white">
+            <h2 className="flex items-center gap-2 font-bold text-white">
               <Users size={18} /> Worker Performance
             </h2>
             <div className="mt-4 overflow-x-auto">
@@ -161,14 +161,22 @@ export default function AdminDashboard() {
                       <td className="py-3">
                         <div className="flex items-center gap-3">
                           {worker.photoURL ? (
-                            <img src={worker.photoURL} alt="" className="h-10 w-10 rounded-full object-cover" loading="lazy" />
+                            <img
+                              src={worker.photoURL || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'}
+                              alt=""
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'
+                              }}
+                              className="h-10 w-10 rounded-full object-cover"
+                              loading="lazy"
+                            />
                           ) : (
                             <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-extrabold text-white">
                               {worker.name?.slice(0, 1)?.toUpperCase() || 'W'}
                             </span>
                           )}
                           <div>
-                            <p className="font-bold text-navy dark:text-white">{worker.name || 'Worker'}</p>
+                            <p className="font-bold text-white">{worker.name || 'Worker'}</p>
                             <p className="text-xs text-gray-500">{worker.specialization || 'Electrical services'}</p>
                           </div>
                         </div>
@@ -206,7 +214,7 @@ function Kpi({ label, value, helper, icon: Icon, tone }) {
     <div className="card p-5">
       <Icon className={tone} size={22} />
       <p className="mt-3 text-sm font-semibold text-gray-500">{label}</p>
-      <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{value}</p>
+      <p className="mt-1 font-display text-2xl font-extrabold text-white">{value}</p>
       <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-gray-400">
         <Timer size={13} /> {helper}
       </p>

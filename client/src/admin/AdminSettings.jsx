@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
 import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock } from 'lucide-react'
 import { defaultHero, settings } from '../data/catalog'
-import { db, isFirebaseConfigured } from '../firebase/config'
+import { auth, db, isFirebaseConfigured } from '../firebase/config'
 import ImageUploader from '../components/ImageUploader'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 import { defaultAnnouncements } from '../data/announcements'
@@ -156,6 +156,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
 
   useEffect(() => {
     if (!db || !isFirebaseConfigured) return undefined
+    if (!authReady || (storeUser?.uid && !auth?.currentUser?.uid)) return undefined
     let alive = true
     getDoc(doc(db, 'settings', 'hero'))
       .then((snap) => {
@@ -211,7 +212,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
     return () => {
       alive = false
     }
-  }, [announcementItems.length, setAnnouncementItems])
+  }, [announcementItems.length, setAnnouncementItems, authReady, storeUser?.uid, auth?.currentUser?.uid])
 
   const updateCompany = (field, value) => setCompanyForm((current) => ({ ...current, [field]: value }))
   const updateHero = (field, value) => setHeroForm((current) => ({ ...current, [field]: value }))

@@ -63,8 +63,8 @@ export function useFirestoreCollection(collectionName, fallback = EMPTY_ARRAY, o
 
   useEffect(() => {
     const currentFallback = isPrivate ? EMPTY_ARRAY : stableFallback
-    const waitingForAuth = isPrivate && !authReady
-    const privateWithoutAuth = isPrivate && authReady && !storeUser?.uid && !auth?.currentUser
+    const waitingForAuth = isPrivate && (!authReady || (storeUser?.uid && !auth?.currentUser?.uid))
+    const privateWithoutAuth = isPrivate && authReady && !storeUser?.uid && !auth?.currentUser?.uid
 
     if (waitingForAuth) {
       Promise.resolve().then(() => {
@@ -115,7 +115,7 @@ export function useFirestoreCollection(collectionName, fallback = EMPTY_ARRAY, o
       window.clearTimeout(fallbackTimer)
       unsubscribe()
     }
-  }, [authReady, collectionName, fallbackKey, orderField, isPrivate, stableFallback, storeUser?.uid])
+  }, [authReady, collectionName, fallbackKey, orderField, isPrivate, stableFallback, storeUser?.uid, auth?.currentUser?.uid])
 
   return { items, setItems, loading, error }
 }

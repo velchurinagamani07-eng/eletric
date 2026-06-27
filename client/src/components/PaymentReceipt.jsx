@@ -50,7 +50,16 @@ export default function PaymentReceipt({ booking }) {
       <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-white/10 dark:bg-gray-950">
         <header className="grid gap-5 bg-gradient-to-r from-amber-500 to-amber-600 p-6 text-white sm:grid-cols-[1fr_auto] sm:items-center">
           <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/18">
+            <img
+              src="/logo.webp"
+              alt="DP Home Electric Services"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+                e.currentTarget.nextSibling.style.display = 'flex'
+              }}
+              className="h-14 w-14 rounded-2xl bg-white/10 object-contain p-1"
+            />
+            <span style={{ display: 'none' }} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/18">
               <Zap fill="currentColor" size={30} />
             </span>
             <div>

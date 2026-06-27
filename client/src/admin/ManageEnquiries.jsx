@@ -3,7 +3,8 @@ import { deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc, collection } fr
 import toast from 'react-hot-toast'
 import { Helmet } from 'react-helmet-async'
 import { BellRing, CheckCircle2, Clock, MessageCircle, Phone, Search, Trash2, XCircle } from 'lucide-react'
-import { db, isFirebaseConfigured } from '../firebase/config'
+import { auth, db, isFirebaseConfigured } from '../firebase/config'
+import { useAuthStore } from '../store/authStore'
 
 const ADMIN_WHATSAPP = '919642908090'
 const statuses = [
@@ -47,6 +48,8 @@ function whatsappUrl(enquiry) {
 }
 
 export default function ManageEnquiries() {
+  const authReady = useAuthStore((state) => state.authReady)
+  const storeUser = useAuthStore((state) => state.user)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(Boolean(db && isFirebaseConfigured))
   const [error, setError] = useState('')
@@ -58,6 +61,18 @@ export default function ManageEnquiries() {
     if (!db || !isFirebaseConfigured) {
       setLoading(false)
       setError('Firebase is not configured. Enquiries will appear after Firebase environment variables are set.')
+      return undefined
+    }
+
+    if (!authReady || (storeUser?.uid && !auth?.currentUser?.uid)) {
+      setLoading(true)
+      setError('')
+      return undefined
+    }
+
+    if (authReady && !storeUser?.uid && !auth?.currentUser?.uid) {
+      setLoading(false)
+      setError('Login is required to view enquiries.')
       return undefined
     }
 
@@ -93,7 +108,7 @@ export default function ManageEnquiries() {
     )
 
     return () => unsubscribe()
-  }, [])
+  }, [authReady, storeUser?.uid, auth?.currentUser?.uid])
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase()
@@ -118,6 +133,7 @@ export default function ManageEnquiries() {
   }
 
   const deleteEnquiry = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this enquiry? This cannot be undone.')) return
     try {
       await deleteDoc(doc(db, 'enquiries', id))
       toast.success('Enquiry deleted.')

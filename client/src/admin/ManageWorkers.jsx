@@ -21,7 +21,7 @@ import {
   uploadWorkerProfilePhoto,
 } from '../utils/firebaseUploads'
 import { apiJson, getApiBaseUrl } from '../utils/apiClient'
-import { db, isFirebaseConfigured } from '../firebase/config'
+import { auth, db, isFirebaseConfigured } from '../firebase/config'
 import { useAuthStore } from '../store/authStore'
 import { useServiceCategories } from '../hooks/useServices'
 
@@ -99,9 +99,9 @@ export default function ManageWorkers() {
   }, [])
 
   useEffect(() => {
-    if (!authReady) return
+    if (!authReady || !auth?.currentUser?.uid) return
     fetchWorkers()
-  }, [authReady, fetchWorkers])
+  }, [authReady, auth?.currentUser?.uid, fetchWorkers])
 
   const filteredWorkers = useMemo(() => {
     const needle = queryText.trim().toLowerCase()
@@ -438,7 +438,7 @@ function WorkerRow({ worker, onView, onEdit, onToggle, onDelete }) {
   return (
     <tr className="hover:bg-white/[0.03]">
       <td className="px-4 py-3">
-        <img src={worker.photoURL || defaultWorkerPhoto} alt="" className="h-11 w-11 rounded-full object-cover" />
+        <img src={worker.photoURL || defaultWorkerPhoto} alt="" onError={(e) => { e.currentTarget.src = defaultWorkerPhoto }} className="h-11 w-11 rounded-full object-cover" />
       </td>
       <td>
         <p className="font-bold text-white">{worker.name || 'Unnamed worker'}</p>
@@ -474,7 +474,7 @@ function WorkerCard({ worker, onView, onEdit, onToggle, onDelete }) {
   return (
     <article className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-sm text-gray-300">
       <div className="flex items-start gap-3">
-        <img src={worker.photoURL || defaultWorkerPhoto} alt="" className="h-14 w-14 rounded-full object-cover" />
+        <img src={worker.photoURL || defaultWorkerPhoto} alt="" onError={(e) => { e.currentTarget.src = defaultWorkerPhoto }} className="h-14 w-14 rounded-full object-cover" />
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-bold text-white">{worker.name || 'Unnamed worker'}</h3>
           <p className="mt-1 text-gray-400">{fieldValue(worker, ['phone', 'mobile'], '-')}</p>
@@ -563,7 +563,7 @@ function WorkerFormModal({
 
         <label className="mt-5 flex min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-700 bg-zinc-900 p-4 text-center">
           {profilePreview ? (
-            <img src={profilePreview} alt="Worker preview" className="h-24 w-24 rounded-full object-cover" />
+            <img src={profilePreview || defaultWorkerPhoto} alt="Worker preview" onError={(e) => { e.currentTarget.src = defaultWorkerPhoto }} className="h-24 w-24 rounded-full object-cover" />
           ) : (
             <FileImage className="text-red-500" size={26} />
           )}
@@ -591,7 +591,7 @@ function WorkerViewModal({ worker, onClose, onEdit }) {
       <div className="w-full rounded-t-2xl border border-zinc-800 bg-zinc-950 p-5 text-white shadow-2xl sm:max-w-lg sm:rounded-lg">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <img src={worker.photoURL || defaultWorkerPhoto} alt="" className="h-16 w-16 rounded-full object-cover" />
+            <img src={worker.photoURL || defaultWorkerPhoto} alt="" onError={(e) => { e.currentTarget.src = defaultWorkerPhoto }} className="h-16 w-16 rounded-full object-cover" />
             <div>
               <h2 className="text-xl font-extrabold">{worker.name || 'Unnamed worker'}</h2>
               <p className="text-sm text-gray-400">{worker.email || 'No email'}</p>

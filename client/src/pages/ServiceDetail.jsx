@@ -59,7 +59,7 @@ export default function ServiceDetail() {
         </script>
       </Helmet>
 
-      <main className="bg-[#0A0A0A] py-8 pb-28 text-white lg:py-10 lg:pb-10">
+      <main className="bg-[#0A0A0A] py-8 pb-36 text-white lg:py-10 lg:pb-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <Link to="/services" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-400">
             <ArrowLeft size={17} /> Services / {service.name}
@@ -212,7 +212,7 @@ export default function ServiceDetail() {
             </section>
           </div>
         </div>
-        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-zinc-800 bg-black/95 p-3 pb-[calc(12px+max(env(safe-area-inset-bottom),0px))] backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-zinc-800 bg-black/95 p-3 backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-7xl items-center gap-3">
             <button
               type="button"
