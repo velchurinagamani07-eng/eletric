@@ -324,7 +324,7 @@ export default function Cart() {
         <meta name="description" content="Review selected electrical services and send a WhatsApp checkout enquiry." />
       </Helmet>
       <main className="min-h-screen bg-[#FAFAFA] py-8 text-[#0F172A] lg:py-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mx-auto w-full max-w-6xl min-w-0 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
               <ShoppingCart size={23} />
@@ -344,20 +344,20 @@ export default function Cart() {
               </div>
             </div>
           ) : (
-            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
-              <section className="grid gap-4">
+            <div className="mt-8 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+              <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
                 {items.map((item) => {
                   const price = Number(item.basePrice || item.price || 0)
                   const quantity = Number(item.quantity || 1)
                   return (
-                    <article key={item.id} className="grid gap-4 rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-sm sm:grid-cols-[112px_1fr_auto]">
-                      <img src={item.imageURL || getServiceImage(item)} alt="" onError={handleImageFallback} className="aspect-[4/3] w-full rounded-lg bg-[#F8FAFC] object-cover sm:h-24 sm:w-28" />
+                    <article key={item.id} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-sm sm:grid-cols-[112px_minmax(0,1fr)_auto]">
+                      <img src={item.imageURL || getServiceImage(item)} alt="" onError={handleImageFallback} className="aspect-[4/3] w-full max-w-full rounded-lg bg-[#F8FAFC] object-cover sm:h-24 sm:w-28" />
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="font-bold text-[#0F172A]">{item.name}</h2>
+                          <h2 className="min-w-0 break-words font-bold text-[#0F172A]">{item.name}</h2>
                           <span className="badge bg-amber-100 text-amber-800">{item.itemType === 'product' ? 'Product' : 'Service'}</span>
                         </div>
-                        <p className="mt-1 text-sm text-[#64748B]">{item.shortDescription || item.description || 'Selected item'}</p>
+                        <p className="mt-1 break-words text-sm text-[#64748B]">{item.shortDescription || item.description || 'Selected item'}</p>
                         <p className="mt-2 text-sm font-extrabold text-amber-700">{currency(price * quantity)}</p>
                         <div className="mt-3 inline-grid grid-cols-[34px_44px_34px] overflow-hidden rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] text-sm font-extrabold text-[#0F172A]">
                           <button type="button" className="grid h-9 place-items-center" aria-label={`Decrease ${item.name}`} onClick={() => updateQuantity(item.id, quantity - 1)}>
@@ -371,7 +371,7 @@ export default function Cart() {
                       </div>
                       <button
                         type="button"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full text-red-600 hover:bg-red-50"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full text-red-600 hover:bg-red-50 sm:self-start"
                         aria-label="Remove item"
                         onClick={() => removeItem(item.id)}
                       >
@@ -383,13 +383,13 @@ export default function Cart() {
                 <RecommendedServices title="Add these too?" subtitle="Quick add complementary services before checkout." />
               </section>
 
-              <aside className="h-fit rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-sm lg:sticky lg:top-24">
+              <aside className="h-fit min-w-0 rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-sm lg:sticky lg:top-24">
                 <p className="text-sm font-bold text-[#0F172A]">WhatsApp checkout</p>
                 <div className="mt-4 flex items-center justify-between border-t border-[#E2E8F0] pt-4 text-sm">
                   <span className="text-[#64748B]">Estimated total</span>
                   <span className="text-xl font-extrabold text-[#0F172A]">{currency(total)}</span>
                 </div>
-                <form className="mt-5 grid gap-3" onSubmit={checkout}>
+                <form className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-3" onSubmit={checkout}>
                   <label>
                     <span className="mb-1.5 block text-xs font-bold text-[#334155]">Name</span>
                     <div className="relative">
@@ -405,13 +405,13 @@ export default function Cart() {
                     </div>
                   </label>
                   <label>
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="mb-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                       <span className="text-xs font-bold text-[#334155]">Address</span>
                       <button
                         type="button"
                         onClick={detectLocation}
                         disabled={detectingLocation}
-                        className="inline-flex items-center gap-1 rounded border border-amber-600 px-2 py-0.5 text-[10px] font-bold text-amber-700 bg-white hover:bg-amber-50 disabled:opacity-50"
+                        className="inline-flex max-w-full items-center gap-1 self-start whitespace-normal rounded border border-amber-600 bg-white px-2 py-0.5 text-left text-[10px] font-bold leading-4 text-amber-700 hover:bg-amber-50 disabled:opacity-50 sm:self-auto"
                       >
                         📍 {detectingLocation ? 'Locating...' : 'Use My Current Location'}
                       </button>
@@ -430,7 +430,7 @@ export default function Cart() {
                   {paymentConfig.enableOnline && (
                     <div className="mt-3 border-t border-zinc-100 pt-3">
                       <span className="mb-2 block text-xs font-bold text-[#334155]">Payment Method</span>
-                      <div className="grid gap-2 grid-cols-2">
+                      <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
                         <button
                           type="button"
                           onClick={() => setPaymentMethod('COD')}

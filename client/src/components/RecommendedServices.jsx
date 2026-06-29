@@ -84,7 +84,7 @@ export default function RecommendedServices({
 
 function SkeletonRow() {
   return (
-    <div className="mt-8 flex gap-3 overflow-hidden">
+    <div className="mt-8 -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 no-scrollbar sm:mx-0 sm:px-0">
       {Array.from({ length: 4 }).map((_, index) => (
         <div key={index} className="h-56 w-40 shrink-0 animate-pulse rounded-lg bg-zinc-900 sm:w-52" />
       ))}

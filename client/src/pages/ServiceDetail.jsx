@@ -60,13 +60,13 @@ export default function ServiceDetail() {
       </Helmet>
 
       <main className="bg-[#0A0A0A] py-8 pb-36 text-white lg:py-10 lg:pb-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mx-auto w-full max-w-7xl min-w-0 px-4 sm:px-6">
           <Link to="/services" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-400">
             <ArrowLeft size={17} /> Services / {service.name}
           </Link>
 
-          <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <div>
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <div className="min-w-0">
               <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory no-scrollbar lg:hidden -mx-4 sm:-mx-6">
                 {images.map((src, index) => (
                   <img
@@ -74,7 +74,7 @@ export default function ServiceDetail() {
                     src={src}
                     alt={`${service.name} photo ${index + 1}`}
                     onError={handleImageFallback}
-                    className="aspect-square w-full shrink-0 object-cover snap-center"
+                    className="aspect-square w-full max-w-full shrink-0 basis-full object-cover snap-center"
                   />
                 ))}
               </div>
@@ -111,12 +111,12 @@ export default function ServiceDetail() {
               </div>
             </div>
 
-            <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 shadow-sm sm:p-7">
+            <section className="min-w-0 rounded-lg border border-zinc-800 bg-zinc-900 p-5 shadow-sm sm:p-7">
               <span className="badge bg-red-600/15 text-red-400">
                 <ShieldCheck size={14} className="mr-1" /> 1 Month Warranty Included
               </span>
-              <h1 className="mt-4 text-2xl font-extrabold text-white md:text-4xl">{service.name}</h1>
-              <div className="mt-2.5 flex items-center gap-2 text-sm text-gray-300">
+              <h1 className="mt-4 break-words text-2xl font-extrabold text-white md:text-4xl">{service.name}</h1>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-sm text-gray-300">
                 <span className="flex items-center gap-1 text-amber-400">
                   <Star size={15} fill="currentColor" />
                   <span className="font-bold text-white">4.80</span>
@@ -127,7 +127,7 @@ export default function ServiceDetail() {
               </div>
               <p className="mt-4 text-sm leading-7 text-gray-300">{service.description}</p>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-3">
                 <div className="rounded-lg bg-black/40 p-4">
                   <IndianRupee className="text-red-500" size={20} />
                   <p className="mt-2 text-xs text-gray-500">Starting price</p>
@@ -147,7 +147,7 @@ export default function ServiceDetail() {
 
               <div className="mt-6">
                 <h2 className="font-bold text-white">What's included</h2>
-                <div className="mt-3 grid gap-2">
+                <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2">
                   {service.includes.map((item) => (
                     <p key={item} className="flex items-center gap-2 text-sm text-gray-300">
                       <CheckCircle2 className="text-emerald-500" size={17} /> {item}
@@ -165,14 +165,14 @@ export default function ServiceDetail() {
                 ].map(([label, value], index) => (
                   <div
                     key={label}
-                    className={`flex items-center justify-between px-4 py-3 text-sm ${
+                    className={`flex min-w-0 items-center justify-between gap-3 px-4 py-3 text-sm ${
                       index === 3
                         ? 'bg-red-600 font-bold text-white'
                         : 'border-b border-zinc-800 text-gray-300'
                     }`}
                   >
-                    <span>{label}</span>
-                    <span>{value}</span>
+                    <span className="min-w-0 break-words">{label}</span>
+                    <span className="shrink-0">{value}</span>
                   </div>
                 ))}
               </div>
@@ -188,7 +188,7 @@ export default function ServiceDetail() {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-2 sm:grid-cols-2">
+              <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
                 <Link to={`/book/${service.id || service.slug}`} className="btn-primary w-full">
                   Book Now
                 </Link>
