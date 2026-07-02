@@ -4,6 +4,7 @@ import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, w
 import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock } from 'lucide-react'
 import { defaultHero, settings } from '../data/catalog'
 import { auth, db, isFirebaseConfigured } from '../firebase/config'
+import { useAuthStore } from '../store/authStore'
 import ImageUploader from '../components/ImageUploader'
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection'
 import { defaultAnnouncements } from '../data/announcements'
@@ -110,6 +111,8 @@ const defaultProducts = [
 }))
 
 export default function AdminSettings({ initialSection = 'company' }) {
+  const authReady = useAuthStore((state) => state.authReady)
+  const storeUser = useAuthStore((state) => state.user)
   const { items: announcementItems, setItems: setAnnouncementItems } = useFirestoreCollection(
     'announcement_messages',
     defaultAnnouncements,

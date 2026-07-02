@@ -208,6 +208,8 @@ export default function ManageBookings() {
                 <td className="px-4 py-8 text-center text-gray-500" colSpan="9">No bookings found.</td>
               </tr>
             ) : filtered.map((booking) => {
+              const assignedWorker = workerItems.find((w) => (w.uid || w.id) === booking.workerUID)
+              const workerMobile = assignedWorker?.phone || assignedWorker?.mobile || ''
               const mapLink = booking.latitude && booking.longitude
                 ? `https://www.google.com/maps/search/?api=1&query=${booking.latitude},${booking.longitude}`
                 : `https://maps.google.com/?q=${encodeURIComponent(fullAddress(booking.address))}`

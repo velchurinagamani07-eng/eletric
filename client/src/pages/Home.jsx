@@ -372,11 +372,11 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
   const imageURL = slide.rightImageURL || slide.imageURL || ''
 
   return (
-    <section className="relative w-full min-w-0 overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-lg">
+    <section className="relative w-full min-w-0 overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-lg md:min-h-[400px] md:h-[400px] flex flex-col md:flex-row">
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id || activeSlide}
-          className="flex flex-col cursor-grab active:cursor-grabbing"
+          className="flex flex-col md:flex-row w-full h-full cursor-grab active:cursor-grabbing"
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
@@ -393,8 +393,50 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
             }
           }}
         >
-          {/* Top Image (60-65% height ratio) */}
-          <div className="relative h-[220px] sm:h-[300px] md:h-[360px] w-full overflow-hidden rounded-t-[24px] bg-zinc-100">
+          {/* Content Area - Left on desktop, Bottom on mobile */}
+          <div className="order-2 md:order-1 p-6 md:p-8 lg:p-10 flex flex-col justify-center gap-3.5 bg-white text-[#1A1D23] w-full md:w-1/2 flex-1">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
+              ⚡ {slide.badge || 'Super Saver'}
+            </span>
+
+            <h2 className="font-display text-2xl font-black leading-tight text-gray-900 sm:text-3xl md:text-3xl lg:text-4xl">
+              {slide.headline || 'Affordable repairs starting at just Rs. 149'}
+            </h2>
+
+            {slide.subtext && (
+              <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-md">
+                {slide.subtext}
+              </p>
+            )}
+
+            <div className="mt-2 flex flex-col gap-4">
+              <Link
+                to={slide.ctaLink || '/services'}
+                className="inline-flex w-full md:w-fit justify-center items-center gap-2 rounded-2xl bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {slide.ctaText || 'Book Now'} <ArrowRight size={17} />
+              </Link>
+
+              {slides.length > 1 && (
+                <div className="flex md:justify-start justify-center gap-1.5 mt-2">
+                  {slides.map((item, index) => (
+                    <button
+                      key={item.id || index}
+                      type="button"
+                      aria-label={`Show slide ${index + 1}`}
+                      onClick={() => setActiveSlide(index)}
+                      className={`h-2 rounded-full transition-all ${
+                        index === (activeSlide % slides.length) ? 'w-6 bg-red-600' : 'w-2 bg-zinc-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Image Area - Right on desktop, Top on mobile */}
+          <div className="order-1 md:order-2 relative h-[200px] sm:h-[260px] md:h-full w-full md:w-1/2 overflow-hidden bg-zinc-100">
             {imageURL ? (
               <motion.img
                 key={`${slide.id || activeSlide}-image`}
@@ -411,7 +453,7 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
                 initial={{ scale: 1.05 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
-                className="h-full w-full object-cover rounded-t-[24px]"
+                className="h-full w-full object-cover"
               />
             ) : null}
             <div
@@ -419,49 +461,7 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
               className="absolute inset-0 flex-col items-center justify-center gap-2 bg-zinc-200 text-center"
             >
               <ImageIcon className="text-gray-400" size={32} />
-              <p className="max-w-[180px] text-xs font-semibold text-gray-400">Upload slider image from Admin Settings</p>
-            </div>
-          </div>
-
-          {/* Bottom Content Area */}
-          <div className="p-6 flex flex-col gap-3.5 bg-white text-[#1A1D23]">
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
-              ⚡ {slide.badge || 'Super Saver'}
-            </span>
-
-            <h2 className="font-display text-2xl font-black leading-tight text-gray-900 sm:text-3xl md:text-4xl">
-              {slide.headline || 'Affordable repairs starting at just Rs. 149'}
-            </h2>
-
-            {slide.subtext && (
-              <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                {slide.subtext}
-              </p>
-            )}
-
-            <div className="mt-2 flex flex-col gap-4">
-              <Link
-                to={slide.ctaLink || '/services'}
-                className="inline-flex w-full md:w-fit justify-center items-center gap-2 rounded-2xl bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {slide.ctaText || 'Book Now'} <ArrowRight size={17} />
-              </Link>
-
-              {slides.length > 1 && (
-                <div className="flex justify-center gap-1.5">
-                  {slides.map((item, index) => (
-                    <button
-                      key={item.id || index}
-                      type="button"
-                      aria-label={`Show slide ${index + 1}`}
-                      onClick={() => setActiveSlide(index)}
-                      className={`h-2 rounded-full transition-all ${
-                        index === (activeSlide % slides.length) ? 'w-6 bg-red-600' : 'w-2 bg-zinc-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
+              <p className="max-w-[180px] text-xs font-semibold text-gray-500">Upload slider image from Admin Settings</p>
             </div>
           </div>
         </motion.div>
