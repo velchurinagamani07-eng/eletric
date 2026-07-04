@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
+import { collection, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import toast from 'react-hot-toast'
-import { db, isFirebaseConfigured } from '../firebase/config'
+import { db, isFirebaseConfigured, onSnapshotWithRetry } from '../firebase/config'
 
 const storageKey = 'home-electric-wishlist'
 let wishlistUnsubscribe = null
@@ -71,7 +71,7 @@ export const useWishlistStore = create((set, get) => ({
         clearGuestWishlist()
       }
 
-      wishlistUnsubscribe = onSnapshot(
+      wishlistUnsubscribe = onSnapshotWithRetry(
         collection(db, 'users', user.uid, 'wishlist'),
         (snapshot) => {
           set({ ids: snapshot.docs.map((entry) => entry.id), loading: false })

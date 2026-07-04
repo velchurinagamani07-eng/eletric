@@ -125,7 +125,7 @@ export default function WebNavbar() {
                           {categories.map((category) => (
                             <Link
                               key={category.id}
-                              to={`/services?category=${category.id}`}
+                              to={`/services?category=${category.slug || category.id}`}
                               className="rounded-xl border border-[#E2E8F0] bg-[#F8F9FA] px-3 py-3 text-sm font-bold text-[#0F172A] hover:border-amber-300 hover:bg-amber-50 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
                               {category.name}

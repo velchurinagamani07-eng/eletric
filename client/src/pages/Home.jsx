@@ -23,6 +23,7 @@ import { currency } from '../utils/format'
 import { getDefaultImage, getServiceImage, handleImageFallback } from '../utils/defaultImages'
 import { getCategoryIcon } from '../utils/categoryIcons'
 import WishlistButton from '../components/WishlistButton'
+import ProductCard from '../components/ProductCard'
 import RecommendedServices from '../components/RecommendedServices'
 import { getRecentServiceHistory } from '../utils/recommendations'
 
@@ -112,7 +113,7 @@ export default function Home() {
   )
 
   const openCategory = (category) => {
-    navigate(`/services?category=${encodeURIComponent(category.id || category.slug || category.name)}`)
+    navigate(`/services?category=${encodeURIComponent(category.slug || category.id || category.name)}`)
   }
 
   return (
@@ -145,7 +146,7 @@ export default function Home() {
         </script>
       </Helmet>
 
-      <main className="overflow-x-hidden bg-[#0A0A0A] pb-6 text-white lg:pb-0">
+      <main className="overflow-x-hidden bg-[var(--page-bg)] pb-6 text-[var(--primary-text)] lg:pb-0">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-8">
           <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
             <div className="space-y-5 pr-2">
@@ -166,8 +167,8 @@ export default function Home() {
                 </p>
               </section>
 
-              <section className="rounded-2xl border border-surface-border bg-white p-4 shadow-card">
-                <h2 className="mb-3 text-sm font-bold text-navy">Select a service</h2>
+              <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-4 shadow-card">
+                <h2 className="mb-3 text-sm font-bold text-[var(--primary-text)]">Select a service</h2>
                 <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} />
               </section>
 
@@ -197,6 +198,9 @@ export default function Home() {
             {/* Banner Slider */}
             <PromoSlider slides={slides} activeSlide={activeSlide} setActiveSlide={setActiveSlide} />
 
+            {/* Construction & Moving Services Section */}
+            <ConstructionMovingSection />
+
             {/* Select a Service (appears AFTER the banner on mobile) */}
             <section className="mt-6 px-4 lg:hidden">
               <h2 className="mb-4 text-lg font-bold text-white">Select a service</h2>
@@ -208,12 +212,12 @@ export default function Home() {
               currentService={browsingSeed}
               title={browsingSeed ? 'Recommended for You' : 'Most Popular Services'}
               subtitle={browsingSeed ? `Based on ${browsingSeed.name}` : 'Trusted services customers book most often.'}
-              className="rounded-lg border border-zinc-800 bg-black/20 p-4 mt-6"
+              className="rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] p-4 mt-6"
             />
 
-            <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-white sm:grid-cols-4 lg:hidden">
+            <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-[var(--primary-text)] sm:grid-cols-4 lg:hidden">
               {['1 Month Warranty', 'Same-Day Service', 'Verified Workers', 'Transparent Price'].map((label) => (
-                <span key={label} className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 shadow-sm">
+                <span key={label} className="rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-2 shadow-sm">
                   {label}
                 </span>
               ))}
@@ -230,10 +234,10 @@ export default function Home() {
                 >
                   <div className="mb-4 flex items-end justify-between gap-3">
                     <div>
-                      <h2 className="font-display text-2xl font-extrabold text-white">{category.name}</h2>
-                      <p className="mt-1 text-sm text-gray-500">Doorstep service by verified electricians</p>
+                      <h2 className="font-display text-xl font-extrabold text-[var(--primary-text)] sm:text-2xl">{category.name}</h2>
+                      <p className="mt-1 text-sm text-[var(--secondary-text)]">Doorstep service by verified electricians</p>
                     </div>
-                    <Link to={`/services?category=${category.id}`} className="hidden items-center gap-1 text-sm font-bold text-primary sm:inline-flex">
+                    <Link to={`/services?category=${category.slug || category.id}`} className="hidden items-center gap-1 text-sm font-bold text-primary sm:inline-flex">
                       See all <ArrowRight size={15} />
                     </Link>
                   </div>
@@ -252,8 +256,8 @@ export default function Home() {
               ))}
 
               {recommendedProducts.length > 0 && (
-                <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
-                  <h2 className="font-display text-lg font-extrabold text-navy">
+                <section className="rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-5">
+                  <h2 className="font-display text-lg font-extrabold text-[var(--primary-text)]">
                     Based on Fan Installation, customers also buy:
                   </h2>
                   <div className="mt-4 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
@@ -267,9 +271,9 @@ export default function Home() {
                           basePrice: productPrice(product),
                           shortDescription: product.shortDescription || product.brand,
                         })}
-                        className="shrink-0 rounded-2xl border border-amber-200 bg-white px-4 py-3 text-left text-sm font-bold text-navy shadow-sm"
+                        className="shrink-0 rounded-2xl border border-[var(--card-border)] bg-[var(--page-bg)] px-4 py-3 text-left text-sm font-bold text-[var(--primary-text)] shadow-sm"
                       >
-                        {product.name} <span className="text-primary">{currency(productPrice(product))}</span>
+                        {product.name} <span className="text-[var(--primary-accent)]">{currency(productPrice(product))}</span>
                       </button>
                     ))}
                   </div>
@@ -292,12 +296,6 @@ export default function Home() {
                       <ProductCard
                         key={product.id}
                         product={product}
-                        onAdd={() => addItem({
-                          ...product,
-                          itemType: 'product',
-                          basePrice: productPrice(product),
-                          shortDescription: product.shortDescription || product.brand,
-                        })}
                       />
                     ))}
                   </div>
@@ -312,22 +310,11 @@ export default function Home() {
 }
 
 function CategoryGrid({ categories, onOpen, onMore, isDark }) {
-  const displayCategories = categories.length > 9 ? categories.slice(0, 8) : categories.slice(0, 9)
-  const moreCount = categories.length > 9 ? categories.length - 8 : 0
-
   return (
     <div className="grid w-full grid-cols-3 gap-x-2 gap-y-4">
-      {displayCategories.map((category) => (
+      {categories.map((category) => (
         <CategoryTile key={category.id} category={category} onClick={() => onOpen(category)} isDark={isDark} />
       ))}
-      {moreCount > 0 && (
-        <button type="button" onClick={onMore} className="group flex flex-col items-center gap-1.5 focus:outline-none">
-          <div className={`flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed ${isDark ? 'border-zinc-700 bg-zinc-900 text-zinc-400' : 'border-amber-300 bg-amber-50 text-amber-600 group-hover:border-amber-400 group-hover:bg-amber-100'} text-sm font-bold transition-all`}>
-            +{moreCount}
-          </div>
-          <span className={`text-center text-[11px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} group-hover:text-amber-600`}>More</span>
-        </button>
-      )}
     </div>
   )
 }
@@ -474,8 +461,8 @@ function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
   const hasDiscount = Number(service.salePrice || 0) > 0 && Number(service.salePrice) < Number(service.basePrice)
   const price = hasDiscount ? Number(service.salePrice) : Number(service.basePrice)
   return (
-    <article className="w-[190px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-card sm:w-[230px]">
-      <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-[4/3] overflow-hidden bg-gray-100">
+    <article className="w-[190px] shrink-0 overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] shadow-card sm:w-[230px]">
+      <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-[4/3] overflow-hidden bg-[var(--card-bg)]">
         <img
           src={getServiceImage(service)}
           alt={service.name}
@@ -487,30 +474,30 @@ function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
           className="h-full w-full object-cover transition duration-300 hover:scale-105"
         />
         {hasDiscount && (
-          <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2 py-1 text-[10px] font-black text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-[var(--primary-accent)] px-2 py-1 text-[10px] font-black text-white">
             Offer
           </span>
         )}
         <WishlistButton service={service} className="absolute right-2 top-2" />
       </Link>
       <div className="p-4">
-        <h3 className="truncate text-sm font-bold text-white">{service.name}</h3>
-        <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-gray-500">
-          <Star size={12} fill="currentColor" className="text-red-500" /> 4.8 <span>|</span> {service.duration}
+        <h3 className="truncate text-sm font-bold text-[var(--primary-text)]">{service.name}</h3>
+        <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[var(--secondary-text)]">
+          <Star size={12} fill="currentColor" className="text-[var(--primary-accent)]" /> 4.8 <span>|</span> {service.duration}
         </p>
-        <p className="mt-2 text-sm font-extrabold text-red-400">
+        <p className="mt-2 text-sm font-extrabold text-[var(--primary-accent)]">
           {currency(price)}
-          {hasDiscount && <span className="ml-2 text-xs font-semibold text-gray-400 line-through">{currency(service.basePrice)}</span>}
+          {hasDiscount && <span className="ml-2 text-xs font-semibold text-[var(--secondary-text)] line-through">{currency(service.basePrice)}</span>}
         </p>
         <ul className="mt-2 space-y-1">
           {(service.includes || []).slice(0, 2).map((item) => (
-            <li key={item} className="flex items-start gap-1 text-xs text-gray-500">
-              <CheckCircle2 className="mt-0.5 shrink-0 text-green-500" size={12} /> {item}
+            <li key={item} className="flex items-start gap-1 text-xs text-[var(--secondary-text)]">
+              <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-500" size={12} /> {item}
             </li>
           ))}
         </ul>
         {quantity > 0 ? (
-          <div className="mt-4 grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-lg border border-red-700 bg-red-600/10 text-sm font-extrabold text-white">
+          <div className="mt-4 grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-lg border border-[var(--primary-accent)] bg-[var(--primary-accent)]/10 text-sm font-extrabold text-[var(--primary-text)]">
             <button type="button" onClick={onRemove} className="grid h-10 place-items-center" aria-label={`Remove ${service.name}`}>
               <Minus size={15} />
             </button>
@@ -529,33 +516,7 @@ function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
   )
 }
 
-function ProductCard({ product, onAdd }) {
-  const price = productPrice(product)
-  return (
-    <article className="w-[210px] shrink-0 overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card">
-      <Link to={`/products/${product.slug || product.id}`} className="block aspect-square bg-gray-100">
-        <img
-          src={product.imageURL || product.images?.[0] || '/default-images/services/electric.png'}
-          alt={product.name}
-          width="210"
-          height="210"
-          loading="lazy"
-          decoding="async"
-          onError={(event) => handleImageFallback(event)}
-          className="h-full w-full object-cover"
-        />
-      </Link>
-      <div className="p-4">
-        <h3 className="line-clamp-2 text-sm font-bold text-navy">{product.name}</h3>
-        <p className="mt-1 text-xs text-gray-500">{product.brand || product.warranty || 'Electrical product'}</p>
-        <p className="mt-2 font-display text-lg font-extrabold text-navy">{currency(price)}</p>
-        <button type="button" className="btn-secondary mt-3 h-10 w-full px-4 py-2" onClick={onAdd}>
-          Add
-        </button>
-      </div>
-    </article>
-  )
-}
+
 
 function CartSummary({ items, total }) {
   return (
@@ -589,5 +550,123 @@ function CartSummary({ items, total }) {
         </>
       )}
     </section>
+  )
+}
+
+function ConstructionMovingSection() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  }
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: 'easeOut' },
+    },
+  }
+
+  return (
+    <motion.section
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="mt-8 px-4 sm:px-0"
+    >
+      <div className="mb-4">
+        <p className="eyebrow text-[var(--primary-accent)]">New Offerings</p>
+        <h2 className="text-xl font-extrabold text-white sm:text-2xl mt-1">Construction & Moving Services</h2>
+        <p className="text-sm text-gray-400 mt-1">Upcoming premium verticals. Book preview or enquire interest below.</p>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* Card 1 */}
+        <motion.div
+          variants={cardVariants}
+          whileHover={{ scale: 1.02, boxShadow: "0 0 25px rgba(220, 38, 38, 0.15)" }}
+          className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 transition-all duration-300 relative group"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-2xl group-hover:bg-red-600/10 transition-colors" />
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400 border border-red-500/20 animate-pulse">
+                🚀 Launching Soon
+              </span>
+            </div>
+            <h3 className="mt-4 font-display text-xl font-extrabold text-white">Construction Services</h3>
+            <p className="mt-2 text-xs text-gray-400">Professional renovation, painting, brickwork, and civil contracts.</p>
+            
+            <ul className="mt-4 space-y-2">
+              {[
+                "Verified expert contractors",
+                "Premium materials & pricing transparency",
+                "Dedicated project manager supervision"
+              ].map((feature) => (
+                <li key={feature} className="flex items-center gap-2 text-xs text-gray-300">
+                  <CheckCircle2 size={13} className="text-green-500 shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <a
+            href="https://wa.me/919398724704?text=Hi! I am interested in your Construction/Renovation services."
+            target="_blank"
+            rel="noreferrer"
+            className="btn-secondary mt-6 w-full text-center py-2.5 font-bold hover:bg-[var(--primary-accent)] hover:text-white transition duration-200"
+          >
+            Enquire via WhatsApp
+          </a>
+        </motion.div>
+
+        {/* Card 2 */}
+        <motion.div
+          variants={cardVariants}
+          whileHover={{ scale: 1.02, boxShadow: "0 0 25px rgba(220, 38, 38, 0.15)" }}
+          className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 transition-all duration-300 relative group"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-2xl group-hover:bg-red-600/10 transition-colors" />
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400 border border-red-500/20 animate-pulse">
+                ✨ Premium Quality
+              </span>
+            </div>
+            <h3 className="mt-4 font-display text-xl font-extrabold text-white">Moving & Packing Services</h3>
+            <p className="mt-2 text-xs text-gray-400">Secure home shifting, commercial moving, and packaging solutions.</p>
+            
+            <ul className="mt-4 space-y-2">
+              {[
+                "Full transit damage insurance protection",
+                "On-time packaging and delivery guarantee",
+                "Expert packers with heavy loading gear"
+              ].map((feature) => (
+                <li key={feature} className="flex items-center gap-2 text-xs text-gray-300">
+                  <CheckCircle2 size={13} className="text-green-500 shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <a
+            href="https://wa.me/919398724704?text=Hi! I am interested in your Moving & Packing services."
+            target="_blank"
+            rel="noreferrer"
+            className="btn-secondary mt-6 w-full text-center py-2.5 font-bold hover:bg-[var(--primary-accent)] hover:text-white transition duration-200"
+          >
+            Enquire via WhatsApp
+          </a>
+        </motion.div>
+      </div>
+    </motion.section>
   )
 }

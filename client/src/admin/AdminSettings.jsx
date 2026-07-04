@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
-import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock } from 'lucide-react'
+import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock, CheckCircle2, Loader2, X } from 'lucide-react'
 import { defaultHero, settings } from '../data/catalog'
 import { auth, db, isFirebaseConfigured } from '../firebase/config'
 import { useAuthStore } from '../store/authStore'
@@ -29,14 +29,15 @@ const defaultCategories = [
   { id: 'wiring', name: 'Wiring & Circuits', icon: 'Zap', slug: 'wiring-circuits', startingPrice: 299, isActive: true, order: 2 },
   { id: 'ac', name: 'AC Services', icon: 'AC', slug: 'ac-services', startingPrice: 499, isActive: true, order: 3 },
   { id: 'cooler', name: 'Cooler Services', icon: 'Cooler', slug: 'cooler-services', startingPrice: 199, isActive: true, order: 4 },
-  { id: 'lights', name: 'Lights & Switches', icon: 'Light', slug: 'lights-switches', startingPrice: 149, isActive: true, order: 5 },
-  { id: 'mcb', name: 'MCB & DB Box', icon: 'MCB', slug: 'mcb-db-box', startingPrice: 199, isActive: true, order: 6 },
-  { id: 'inverter', name: 'Inverter & Battery', icon: 'Battery', slug: 'inverter-battery', startingPrice: 299, isActive: true, order: 7 },
-  { id: 'geyser', name: 'Geyser & Heater', icon: 'Geyser', slug: 'geyser-heater', startingPrice: 299, isActive: true, order: 8 },
-  { id: 'appliances', name: 'Home Appliances', icon: 'Home', slug: 'home-appliances', startingPrice: 349, isActive: true, order: 9 },
-  { id: 'cctv', name: 'CCTV & Security', icon: 'CCTV', slug: 'cctv-security', startingPrice: 999, isActive: true, order: 10 },
-  { id: 'motor', name: 'Motor & Pump', icon: 'Pump', slug: 'motor-pump', startingPrice: 399, isActive: true, order: 11 },
-  { id: 'doorbell', name: 'Doorbell & Intercom', icon: 'Bell', slug: 'doorbell-intercom', startingPrice: 199, isActive: true, order: 12 },
+  { id: 'lights', name: 'Lights', icon: 'Light', slug: 'lights', startingPrice: 149, isActive: true, order: 5 },
+  { id: 'switches', name: 'Switches & Sockets', icon: 'Plug', slug: 'switches-sockets', startingPrice: 149, isActive: true, order: 6 },
+  { id: 'mcb', name: 'MCB & DB Box', icon: 'MCB', slug: 'mcb-db-box', startingPrice: 199, isActive: true, order: 7 },
+  { id: 'inverter', name: 'Inverter & Battery', icon: 'Battery', slug: 'inverter-battery', startingPrice: 299, isActive: true, order: 8 },
+  { id: 'geyser', name: 'Geyser & Heater', icon: 'Geyser', slug: 'geyser-heater', startingPrice: 299, isActive: true, order: 9 },
+  { id: 'appliances', name: 'Home Appliances', icon: 'Home', slug: 'home-appliances', startingPrice: 349, isActive: true, order: 10 },
+  { id: 'cctv', name: 'CCTV & Security', icon: 'CCTV', slug: 'cctv-security', startingPrice: 999, isActive: true, order: 11 },
+  { id: 'motor', name: 'Motor & Pump', icon: 'Pump', slug: 'motor-pump', startingPrice: 399, isActive: true, order: 12 },
+  { id: 'doorbell', name: 'Doorbell & Intercom', icon: 'Bell', slug: 'doorbell-intercom', startingPrice: 199, isActive: true, order: 13 },
 ]
 
 const defaultServices = [
@@ -44,7 +45,7 @@ const defaultServices = [
   ['Ceiling Fan Repair', 'fans', 'ceiling-fan-repair', 199, 149, '30 mins', ['Fault diagnosis', 'Capacitor check', 'Balancing']],
   ['Exhaust Fan Fitting', 'fans', 'exhaust-fan-fitting', 199, 179, '30 mins', ['Wall/window fitting', 'Wiring', 'Testing']],
   ['House Wiring (1BHK)', 'wiring', 'house-wiring-1bhk', 2999, 2499, '4-6 hrs', ['Full wiring', 'Switch boards', 'Safety check']],
-  ['Switch / Socket Repair', 'wiring', 'switch-socket-repair', 199, 149, '30 mins', ['Diagnosis', 'Replacement', 'Testing']],
+  ['Switch / Socket Repair', 'switches', 'switch-socket-repair', 199, 149, '30 mins', ['Diagnosis', 'Replacement', 'Testing']],
   ['Short Circuit Fix', 'wiring', 'short-circuit-fix', 399, 299, '1-2 hrs', ['Fault location', 'Repair', 'Safety test']],
   ['AC Installation (1.5 Ton)', 'ac', 'ac-installation-1-5-ton', 799, 599, '2-3 hrs', ['Wall mount', 'Copper pipe', 'Remote test']],
   ['AC Service / Deep Clean', 'ac', 'ac-service-deep-clean', 649, 499, '1-2 hrs', ['Filter clean', 'Coil wash', 'Drain check']],
@@ -110,6 +111,44 @@ const defaultProducts = [
   rating: 0,
 }))
 
+const themePresets = [
+  { name: 'Warm Cream (Light)', values: { 'primary-accent': '#D97706', 'primary-accent-hover': '#B45309', 'page-bg': '#FAF7F2', 'card-bg': '#FFFFFF', 'primary-text': '#1C1917', 'secondary-text': '#78716C', 'card-border': '#EBE3D5', 'nav-bg': '#FAF7F2', 'nav-text': '#1C1917', 'announcement-bg': '#F5EBE0', 'announcement-text': '#854D0E' } },
+  { name: 'Ocean Breeze (Light)', values: { 'primary-accent': '#0284C7', 'primary-accent-hover': '#0369A1', 'page-bg': '#F0F9FF', 'card-bg': '#FFFFFF', 'primary-text': '#0F172A', 'secondary-text': '#475569', 'card-border': '#E0F2FE', 'nav-bg': '#F0F9FF', 'nav-text': '#0F172A', 'announcement-bg': '#BAE6FD', 'announcement-text': '#0369A1' } },
+  { name: 'Mint Fresh (Light)', values: { 'primary-accent': '#16A34A', 'primary-accent-hover': '#15803D', 'page-bg': '#F0FDF4', 'card-bg': '#FFFFFF', 'primary-text': '#14532D', 'secondary-text': '#166534', 'card-border': '#DCFCE7', 'nav-bg': '#F0FDF4', 'nav-text': '#14532D', 'announcement-bg': '#DCFCE7', 'announcement-text': '#15803D' } },
+  { name: 'Sleek Slate (Light)', values: { 'primary-accent': '#4F46E5', 'primary-accent-hover': '#4338CA', 'page-bg': '#F8FAFC', 'card-bg': '#FFFFFF', 'primary-text': '#0F172A', 'secondary-text': '#475569', 'card-border': '#E2E8F0', 'nav-bg': '#F8FAFC', 'nav-text': '#0F172A', 'announcement-bg': '#E2E8F0', 'announcement-text': '#4338CA' } },
+  { name: 'Royal Indigo (Light)', values: { 'primary-accent': '#4F46E5', 'primary-accent-hover': '#4338CA', 'page-bg': '#EEF2FF', 'card-bg': '#FFFFFF', 'primary-text': '#1E1B4B', 'secondary-text': '#4F46E5', 'card-border': '#C7D2FE', 'nav-bg': '#EEF2FF', 'nav-text': '#1E1B4B', 'announcement-bg': '#C7D2FE', 'announcement-text': '#4338CA' } },
+  { name: 'Electric Black', values: { 'primary-accent': '#DC2626', 'primary-accent-hover': '#B91C1C', 'page-bg': '#0A0A0A', 'card-bg': '#161616', 'primary-text': '#FFFFFF', 'secondary-text': '#9CA3AF', 'card-border': '#27272A', 'nav-bg': '#0A0A0A', 'nav-text': '#FFFFFF', 'announcement-bg': '#0A0A0A', 'announcement-text': '#FFFFFF' } },
+  { name: 'Electric Blue', values: { 'primary-accent': '#2563EB', 'primary-accent-hover': '#1D4ED8', 'page-bg': '#0F172A', 'card-bg': '#1E293B', 'primary-text': '#F8FAFC', 'secondary-text': '#94A3B8', 'card-border': '#334155', 'nav-bg': '#0F172A', 'nav-text': '#F8FAFC', 'announcement-bg': '#1E293B', 'announcement-text': '#F8FAFC' } },
+  { name: 'Amber Gold', values: { 'primary-accent': '#F59E0B', 'primary-accent-hover': '#D97706', 'page-bg': '#0F0F0F', 'card-bg': '#1C1C1C', 'primary-text': '#FFFBEB', 'secondary-text': '#D97706', 'card-border': '#2A2A2A', 'nav-bg': '#0F0F0F', 'nav-text': '#FFFBEB', 'announcement-bg': '#F59E0B', 'announcement-text': '#0F0F0F' } },
+  { name: 'Deep Emerald', values: { 'primary-accent': '#10B981', 'primary-accent-hover': '#059669', 'page-bg': '#022C22', 'card-bg': '#064E3B', 'primary-text': '#ECFDF5', 'secondary-text': '#A7F3D0', 'card-border': '#0F766E', 'nav-bg': '#022C22', 'nav-text': '#ECFDF5', 'announcement-bg': '#064E3B', 'announcement-text': '#ECFDF5' } },
+  { name: 'Luxury Gold', values: { 'primary-accent': '#D4AF37', 'primary-accent-hover': '#AA820A', 'page-bg': '#0D0D0D', 'card-bg': '#1A1A1A', 'primary-text': '#FDFDFD', 'secondary-text': '#C5A028', 'card-border': '#2C2C2C', 'nav-bg': '#0D0D0D', 'nav-text': '#FDFDFD', 'announcement-bg': '#1A1A1A', 'announcement-text': '#D4AF37' } },
+  { name: 'Crimson Red', values: { 'primary-accent': '#DC2626', 'primary-accent-hover': '#B91C1C', 'page-bg': '#110000', 'card-bg': '#220000', 'primary-text': '#FFF5F5', 'secondary-text': '#FEB2B2', 'card-border': '#4A0000', 'nav-bg': '#110000', 'nav-text': '#FFF5F5', 'announcement-bg': '#220000', 'announcement-text': '#FFF5F5' } },
+  { name: 'Midnight Violet', values: { 'primary-accent': '#8B5CF6', 'primary-accent-hover': '#7C3AED', 'page-bg': '#090514', 'card-bg': '#120A24', 'primary-text': '#F5F3FF', 'secondary-text': '#DDD6FE', 'card-border': '#25143E', 'nav-bg': '#090514', 'nav-text': '#F5F3FF', 'announcement-bg': '#120A24', 'announcement-text': '#F5F3FF' } },
+  { name: 'Ocean Teal', values: { 'primary-accent': '#14B8A6', 'primary-accent-hover': '#0D9488', 'page-bg': '#041A1E', 'card-bg': '#092D35', 'primary-text': '#F0FDFA', 'secondary-text': '#99F6E4', 'card-border': '#114B57', 'nav-bg': '#041A1E', 'nav-text': '#F0FDFA', 'announcement-bg': '#092D35', 'announcement-text': '#F0FDFA' } },
+  { name: 'Cyberpunk Neon', values: { 'primary-accent': '#F43F5E', 'primary-accent-hover': '#E11D48', 'page-bg': '#030712', 'card-bg': '#0F172A', 'primary-text': '#F8FAFC', 'secondary-text': '#38BDF8', 'card-border': '#1E293B', 'nav-bg': '#030712', 'nav-text': '#F8FAFC', 'announcement-bg': '#F43F5E', 'announcement-text': '#030712' } },
+  { name: 'Slate Silver', values: { 'primary-accent': '#475569', 'primary-accent-hover': '#334155', 'page-bg': '#0F172A', 'card-bg': '#1E293B', 'primary-text': '#F8FAFC', 'secondary-text': '#94A3B8', 'card-border': '#334155', 'nav-bg': '#0F172A', 'nav-text': '#F8FAFC', 'announcement-bg': '#1E293B', 'announcement-text': '#F8FAFC' } },
+  { name: 'Burnt Orange', values: { 'primary-accent': '#EA580C', 'primary-accent-hover': '#C2410C', 'page-bg': '#140A05', 'card-bg': '#26140A', 'primary-text': '#FFF7ED', 'secondary-text': '#FDBA74', 'card-border': '#4C230C', 'nav-bg': '#140A05', 'nav-text': '#FFF7ED', 'announcement-bg': '#26140A', 'announcement-text': '#FFF7ED' } },
+  { name: 'Rose Petal', values: { 'primary-accent': '#F43F5E', 'primary-accent-hover': '#E11D48', 'page-bg': '#1C0A10', 'card-bg': '#30121D', 'primary-text': '#FFF1F2', 'secondary-text': '#FECDD3', 'card-border': '#5C1D35', 'nav-bg': '#1C0A10', 'nav-text': '#FFF1F2', 'announcement-bg': '#30121D', 'announcement-text': '#FFF1F2' } },
+  { name: 'Plum Classic', values: { 'primary-accent': '#86198F', 'primary-accent-hover': '#7C3AED', 'page-bg': '#18041B', 'card-bg': '#2B0C30', 'primary-text': '#FDF4FF', 'secondary-text': '#F5D0FE', 'card-border': '#4A1553', 'nav-bg': '#18041B', 'nav-text': '#FDF4FF', 'announcement-bg': '#2B0C30', 'announcement-text': '#FDF4FF' } },
+  { name: 'Graphite Dark', values: { 'primary-accent': '#27272A', 'primary-accent-hover': '#18181B', 'page-bg': '#09090B', 'card-bg': '#18181B', 'primary-text': '#FAFAFA', 'secondary-text': '#A1A1AA', 'card-border': '#27272A', 'nav-bg': '#09090B', 'nav-text': '#FAFAFA', 'announcement-bg': '#18181B', 'announcement-text': '#FAFAFA' } },
+  { name: 'Forest Moss', values: { 'primary-accent': '#65A30D', 'primary-accent-hover': '#4D7C0F', 'page-bg': '#0B1304', 'card-bg': '#162409', 'primary-text': '#F7FEE7', 'secondary-text': '#D9F99D', 'card-border': '#283E12', 'nav-bg': '#0B1304', 'nav-text': '#F7FEE7', 'announcement-bg': '#162409', 'announcement-text': '#F7FEE7' } },
+  { name: 'Royal Indigo', values: { 'primary-accent': '#4F46E5', 'primary-accent-hover': '#4338CA', 'page-bg': '#060714', 'card-bg': '#0D0E2B', 'primary-text': '#EEF2FF', 'secondary-text': '#C7D2FE', 'card-border': '#1A1D4E', 'nav-bg': '#060714', 'nav-text': '#EEF2FF', 'announcement-bg': '#0D0E2B', 'announcement-text': '#EEF2FF' } },
+  { name: 'Warm Clay', values: { 'primary-accent': '#D97706', 'primary-accent-hover': '#B45309', 'page-bg': '#1C130C', 'card-bg': '#2D1E14', 'primary-text': '#FFFBEB', 'secondary-text': '#FDE68A', 'card-border': '#4E3523', 'nav-bg': '#1C130C', 'nav-text': '#FFFBEB', 'announcement-bg': '#2D1E14', 'announcement-text': '#FFFBEB' } },
+  { name: 'Arctic Breeze', values: { 'primary-accent': '#06B6D4', 'primary-accent-hover': '#0891B2', 'page-bg': '#04151C', 'card-bg': '#092835', 'primary-text': '#ECFEFF', 'secondary-text': '#A5F3FC', 'card-border': '#113E52', 'nav-bg': '#04151C', 'nav-text': '#ECFEFF', 'announcement-bg': '#092835', 'announcement-text': '#ECFEFF' } },
+  { name: 'Berry Red', values: { 'primary-accent': '#BE123C', 'primary-accent-hover': '#9F1239', 'page-bg': '#140409', 'card-bg': '#260813', 'primary-text': '#FFF1F2', 'secondary-text': '#FECDD3', 'card-border': '#4C1227', 'nav-bg': '#140409', 'nav-text': '#FFF1F2', 'announcement-bg': '#260813', 'announcement-text': '#FFF1F2' } },
+  { name: 'Electric Cyan', values: { 'primary-accent': '#06B6D4', 'primary-accent-hover': '#0891B2', 'page-bg': '#080E1A', 'card-bg': '#111A2E', 'primary-text': '#F0FDFA', 'secondary-text': '#99F6E4', 'card-border': '#1E293B', 'nav-bg': '#080E1A', 'nav-text': '#F0FDFA', 'announcement-bg': '#06B6D4', 'announcement-text': '#080E1A' } },
+  { name: 'Vibrant Purple', values: { 'primary-accent': '#A855F7', 'primary-accent-hover': '#9333EA', 'page-bg': '#0F071C', 'card-bg': '#1E0E35', 'primary-text': '#FAF5FF', 'secondary-text': '#E9D5FF', 'card-border': '#3B1E63', 'nav-bg': '#0F071C', 'nav-text': '#FAF5FF', 'announcement-bg': '#1E0E35', 'announcement-text': '#FAF5FF' } },
+  { name: 'Cool Sage', values: { 'primary-accent': '#84CC16', 'primary-accent-hover': '#65A30D', 'page-bg': '#0F171A', 'card-bg': '#1E2C30', 'primary-text': '#F4F8F5', 'secondary-text': '#D2E6D5', 'card-border': '#2F4349', 'nav-bg': '#0F171A', 'nav-text': '#F4F8F5', 'announcement-bg': '#1E2C30', 'announcement-text': '#F4F8F5' } },
+  { name: 'Bronze Rust', values: { 'primary-accent': '#C2410C', 'primary-accent-hover': '#9A3412', 'page-bg': '#1A0F0D', 'card-bg': '#2D1B17', 'primary-text': '#FDF4F2', 'secondary-text': '#F8D3CD', 'card-border': '#4C2F29', 'nav-bg': '#1A0F0D', 'nav-text': '#FDF4F2', 'announcement-bg': '#2D1B17', 'announcement-text': '#FDF4F2' } },
+  { name: 'Electric Mint', values: { 'primary-accent': '#10B981', 'primary-accent-hover': '#059669', 'page-bg': '#061010', 'card-bg': '#0D2020', 'primary-text': '#F0FDF4', 'secondary-text': '#BBF7D0', 'card-border': '#183E3E', 'nav-bg': '#061010', 'nav-text': '#F0FDF4', 'announcement-bg': '#0D2020', 'announcement-text': '#F0FDF4' } },
+  { name: 'Charcoal Wood', values: { 'primary-accent': '#78716C', 'primary-accent-hover': '#57534E', 'page-bg': '#1C1917', 'card-bg': '#292524', 'primary-text': '#FAFAF9', 'secondary-text': '#E7E5E4', 'card-border': '#44403C', 'nav-bg': '#1C1917', 'nav-text': '#FAFAF9', 'announcement-bg': '#292524', 'announcement-text': '#FAFAF9' } },
+  { name: 'Desert Sand', values: { 'primary-accent': '#D97706', 'primary-accent-hover': '#B45309', 'page-bg': '#1A1612', 'card-bg': '#2C251F', 'primary-text': '#FDFBF7', 'secondary-text': '#EFE4D6', 'card-border': '#4B3F35', 'nav-bg': '#1A1612', 'nav-text': '#FDFBF7', 'announcement-bg': '#2C251F', 'announcement-text': '#FDFBF7' } },
+  { name: 'Dark Cherry', values: { 'primary-accent': '#9F1239', 'primary-accent-hover': '#881337', 'page-bg': '#120207', 'card-bg': '#22050E', 'primary-text': '#FFF1F2', 'secondary-text': '#FDA4AF', 'card-border': '#440B1B', 'nav-bg': '#120207', 'nav-text': '#FFF1F2', 'announcement-bg': '#22050E', 'announcement-text': '#FFF1F2' } },
+  { name: 'Twilight Plum', values: { 'primary-accent': '#701A75', 'primary-accent-hover': '#4A044E', 'page-bg': '#100512', 'card-bg': '#1F0B24', 'primary-text': '#FDF4FF', 'secondary-text': '#F3E8FF', 'card-border': '#3E1847', 'nav-bg': '#100512', 'nav-text': '#FDF4FF', 'announcement-bg': '#1F0B24', 'announcement-text': '#FDF4FF' } },
+  { name: 'Cobalt Blue', values: { 'primary-accent': '#1D4ED8', 'primary-accent-hover': '#1E40AF', 'page-bg': '#050B14', 'card-bg': '#0A1629', 'primary-text': '#F0F5FD', 'secondary-text': '#C3D4FA', 'card-border': '#142C52', 'nav-bg': '#050B14', 'nav-text': '#F0F5FD', 'announcement-bg': '#0A1629', 'announcement-text': '#F0F5FD' } },
+  { name: 'Sleek Onyx', values: { 'primary-accent': '#E4E4E7', 'primary-accent-hover': '#D4D4D8', 'page-bg': '#050505', 'card-bg': '#0F0F0F', 'primary-text': '#FFFFFF', 'secondary-text': '#A1A1AA', 'card-border': '#1C1C1C', 'nav-bg': '#050505', 'nav-text': '#FFFFFF', 'announcement-bg': '#0F0F0F', 'announcement-text': '#FFFFFF' } }
+]
+
 export default function AdminSettings({ initialSection = 'company' }) {
   const authReady = useAuthStore((state) => state.authReady)
   const storeUser = useAuthStore((state) => state.user)
@@ -119,6 +158,20 @@ export default function AdminSettings({ initialSection = 'company' }) {
     'order',
   )
   const [section, setSection] = useState(initialSection)
+  const [themeForm, setThemeForm] = useState({
+    'primary-accent': '#DC2626',
+    'primary-accent-hover': '#B91C1C',
+    'page-bg': '#0A0A0A',
+    'card-bg': '#161616',
+    'primary-text': '#FFFFFF',
+    'secondary-text': '#9CA3AF',
+    'card-border': '#27272A',
+    'nav-bg': '#0A0A0A',
+    'nav-text': '#FFFFFF',
+    'announcement-bg': '#0A0A0A',
+    'announcement-text': '#FFFFFF',
+  })
+  const [showThemePreview, setShowThemePreview] = useState(false)
   const [companyForm, setCompanyForm] = useState({
     companyName: settings.companyName,
     owner: settings.owner,
@@ -212,6 +265,15 @@ export default function AdminSettings({ initialSection = 'company' }) {
       })
       .catch(() => {})
 
+    getDoc(doc(db, 'settings', 'theme'))
+      .then((snap) => {
+        if (alive && snap.exists()) {
+          const data = snap.data()
+          setThemeForm((current) => ({ ...current, ...data }))
+        }
+      })
+      .catch(() => {})
+
     return () => {
       alive = false
     }
@@ -223,6 +285,43 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const updateAnnouncement = (field, value) => setAnnouncementForm((current) => ({ ...current, [field]: value }))
   const updateAnnouncementSettings = (field, value) => setAnnouncementSettings((current) => ({ ...current, [field]: value }))
   const updatePayment = (field, value) => setPaymentForm((current) => ({ ...current, [field]: value }))
+  const updateTheme = (field, value) => setThemeForm((current) => ({ ...current, [field]: value }))
+
+  const saveTheme = async (event) => {
+    event?.preventDefault?.()
+    setSaving(true)
+    try {
+      if (db && isFirebaseConfigured) {
+        await setDoc(doc(db, 'settings', 'theme'), {
+          ...themeForm,
+          updatedAt: serverTimestamp(),
+        }, { merge: true })
+      }
+      toast.success('Theme settings updated successfully.')
+    } catch (error) {
+      toast.error(error.message || 'Unable to save theme settings.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const resetTheme = () => {
+    if (!window.confirm('Reset theme to Electric Black defaults?')) return
+    const defaults = {
+      'primary-accent': '#DC2626',
+      'primary-accent-hover': '#B91C1C',
+      'page-bg': '#0A0A0A',
+      'card-bg': '#161616',
+      'primary-text': '#FFFFFF',
+      'secondary-text': '#9CA3AF',
+      'card-border': '#27272A',
+      'nav-bg': '#0A0A0A',
+      'nav-text': '#FFFFFF',
+      'announcement-bg': '#0A0A0A',
+      'announcement-text': '#FFFFFF',
+    }
+    setThemeForm(defaults)
+  }
 
   const testImageUpload = async (event) => {
     const file = event.target.files?.[0]
@@ -629,6 +728,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
           ['promo', 'Home Promo Slides'],
           ['announcements', 'Announcement Bar'],
           ['payment', 'Payment Gateway'],
+          ['theme', 'Website Colors & Theme'],
           ['tools', 'Developer Tools'],
         ].map(([id, label]) => (
           <button
@@ -1204,6 +1304,136 @@ export default function AdminSettings({ initialSection = 'company' }) {
             </div>
           </details>
         </section>
+      )}
+      {section === 'theme' && (
+        <form onSubmit={saveTheme} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900">
+          <div>
+            <h2 className="font-bold text-navy-900 dark:text-white">Website Colors & Theme</h2>
+            <p className="mt-1 text-sm text-gray-500">Customize the colors and styling variables for the website. Changes apply in real-time across the client application.</p>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Preset Theme Collections</h3>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {themePresets.map((preset) => (
+                <button
+                  type="button"
+                  key={preset.name}
+                  onClick={() => setThemeForm(preset.values)}
+                  className="flex flex-col items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 hover:border-red-500 transition text-left"
+                >
+                  <div className="flex h-5 w-full gap-0.5 overflow-hidden rounded">
+                    <span className="h-full flex-1" style={{ backgroundColor: preset.values['primary-accent'] }} />
+                    <span className="h-full flex-1" style={{ backgroundColor: preset.values['page-bg'] }} />
+                    <span className="h-full flex-1" style={{ backgroundColor: preset.values['card-bg'] }} />
+                  </div>
+                  <span className="text-[11px] font-bold text-gray-300 text-center truncate w-full">{preset.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ['primary-accent', 'Primary Accent Color'],
+              ['primary-accent-hover', 'Primary Accent Hover Color'],
+              ['page-bg', 'Page Background Color'],
+              ['card-bg', 'Card Background Color'],
+              ['primary-text', 'Primary Text Color'],
+              ['secondary-text', 'Secondary Text Color'],
+              ['card-border', 'Card Border Color'],
+              ['nav-bg', 'Navigation Bar Background'],
+              ['nav-text', 'Navigation Bar Text & Icons'],
+              ['announcement-bg', 'Announcement Bar Background'],
+              ['announcement-text', 'Announcement Bar Text Color'],
+            ].map(([key, label]) => (
+              <div key={key} className="flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/50 p-3.5 dark:border-white/5 dark:bg-white/5">
+                <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">{label}</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    className="h-8 w-14 cursor-pointer rounded border-0 bg-transparent"
+                    value={themeForm[key] || '#000000'}
+                    onChange={(e) => updateTheme(key, e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="field flex-1 !py-1 text-xs"
+                    value={themeForm[key] || ''}
+                    onChange={(e) => updateTheme(key, e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 className="animate-spin" size={17} /> : <CheckCircle2 size={17} />}
+              Save Theme Settings
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setShowThemePreview(true)}>
+              Live Mockup Preview
+            </button>
+            <button type="button" className="btn-secondary text-red-600 hover:text-red-700" onClick={resetTheme}>
+              Reset to Defaults
+            </button>
+          </div>
+
+          {showThemePreview && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+              <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-zinc-800 bg-[#0A0A0A] p-6 shadow-xl" style={{ backgroundColor: themeForm['page-bg'], borderColor: themeForm['card-border'] }}>
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-4" style={{ borderColor: themeForm['card-border'] }}>
+                  <h3 className="font-display text-lg font-bold" style={{ color: themeForm['primary-text'] }}>Theme Live Mockup Preview</h3>
+                  <button type="button" className="text-gray-400 hover:text-white" onClick={() => setShowThemePreview(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="mt-4 space-y-4">
+                  <div className="rounded-lg p-3 flex items-center justify-between" style={{ backgroundColor: themeForm['nav-bg'], color: themeForm['nav-text'], border: `1px solid ${themeForm['card-border']}` }}>
+                    <span className="font-bold">DP Home Electric</span>
+                    <div className="flex gap-3 text-xs">
+                      <span>Home</span>
+                      <span>Services</span>
+                      <span>Products</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg p-2 text-center text-xs font-semibold" style={{ backgroundColor: themeForm['announcement-bg'], color: themeForm['announcement-text'] }}>
+                    ⚡ Same-Day Service Available — Book Before 2 PM
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl p-4 border" style={{ backgroundColor: themeForm['card-bg'], borderColor: themeForm['card-border'] }}>
+                      <h4 className="font-bold text-sm" style={{ color: themeForm['primary-text'] }}>Ceiling Fan Repair</h4>
+                      <p className="text-xs mt-1" style={{ color: themeForm['secondary-text'] }}>Doorstep service with 3 months warranty.</p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-sm font-black" style={{ color: themeForm['primary-text'] }}>Rs. 149</span>
+                        <button type="button" className="rounded px-2.5 py-1 text-xs font-bold text-white transition" style={{ backgroundColor: themeForm['primary-accent'] }}>Add</button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl p-4 border" style={{ backgroundColor: themeForm['card-bg'], borderColor: themeForm['card-border'] }}>
+                      <h4 className="font-bold text-sm" style={{ color: themeForm['primary-text'] }}>Switchboard Fitting</h4>
+                      <p className="text-xs mt-1" style={{ color: themeForm['secondary-text'] }}>Doorstep service with 3 months warranty.</p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-sm font-black" style={{ color: themeForm['primary-text'] }}>Rs. 199</span>
+                        <button type="button" className="rounded px-2.5 py-1 text-xs font-bold text-white transition" style={{ backgroundColor: themeForm['primary-accent'] }}>Add</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <button type="button" className="btn-primary" style={{ backgroundColor: themeForm['primary-accent'] }} onClick={() => setShowThemePreview(false)}>
+                    Close Preview
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </form>
       )}
     </section>
   )

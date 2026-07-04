@@ -97,9 +97,9 @@ export default function MyJobs({ workerId }) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900">
-      <div className="flex flex-col gap-3 border-b border-gray-100 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="font-bold text-gray-950 dark:text-white">My Jobs</h2>
+    <div className="rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--primary-text)] shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-[var(--card-border)] p-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-bold text-[var(--primary-text)]">My Jobs</h2>
         <div className="flex flex-wrap gap-2">
           {['all', 'assigned', 'in-progress', 'completed'].map((status) => (
             <button
@@ -107,7 +107,7 @@ export default function MyJobs({ workerId }) {
               key={status}
               onClick={() => setFilter(status)}
               className={`rounded-full px-3 py-1.5 text-xs font-bold ${
-                filter === status ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-200'
+                filter === status ? 'bg-[var(--primary-accent)]/20 text-[var(--primary-accent)]' : 'bg-zinc-800 text-gray-300'
               }`}
             >
               {status}
@@ -115,37 +115,37 @@ export default function MyJobs({ workerId }) {
           ))}
         </div>
       </div>
-      <div className="divide-y divide-gray-100 dark:divide-white/10">
+      <div className="divide-y divide-[var(--card-border)]">
         {visibleJobs.length === 0 ? (
-          <p className="p-6 text-center text-sm font-semibold text-gray-500">No jobs assigned yet.</p>
+          <p className="p-6 text-center text-sm font-semibold text-[var(--secondary-text)]">No jobs assigned yet.</p>
         ) : visibleJobs.map((job) => (
           <article key={job.id} className="grid gap-4 p-4 lg:grid-cols-[1fr_300px]">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-bold text-gray-950 dark:text-white">{job.serviceName}</h3>
-                <span className={`badge ${statusColors[job.status]}`}>{job.status}</span>
+                <h3 className="font-bold text-[var(--primary-text)]">{job.serviceName}</h3>
+                <span className={`badge ${statusColors[job.status] || 'badge-pending'}`}>{job.status}</span>
               </div>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-[var(--secondary-text)]">
                 {job.customer} | {job.mobile}
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                <span className="text-sm font-semibold text-[var(--primary-text)]">
                   Amount: {currency(job.totalAmount ?? job.amount ?? 149)}
                 </span>
                 {job.paymentMethod === 'COD' || !['online', 'paid'].includes(String(job.paymentMethod).toLowerCase()) ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-black text-amber-800 dark:bg-amber-500/20 dark:text-amber-300">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--primary-accent)]/10 px-2.5 py-0.5 text-xs font-black text-[var(--primary-accent)]">
                     💵 Collect Cash: {currency(job.totalAmount ?? job.amount ?? 149)}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-black text-green-800 dark:bg-green-500/20 dark:text-green-300">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-950/40 px-2.5 py-0.5 text-xs font-black text-green-400">
                     ✅ Already Paid Online
                   </span>
                 )}
               </div>
-              <p className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+              <p className="mt-2 flex items-center gap-2 text-sm text-[var(--secondary-text)]">
                 <MapPin size={16} /> {fullAddress(job.address)}
               </p>
-              <p className="mt-1 text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <p className="mt-1 text-sm font-semibold text-[var(--primary-text)]">
                 {job.date} | {job.timeSlot}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -173,16 +173,16 @@ export default function MyJobs({ workerId }) {
                 )}
               </div>
               {job.status === 'in-progress' && (
-                <div className="mt-5 rounded-lg border border-gray-100 p-4 dark:border-white/10">
-                  <p className="text-sm font-bold text-gray-950 dark:text-white">Completion checklist</p>
+                <div className="mt-5 rounded-lg border border-[var(--card-border)] p-4">
+                  <p className="text-sm font-bold text-[var(--primary-text)]">Completion checklist</p>
                   <div className="mt-3 grid gap-2">
                     {checklistItems.map((item) => {
                       const checked = (checklists[job.id] || []).includes(item)
                       return (
-                        <label key={item} className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300">
+                        <label key={item} className="flex items-center gap-2 text-sm font-semibold text-[var(--secondary-text)]">
                           <input
                             type="checkbox"
-                            className="h-4 w-4 accent-amber-500"
+                            className="h-4 w-4 accent-[var(--primary-accent)]"
                             checked={checked}
                             onChange={() => toggleChecklist(job.id, item)}
                           />

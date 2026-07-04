@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
+import { doc } from 'firebase/firestore'
+import { db, isFirebaseConfigured, onSnapshotWithRetry } from './firebase/config'
 import WebNavbar from './components/Navbar/WebNavbar'
 import MobileNavbar from './components/Navbar/MobileNavbar'
 import Footer from './components/Layout/Footer'
@@ -63,10 +65,44 @@ export default function App() {
     syncCartForUser(user)
   }, [authReady, syncCartForUser, user])
 
+  useEffect(() => {
+    if (!db || !isFirebaseConfigured) return undefined
+    const unsubscribe = onSnapshotWithRetry(
+      doc(db, 'settings', 'theme'),
+      (snapshot) => {
+        if (!snapshot.exists()) return
+        const theme = snapshot.data()
+        const root = document.documentElement
+        const variables = [
+          'primary-accent',
+          'primary-accent-hover',
+          'page-bg',
+          'card-bg',
+          'primary-text',
+          'secondary-text',
+          'card-border',
+          'nav-bg',
+          'nav-text',
+          'announcement-bg',
+          'announcement-text',
+        ]
+        variables.forEach((variable) => {
+          if (theme[variable]) {
+            root.style.setProperty(`--${variable}`, theme[variable])
+          }
+        })
+      },
+      (err) => {
+        console.error('Failed to load theme:', err)
+      }
+    )
+    return unsubscribe
+  }, [])
+
   return (
     <ErrorBoundary resetKey={pathname}>
       <div
-        className="min-h-screen overflow-x-hidden bg-[#0A0A0A] text-gray-100 transition-colors"
+        className="min-h-screen overflow-x-hidden bg-[var(--page-bg)] text-[var(--primary-text)] transition-colors"
         style={{ '--announcement-offset': showAnnouncement ? '40px' : '0px' }}
       >
         {showPublicChrome && <EntrySplash />}

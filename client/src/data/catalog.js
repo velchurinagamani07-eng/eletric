@@ -38,9 +38,10 @@ export const categories = [
   { id: 'wiring', slug: 'wiring-circuits', name: 'Wiring', icon: 'Cable', order: 2, isActive: true },
   { id: 'sockets', slug: 'sockets-plugs', name: 'Sockets', icon: 'PlugZap', order: 3, isActive: true },
   { id: 'mcb', slug: 'mcb-db-box', name: 'MCB', icon: 'CircuitBoard', order: 4, isActive: true },
-  { id: 'lights', slug: 'lights-switches', name: 'Lights', icon: 'Lightbulb', order: 5, isActive: true },
-  { id: 'backup', slug: 'inverter-battery', name: 'Backup', icon: 'BatteryCharging', order: 6, isActive: true },
-  { id: 'security', slug: 'cctv-security', name: 'Security', icon: 'Cctv', order: 7, isActive: true },
+  { id: 'lights', slug: 'lights', name: 'Lights', icon: 'Lightbulb', order: 5, isActive: true },
+  { id: 'switches', slug: 'switches-sockets', name: 'Switches', icon: 'PlugZap', order: 6, isActive: true },
+  { id: 'backup', slug: 'inverter-battery', name: 'Backup', icon: 'BatteryCharging', order: 7, isActive: true },
+  { id: 'security', slug: 'cctv-security', name: 'Security', icon: 'Cctv', order: 8, isActive: true },
 ]
 
 const image = (id) =>

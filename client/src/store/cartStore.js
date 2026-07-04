@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import { collection, deleteDoc, doc, getDocs, onSnapshot, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
+import { collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
 import toast from 'react-hot-toast'
-import { db, isFirebaseConfigured } from '../firebase/config'
+import { db, isFirebaseConfigured, onSnapshotWithRetry } from '../firebase/config'
 import { recordServiceView } from '../utils/recommendations'
 
 const storageKey = 'home-electric-cart'
@@ -96,7 +96,7 @@ export const useCartStore = create((set, get) => ({
         clearGuestCart()
       }
 
-      cartUnsubscribe = onSnapshot(
+      cartUnsubscribe = onSnapshotWithRetry(
         collection(db, 'users', user.uid, 'cart'),
         (snapshot) => {
           set({

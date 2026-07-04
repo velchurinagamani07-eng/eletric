@@ -32,10 +32,10 @@ export default function RecommendedServices({
     <section className={`mt-8 ${className}`}>
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-white md:text-xl">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm text-gray-400">{subtitle}</p>}
+          <h2 className="text-lg font-extrabold text-[var(--primary-text)] md:text-xl">{title}</h2>
+          {subtitle && <p className="mt-1 text-sm text-[var(--secondary-text)]">{subtitle}</p>}
         </div>
-        <Link to="/services" className="hidden text-sm font-bold text-red-400 hover:text-red-300 sm:inline-flex">
+        <Link to="/services" className="hidden text-sm font-bold text-[var(--primary-accent)] hover:underline sm:inline-flex">
           View all
         </Link>
       </div>
@@ -43,8 +43,8 @@ export default function RecommendedServices({
         {items.map((service) => {
           const price = Number(service.salePrice || service.basePrice || service.price || 0)
           return (
-            <article key={service.id || service.slug} className="w-[168px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 sm:w-[210px]">
-              <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-square overflow-hidden bg-zinc-800">
+            <article key={service.id || service.slug} className="w-[168px] shrink-0 overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] sm:w-[210px]">
+              <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-square overflow-hidden bg-[var(--card-bg)]">
                 <img
                   src={getServiceImage(service)}
                   alt={service.name}
@@ -55,15 +55,15 @@ export default function RecommendedServices({
                 <WishlistButton service={service} className="absolute right-2 top-2" />
               </Link>
               <div className="p-3">
-                <h3 className="line-clamp-2 min-h-10 text-sm font-bold text-white">{service.name}</h3>
-                <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-gray-500">
-                  <Star size={12} fill="currentColor" className="text-red-500" /> {Number(service.rating || 4.8).toFixed(1)}
+                <h3 className="line-clamp-2 min-h-10 text-sm font-bold text-[var(--primary-text)]">{service.name}</h3>
+                <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[var(--secondary-text)]">
+                  <Star size={12} fill="currentColor" className="text-[var(--primary-accent)]" /> {Number(service.rating || 4.8).toFixed(1)}
                 </p>
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-extrabold text-red-400">{currency(price)}</span>
+                  <span className="truncate text-sm font-extrabold text-[var(--primary-accent)]">{currency(price)}</span>
                   <button
                     type="button"
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-600 text-white transition hover:bg-red-700"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--primary-accent)] text-white transition hover:bg-[var(--primary-accent-hover)]"
                     aria-label={`Add ${service.name}`}
                     onClick={() => {
                       addItem(service)

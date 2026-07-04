@@ -63,7 +63,7 @@ export function normalizeService(service = {}) {
 }
 
 export function useServices({ onlyActive = true, category = '' } = {}) {
-  const { items, setItems, loading, error } = useFirestoreCollection('services', serviceSeed, 'createdAt')
+  const { items, setItems, loading, error } = useFirestoreCollection('services', serviceSeed, 'order')
 
   const allServices = useMemo(
     () => items.map(normalizeService),

@@ -21,7 +21,10 @@ export default function Services() {
   const filteredServices = useMemo(() => {
     const normalized = query.trim().toLowerCase()
     const results = services.filter((service) => {
-      const categoryMatch = category === 'all' || service.category === category
+      const categoryMatch =
+        category === 'all' ||
+        service.categorySlug === category ||
+        service.category === category
       const priceMatch = service.basePrice <= Number(maxPrice)
       const queryMatch =
         !normalized ||
@@ -52,13 +55,13 @@ export default function Services() {
         />
       </Helmet>
 
-      <main className="bg-gray-50 py-6 dark:bg-gray-950 sm:py-10">
+      <main className="bg-[var(--page-bg)] py-6 text-[var(--primary-text)] sm:py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
             <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-amber-600">Services & Categories</p>
-              <h1 className="mt-2 text-3xl font-extrabold text-gray-950 dark:text-white">Choose the right electrical service</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
+              <p className="text-sm font-bold uppercase tracking-wide text-[var(--primary-accent)]">Services & Categories</p>
+              <h1 className="mt-2 text-3xl font-extrabold text-[var(--primary-text)]">Choose the right electrical service</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--secondary-text)]">
                 Filter by category, price and popularity. Each service includes transparent starting pricing and warranty.
               </p>
             </div>
@@ -73,7 +76,7 @@ export default function Services() {
             </div>
           </div>
 
-          <div className="sticky top-0 z-30 -mx-4 mt-5 grid gap-3 border-y border-gray-100 bg-gray-50 px-4 py-3 shadow-sm dark:border-white/10 dark:bg-gray-950 lg:hidden">
+          <div className="sticky top-0 z-30 -mx-4 mt-5 grid gap-3 border-y border-[var(--card-border)] bg-[var(--page-bg)] px-4 py-3 shadow-sm lg:hidden">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
@@ -91,8 +94,8 @@ export default function Services() {
                   onClick={() => selectCategory(item.id)}
                   className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all ${
                     category === item.id
-                      ? 'bg-amber-500 text-white shadow-amber'
-                      : 'border border-surface-border bg-white text-gray-600'
+                      ? 'bg-[var(--primary-accent)] text-white shadow-amber'
+                      : 'border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--secondary-text)]'
                   }`}
                 >
                   {item.name}
@@ -100,21 +103,21 @@ export default function Services() {
               ))}
             </div>
             <div className="flex items-center justify-between py-1">
-              <p className="text-sm font-semibold text-gray-500">{filteredServices.length} services found</p>
+              <p className="text-sm font-semibold text-[var(--secondary-text)]">{filteredServices.length} services found</p>
               <button
                 type="button"
                 onClick={() => setShowFilterSheet(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-surface-border bg-white px-3 py-2 text-xs font-bold text-navy"
+                className="flex items-center gap-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-2 text-xs font-bold text-[var(--primary-text)]"
               >
                 <SlidersHorizontal size={14} /> Sort & Filter
-                {hasActiveFilters && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
+                {hasActiveFilters && <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary-accent)]" />}
               </button>
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:mt-8 lg:grid-cols-[270px_minmax(0,1fr)]">
-            <aside className="hidden h-fit rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900 lg:block">
-              <div className="flex items-center gap-2 text-sm font-bold text-gray-950 dark:text-white">
+            <aside className="hidden h-fit rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] p-4 shadow-sm lg:block">
+              <div className="flex items-center gap-2 text-sm font-bold text-[var(--primary-text)]">
                 <Filter size={17} /> Filters
               </div>
               <div className="mt-5">
@@ -122,13 +125,13 @@ export default function Services() {
                 <div className="mt-3 grid gap-2">
                   {categories.map((item) => (
                     <button
-                      key={item.id}
+                      key={item.slug || item.id}
                       type="button"
-                      onClick={() => selectCategory(item.id)}
+                      onClick={() => selectCategory(item.slug || item.id)}
                       className={`rounded-lg px-3 py-2 text-left text-sm font-semibold transition ${
-                        category === item.id
-                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200'
-                          : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5'
+                        category === (item.slug || item.id)
+                          ? 'bg-[var(--primary-accent)]/20 text-[var(--primary-accent)]'
+                          : 'text-[var(--secondary-text)] hover:bg-[var(--page-bg)]'
                       }`}
                     >
                       {item.name}

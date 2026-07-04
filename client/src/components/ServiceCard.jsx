@@ -13,9 +13,9 @@ export default function ServiceCard({ service }) {
   const addItem = useCartStore((state) => state.addItem)
 
   return (
-    <article className="group h-full overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-sm transition hover:-translate-y-1 hover:border-red-900/50 hover:shadow-xl">
+    <article className="group h-full overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm transition hover:-translate-y-1 hover:border-[var(--primary-accent)]/50 hover:shadow-xl">
       <Link to={detailPath} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--card-bg)]">
           <img
             src={imageSrc}
             alt={service.name}
@@ -29,14 +29,14 @@ export default function ServiceCard({ service }) {
       <div className="p-3 sm:p-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0">
-            <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white sm:text-base">{service.name}</h3>
-            <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-400 sm:text-sm sm:leading-6">{service.shortDescription}</p>
+            <h3 className="line-clamp-2 text-sm font-bold leading-snug text-[var(--primary-text)] sm:text-base">{service.name}</h3>
+            <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--secondary-text)] sm:text-sm sm:leading-6">{service.shortDescription}</p>
           </div>
-          <span className="badge w-fit shrink-0 bg-red-600/15 px-2 py-0.5 text-[10px] text-red-400 sm:px-3 sm:py-1 sm:text-xs">
+          <span className="badge w-fit shrink-0 bg-[var(--primary-accent)]/15 px-2 py-0.5 text-[10px] text-[var(--primary-accent)] sm:px-3 sm:py-1 sm:text-xs">
             {currency(service.basePrice)}
           </span>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-gray-400 sm:mt-4 sm:text-xs">
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-[var(--secondary-text)] sm:mt-4 sm:text-xs">
           <span className="inline-flex items-center gap-1">
             <Clock size={14} /> {service.duration}
           </span>

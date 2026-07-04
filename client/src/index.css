@@ -3,23 +3,37 @@
 @tailwind utilities;
 
 :root {
-  color: #FFFFFF;
-  background: #0A0A0A;
-  --clr-primary: #DC2626;
-  --clr-primary-dark: #991B1B;
+  /* Dynamic Theme Custom Properties */
+  --primary-accent: #DC2626;
+  --primary-accent-hover: #B91C1C;
+  --page-bg: #0A0A0A;
+  --card-bg: #161616;
+  --primary-text: #FFFFFF;
+  --secondary-text: #9CA3AF;
+  --card-border: #27272A;
+  --nav-bg: #0A0A0A;
+  --nav-text: #FFFFFF;
+  --announcement-bg: #0A0A0A;
+  --announcement-text: #FFFFFF;
+
+  color: var(--primary-text);
+  background: var(--page-bg);
+
+  --clr-primary: var(--primary-accent);
+  --clr-primary-dark: var(--primary-accent-hover);
   --clr-primary-light: #FEE2E2;
   --clr-primary-glow: rgba(220, 38, 38, 0.25);
-  --clr-navy: #0A0A0A;
-  --clr-navy-mid: #161616;
-  --clr-navy-card: #212121;
-  --clr-white: #FFFFFF;
-  --clr-bg: #0A0A0A;
-  --clr-surface: #161616;
-  --clr-border: #27272A;
+  --clr-navy: var(--page-bg);
+  --clr-navy-mid: var(--card-bg);
+  --clr-navy-card: var(--card-bg);
+  --clr-white: var(--primary-text);
+  --clr-bg: var(--page-bg);
+  --clr-surface: var(--card-bg);
+  --clr-border: var(--card-border);
   --clr-border-dark: #3F3F46;
-  --clr-text: #FFFFFF;
-  --clr-text-soft: #D1D5DB;
-  --clr-text-muted: #9CA3AF;
+  --clr-text: var(--primary-text);
+  --clr-text-soft: var(--secondary-text);
+  --clr-text-muted: var(--secondary-text);
   --clr-success: #16A34A;
   --clr-success-bg: #F0FDF4;
   --clr-warning: #D97706;
@@ -36,7 +50,7 @@
   --hes-navy-light: #2D4E7E;
   --hes-white: var(--clr-white);
   --hes-canvas: var(--clr-bg);
-  --hes-surface: #F8F9FA;
+  --hes-surface: var(--card-bg);
   --hes-border: var(--clr-border);
   --hes-success: var(--clr-success);
   --hes-warning: var(--clr-warning);
@@ -54,6 +68,7 @@
 html {
   overflow-y: scroll;
   scroll-behavior: smooth;
+  background: var(--page-bg);
 }
 
 body {
@@ -62,7 +77,8 @@ body {
   min-height: 100vh;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   overflow-x: hidden;
-  background: #0A0A0A;
+  background: var(--page-bg);
+  color: var(--primary-text);
 }
 
 h1,
@@ -102,6 +118,11 @@ textarea {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.swipe-momentum {
+  -webkit-overflow-scrolling: touch;
 }
 
 .animated-underline {
@@ -132,11 +153,15 @@ textarea {
 }
 
 .panel {
-  @apply rounded-lg border border-zinc-800 bg-zinc-900 text-white shadow-sm;
+  @apply rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--primary-text)] shadow-sm;
 }
 
 .field {
-  @apply w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-body text-white outline-none transition-all duration-150 placeholder:text-gray-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20;
+  @apply w-full rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-3 text-sm font-body text-[var(--primary-text)] outline-none transition-all duration-150 placeholder:text-gray-500;
+}
+.field:focus {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
 }
 
 input:focus,
@@ -146,11 +171,15 @@ textarea:focus {
 }
 
 .btn-primary {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-red transition-all duration-150 hover:bg-red-700 active:scale-[0.97] focus-ring disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--primary-accent)] px-6 py-3 text-sm font-bold text-white shadow-red transition-all duration-150 hover:bg-[var(--primary-accent-hover)] active:scale-[0.97] focus-ring disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-secondary {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:border-red-600 hover:bg-red-600/10 active:scale-[0.97] focus-ring;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] px-6 py-3 text-sm font-semibold text-[var(--primary-text)] transition-all duration-150 active:scale-[0.97] focus-ring;
+}
+.btn-secondary:hover {
+  border-color: var(--primary-accent);
+  background-color: rgba(220, 38, 38, 0.1);
 }
 
 .btn-ghost {
@@ -199,7 +228,10 @@ textarea:focus {
 }
 
 .card {
-  @apply rounded-3xl border border-zinc-800 bg-zinc-900 text-white shadow-card transition-shadow duration-200 hover:shadow-hover;
+  border-color: var(--card-border);
+  background-color: var(--card-bg);
+  color: var(--primary-text);
+  @apply rounded-3xl border shadow-card transition-shadow duration-200 hover:shadow-hover;
 }
 
 .drawer-link {

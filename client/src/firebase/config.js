@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, onSnapshot as firebaseOnSnapshot } from 'firebase/firestore'
 import { getMessaging, isSupported } from 'firebase/messaging'
 import { getStorage } from 'firebase/storage'
 
@@ -31,6 +31,7 @@ export const db = firebaseApp
       try {
         return initializeFirestore(firebaseApp, {
           localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+          forceLongPolling: true,
         })
       } catch {
         return getFirestore(firebaseApp)
@@ -42,3 +43,72 @@ export const storage = firebaseApp ? getStorage(firebaseApp) : null
 export const messagingPromise = firebaseApp
   ? isSupported().then((supported) => (supported ? getMessaging(firebaseApp) : null))
   : Promise.resolve(null)
+
+export function onSnapshotWithRetry(queryOrDocRef, onNext, onError) {
+  let unsubscribe = null
+  let timeoutId = null
+  let delay = 2000
+  let isUnsubscribed = false
+
+  function startListening() {
+    if (isUnsubscribed) return
+
+    try {
+      unsubscribe = firebaseOnSnapshot(
+        queryOrDocRef,
+        (snapshot) => {
+          delay = 2000
+          if (onNext) onNext(snapshot)
+        },
+        (error) => {
+          console.error("Firestore onSnapshot error, retrying...", error)
+          if (onError) {
+            try {
+              onError(error)
+            } catch (err) {
+              console.error("Error in snapshot listener error callback:", err)
+            }
+          }
+
+          if (!isUnsubscribed) {
+            if (unsubscribe) {
+              try {
+                unsubscribe()
+              } catch (e) {}
+            }
+            timeoutId = setTimeout(() => {
+              delay = Math.min(delay * 2, 30000)
+              startListening()
+            }, delay)
+          }
+        }
+      )
+    } catch (error) {
+      console.error("Firestore onSnapshot sync error, retrying...", error)
+      if (onError) {
+        try {
+          onError(error)
+        } catch (err) {}
+      }
+
+      if (!isUnsubscribed) {
+        timeoutId = setTimeout(() => {
+          delay = Math.min(delay * 2, 30000)
+          startListening()
+        }, delay)
+      }
+    }
+  }
+
+  startListening()
+
+  return () => {
+    isUnsubscribed = true
+    if (timeoutId) clearTimeout(timeoutId)
+    if (unsubscribe) {
+      try {
+        unsubscribe()
+      } catch (e) {}
+    }
+  }
+}

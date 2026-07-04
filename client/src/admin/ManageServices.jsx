@@ -13,12 +13,19 @@ import ImageUploader from '../components/ImageUploader'
 const emptyForm = {
   name: '',
   category: 'fans',
+  categorySlug: '',
+  shortDescription: '',
   description: '',
   basePrice: '',
+  salePrice: '',
   duration: '',
   imageURL: '',
   images: [],
   isActive: true,
+  inclusionsText: '',
+  exclusionsText: '',
+  addonsText: '',
+  order: '',
 }
 
 function validate(form) {
@@ -89,8 +96,27 @@ export default function ManageServices() {
         imageURL: form.imageURL,
         images: form.images,
       })
+      const parsedInclusions = form.inclusionsText.split('\n').map((line) => line.trim()).filter(Boolean)
+      const parsedExclusions = form.exclusionsText.split('\n').map((line) => line.trim()).filter(Boolean)
+      const parsedAddons = form.addonsText.split('\n')
+        .map((line) => {
+          const parts = line.split(':')
+          const name = parts[0]?.trim()
+          const price = Number(parts[1]?.trim() || 0)
+          if (!name) return null
+          return { name, price }
+        })
+        .filter(Boolean)
+
       const service = await saveService({
-        form: { ...form, id: editingId || form.id },
+        form: {
+          ...form,
+          id: editingId || form.id,
+          inclusions: parsedInclusions,
+          exclusions: parsedExclusions,
+          addons: parsedAddons,
+          order: form.order ? Number(form.order) : 100,
+        },
       })
       setItems((current) => {
         const withoutDuplicate = current.filter((item) => item.id !== service.id)
@@ -113,12 +139,21 @@ export default function ManageServices() {
       id: service.id,
       name: service.name || '',
       category: service.category || 'fans',
-      description: service.description || service.shortDescription || '',
+      categorySlug: service.categorySlug || service.category || '',
+      shortDescription: service.shortDescription || '',
+      description: service.description || '',
       basePrice: service.basePrice || '',
+      salePrice: service.salePrice || '',
       duration: service.duration || '',
       imageURL: service.imageURL || '',
       images: service.images || (service.imageURL ? [service.imageURL] : []),
       isActive: service.isActive !== false,
+      inclusionsText: Array.isArray(service.inclusions) ? service.inclusions.join('\n') : (service.inclusions || ''),
+      exclusionsText: Array.isArray(service.exclusions) ? service.exclusions.join('\n') : (service.exclusions || ''),
+      addonsText: Array.isArray(service.addons)
+        ? service.addons.map(addon => typeof addon === 'object' ? `${addon.name || ''}: ${addon.price || ''}` : String(addon)).join('\n')
+        : (service.addons || ''),
+      order: service.order || '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -176,11 +211,23 @@ export default function ManageServices() {
               ))}
             </datalist>
           </Field>
+          <Field label="Category Slug" error={errors.categorySlug}>
+            <input className="field" placeholder="fans, lights-switches..." value={form.categorySlug} onChange={(event) => update('categorySlug', event.target.value)} />
+          </Field>
           <Field label="Base Price Rs." error={errors.basePrice}>
             <input className="field" type="number" min="1" value={form.basePrice} onChange={(event) => update('basePrice', event.target.value)} />
           </Field>
+          <Field label="Sale Price Rs." error={errors.salePrice}>
+            <input className="field" type="number" min="0" value={form.salePrice} onChange={(event) => update('salePrice', event.target.value)} />
+          </Field>
           <Field label="Duration" error={errors.duration}>
             <input className="field" placeholder="30-45 mins" value={form.duration} onChange={(event) => update('duration', event.target.value)} />
+          </Field>
+          <Field label="Display Position / Order" error={errors.order}>
+            <input className="field" type="number" min="1" value={form.order} onChange={(event) => update('order', event.target.value)} placeholder="e.g. 1 (first), 2 (second)..." />
+          </Field>
+          <Field label="Short Description" error={errors.shortDescription} className="md:col-span-4">
+            <input className="field" value={form.shortDescription} onChange={(event) => update('shortDescription', event.target.value)} />
           </Field>
           <Field label="Description" error={errors.description} className="md:col-span-4">
             <textarea className="field min-h-28" value={form.description} onChange={(event) => update('description', event.target.value)} />
@@ -203,6 +250,15 @@ export default function ManageServices() {
               }}
             />
             <PhotoProgress count={form.images?.length || 0} />
+          </Field>
+          <Field label="Inclusions (one per line)" className="md:col-span-4">
+            <textarea className="field min-h-24" value={form.inclusionsText} onChange={(event) => update('inclusionsText', event.target.value)} placeholder="Fan mounting&#10;Safety test" />
+          </Field>
+          <Field label="Exclusions (one per line)" className="md:col-span-4">
+            <textarea className="field min-h-24" value={form.exclusionsText} onChange={(event) => update('exclusionsText', event.target.value)} placeholder="Wall repair&#10;Extra wiring" />
+          </Field>
+          <Field label="Add-ons (Format: Name: Price, one per line)" className="md:col-span-4">
+            <textarea className="field min-h-24" value={form.addonsText} onChange={(event) => update('addonsText', event.target.value)} placeholder="Anchor Switch: 50&#10;3-core Wire (per meter): 30" />
           </Field>
           <div className="flex items-center gap-3 md:col-span-2">
             <button

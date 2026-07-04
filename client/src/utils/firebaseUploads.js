@@ -113,14 +113,20 @@ export async function saveService({
   const payload = {
     name: form.name.trim(),
     category: form.category,
+    categorySlug: form.categorySlug?.trim() || form.category || '',
     description: form.description.trim(),
-    shortDescription: form.description.trim().slice(0, 120),
+    shortDescription: form.shortDescription?.trim() || form.description.trim().slice(0, 120),
     basePrice: Number(form.basePrice),
+    salePrice: Number(form.salePrice || 0),
     duration: form.duration.trim(),
     imageURL,
     images,
     isActive: Boolean(form.isActive),
+    order: form.order ? Number(form.order) : 100,
     slug: serviceId,
+    inclusions: Array.isArray(form.inclusions) ? form.inclusions : [],
+    exclusions: Array.isArray(form.exclusions) ? form.exclusions : [],
+    addons: Array.isArray(form.addons) ? form.addons : [],
     updatedAt: canUseFirestore() ? serverTimestamp() : new Date().toISOString(),
   }
 

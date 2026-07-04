@@ -21,6 +21,8 @@ export const CATEGORY_ICON_MAP = {
   fan: Fan,
   'wiring-circuits': Cable,
   wiring: Cable,
+  'switches-sockets': PlugZap,
+  switches: PlugZap,
   sockets: PlugZap,
   socket: PlugZap,
   'ac-services': Snowflake,

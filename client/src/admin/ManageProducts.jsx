@@ -25,6 +25,7 @@ const emptyForm = {
   isActive: true,
   isFeatured: false,
   specificationsText: '',
+  inclusionsText: '',
 }
 
 const parseSpecs = (value) =>
@@ -60,6 +61,7 @@ export default function ManageProducts() {
       stock: product.stock || '',
       images: product.images || (product.imageURL ? [product.imageURL] : []),
       specificationsText: specsToText(product.specifications),
+      inclusionsText: Array.isArray(product.inclusions) ? product.inclusions.join('\n') : (product.inclusions || ''),
     })
   }
 
@@ -101,6 +103,8 @@ export default function ManageProducts() {
         isActive: Boolean(form.isActive),
         isFeatured: Boolean(form.isFeatured),
         specifications: parseSpecs(form.specificationsText),
+        inclusions: form.inclusionsText.split('\n').map((line) => line.trim()).filter(Boolean),
+        includes: form.inclusionsText.split('\n').map((line) => line.trim()).filter(Boolean),
         updatedAt: serverTimestamp(),
       }
 
@@ -191,6 +195,10 @@ export default function ManageProducts() {
           <label className="md:col-span-2">
             <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Specifications</span>
             <textarea className="field min-h-24" value={form.specificationsText} onChange={(event) => update('specificationsText', event.target.value)} placeholder="Voltage: 240V&#10;Material: Copper" />
+          </label>
+          <label className="md:col-span-2">
+            <span className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">Feature Bullet Points (one per line)</span>
+            <textarea className="field min-h-24" value={form.inclusionsText} onChange={(event) => update('inclusionsText', event.target.value)} placeholder="Pure copper core&#10;ISI certified safety" />
           </label>
           <div className="flex flex-wrap gap-5 md:col-span-2">
             <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300">

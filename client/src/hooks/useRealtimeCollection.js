@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore'
-import { db, isFirebaseConfigured } from '../firebase/config'
+import { collection, orderBy, query, where } from 'firebase/firestore'
+import { db, isFirebaseConfigured, onSnapshotWithRetry } from '../firebase/config'
 
 const EMPTY_ARRAY = Object.freeze([])
 
@@ -29,7 +29,7 @@ export function useRealtimeCollection(collectionName, options = {}, fallback = E
       ...(parsedSort ? [orderBy(parsedSort.field, parsedSort.direction || 'asc')] : []),
     ]
     const ref = query(collection(db, collectionName), ...constraints)
-    const unsubscribe = onSnapshot(
+    const unsubscribe = onSnapshotWithRetry(
       ref,
       (snapshot) => {
         setItems(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })))

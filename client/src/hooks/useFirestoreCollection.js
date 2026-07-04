@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { collection, onSnapshot, query } from 'firebase/firestore'
-import { auth, db, isFirebaseConfigured } from '../firebase/config'
+import { collection, query } from 'firebase/firestore'
+import { auth, db, isFirebaseConfigured, onSnapshotWithRetry } from '../firebase/config'
 import { useAuthStore } from '../store/authStore'
 
 const EMPTY_ARRAY = Object.freeze([])
@@ -91,7 +91,7 @@ export function useFirestoreCollection(collectionName, fallback = EMPTY_ARRAY, o
     }, 3500)
 
     const ref = query(collection(db, collectionName))
-    const unsubscribe = onSnapshot(
+    const unsubscribe = onSnapshotWithRetry(
       ref,
       (snapshot) => {
         window.clearTimeout(fallbackTimer)

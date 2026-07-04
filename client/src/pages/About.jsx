@@ -111,17 +111,17 @@ export default function About() {
         />
       </Helmet>
 
-      <main className="bg-surface">
-        <section className="bg-navy px-4 py-16 sm:px-6">
+      <main className="bg-[var(--page-bg)] text-[var(--primary-text)]">
+        <section className="bg-transparent px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-7xl">
-            <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="eyebrow text-amber-400">
+            <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="eyebrow text-[var(--primary-accent)]">
               Our Story
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 }}
-              className="mt-3 max-w-3xl font-display text-4xl font-extrabold text-white sm:text-5xl"
+              className="mt-3 max-w-3xl font-display text-4xl font-extrabold text-[var(--primary-text)] sm:text-5xl"
             >
               {COMPANY.name}
             </motion.h1>
@@ -129,7 +129,7 @@ export default function About() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.14 }}
-              className="mt-4 max-w-2xl text-base leading-8 text-white/75"
+              className="mt-4 max-w-2xl text-base leading-8 text-[var(--secondary-text)]"
             >
               From an engineering student to building Tuni's most trusted electrical service, one repair at a time.
             </motion.p>
@@ -137,7 +137,7 @@ export default function About() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.22 }}
-              className="mt-5 flex flex-wrap items-center gap-5 text-sm text-amber-400"
+              className="mt-5 flex flex-wrap items-center gap-5 text-sm text-[var(--primary-accent)]"
             >
               <span className="flex items-center gap-1.5"><MapPin size={15} /> {COMPANY.location}</span>
               <span className="flex items-center gap-1.5"><GraduationCap size={15} /> Est. {COMPANY.founded}</span>
@@ -148,19 +148,19 @@ export default function About() {
         <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_1.15fr]">
             <div className="card p-8">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-3xl font-extrabold text-white shadow-amber">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--primary-accent)] text-3xl font-extrabold text-white shadow-amber">
                 {FOUNDER.initials}
               </div>
-              <h2 className="mt-5 font-display text-2xl font-extrabold leading-tight text-navy">{FOUNDER.name}</h2>
-              <p className="mt-1 text-sm font-bold text-amber-600">{FOUNDER.role}</p>
-              <div className="mt-5 space-y-3 border-t border-surface-border pt-5">
+              <h2 className="mt-5 font-display text-2xl font-extrabold leading-tight text-[var(--primary-text)]">{FOUNDER.name}</h2>
+              <p className="mt-1 text-sm font-bold text-[var(--primary-accent)]">{FOUNDER.role}</p>
+              <div className="mt-5 space-y-3 border-t border-[var(--card-border)] pt-5">
                 <Info icon={GraduationCap}>
-                  <strong className="text-navy">{FOUNDER.degree}</strong>
+                  <strong className="text-[var(--primary-text)]">{FOUNDER.degree}</strong>
                   <br />{FOUNDER.college}
                 </Info>
                 <Info icon={MapPin}>{COMPANY.fullLocation}</Info>
                 <Info icon={Phone}>
-                  <a href={`tel:${COMPANY.phone}`} className="font-semibold text-amber-600 hover:text-amber-700">
+                  <a href={`tel:${COMPANY.phone}`} className="font-semibold text-[var(--primary-accent)] hover:text-[var(--primary-accent-hover)]">
                     {COMPANY.phone}
                   </a>
                 </Info>
@@ -184,18 +184,18 @@ export default function About() {
                 'After graduating, instead of taking a corporate job far from home, Dilip came back to Tuni with a simple mission: give every home access to skilled, honest, and warranty-backed electrical services. In 2020, he founded DP Home Electric Services and has not looked back since.',
                 'Today, DP Home Electric Services serves hundreds of families across Tuni and nearby areas. Eligible jobs come with service warranty, transparent pricing, and the same personal care that Dilip showed on his very first assignment.',
               ].map((para) => (
-                <p key={para} className="mt-4 text-sm leading-7 text-gray-600">{para}</p>
+                <p key={para} className="mt-4 text-sm leading-7 text-[var(--secondary-text)]">{para}</p>
               ))}
-              <blockquote className="mt-6 border-l-4 border-amber-400 pl-5">
-                <Quote className="mb-2 text-amber-400" size={20} />
-                <p className="text-sm italic leading-7 text-gray-600">{FOUNDER.quote}</p>
-                <footer className="mt-2 text-xs font-bold text-amber-600">- {FOUNDER.name}, Founder</footer>
+              <blockquote className="mt-6 border-l-4 border-[var(--primary-accent)] pl-5">
+                <Quote className="mb-2 text-[var(--primary-accent)]" size={20} />
+                <p className="text-sm italic leading-7 text-[var(--secondary-text)]">{FOUNDER.quote}</p>
+                <footer className="mt-2 text-xs font-bold text-[var(--primary-accent)]">- {FOUNDER.name}, Founder</footer>
               </blockquote>
             </div>
           </div>
         </section>
 
-        <section className="bg-white px-4 py-14 sm:px-6">
+        <section className="bg-transparent px-4 py-14 sm:px-6">
           <div className="mx-auto max-w-3xl">
             <div className="text-center">
               <p className="eyebrow">Milestones</p>
@@ -211,11 +211,11 @@ export default function About() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.04 }}
                 >
-                  {index < timeline.length - 1 && <div className="absolute left-[11px] top-6 h-full w-0.5 bg-amber-100" />}
-                  <div className="absolute left-0 top-1 h-6 w-6 rounded-full border-4 border-white bg-primary shadow-amber" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-amber-600">{year}</span>
-                  <h3 className="mt-1 font-display font-bold text-navy">{title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">{description}</p>
+                  {index < timeline.length - 1 && <div className="absolute left-[11px] top-6 h-full w-0.5 bg-[var(--card-border)]" />}
+                  <div className="absolute left-0 top-1 h-6 w-6 rounded-full border-4 border-[var(--page-bg)] bg-[var(--primary-accent)] shadow-[0_0_12px_var(--primary-accent)]" />
+                  <span className="text-xs font-bold uppercase tracking-wide text-[var(--primary-accent)]">{year}</span>
+                  <h3 className="mt-1 font-display font-bold text-[var(--primary-text)]">{title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-[var(--secondary-text)]">{description}</p>
                 </motion.div>
               ))}
             </div>
@@ -228,15 +228,15 @@ export default function About() {
           </div>
         </section>
 
-        <Section title="Our Mission & Values" eyebrow="What We Stand For" white>
+        <Section title="Our Mission & Values" eyebrow="What We Stand For">
           <div className="grid gap-5 md:grid-cols-3">
             {values.map(([Icon, title, body]) => (
-              <motion.div key={title} className="rounded-3xl border border-amber-100 bg-amber-50 p-6" whileHover={{ y: -4 }}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white">
+              <motion.div key={title} className="rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6" whileHover={{ y: -4 }}>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--primary-accent)] text-white">
                   <Icon size={22} />
                 </div>
-                <h3 className="mt-4 font-display text-lg font-bold text-navy">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600">{body}</p>
+                <h3 className="mt-4 font-display text-lg font-bold text-[var(--primary-text)]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--secondary-text)]">{body}</p>
               </motion.div>
             ))}
           </div>
@@ -244,7 +244,7 @@ export default function About() {
 
         <Section title="How It Works" eyebrow="Simple Process">
           <div className="relative grid gap-8 md:grid-cols-4">
-            <div className="absolute left-[12.5%] right-[12.5%] top-6 hidden border-t-2 border-dashed border-amber-200 md:block" />
+            <div className="absolute left-[12.5%] right-[12.5%] top-6 hidden border-t-2 border-dashed border-[var(--card-border)] md:block" />
             {howItWorks.map(([step, title, body]) => (
               <motion.div
                 key={step}
@@ -253,25 +253,25 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
               >
-                <div className="z-10 flex h-12 w-12 items-center justify-center rounded-full bg-navy text-lg font-bold text-white shadow-card">
+                <div className="z-10 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--primary-accent)] text-lg font-bold text-white shadow-card">
                   {step}
                 </div>
-                <h3 className="mt-4 font-display font-bold text-navy">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-500">{body}</p>
+                <h3 className="mt-4 font-display font-bold text-[var(--primary-text)]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--secondary-text)]">{body}</p>
               </motion.div>
             ))}
           </div>
         </Section>
 
-        <Section title="Why Choose DP Home Electric?" eyebrow="Our Promise" white>
+        <Section title="Why Choose DP Home Electric?" eyebrow="Our Promise">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {whyChoose.map(([Icon, title, body]) => (
               <motion.div key={title} className="card cursor-default p-6" whileHover={{ y: -4 }}>
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary-accent)]/10 text-[var(--primary-accent)]">
                   <Icon size={20} />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-navy">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-500">{body}</p>
+                <h3 className="mt-4 text-base font-semibold text-[var(--primary-text)]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--secondary-text)]">{body}</p>
               </motion.div>
             ))}
           </div>
@@ -282,21 +282,21 @@ export default function About() {
             <div>
               <p className="eyebrow">The Team</p>
               <h2 className="section-title mt-2">Our Workers</h2>
-              <p className="mt-2 text-sm text-gray-500">Every worker is personally verified and trained by Manepalli Dilip Kumar.</p>
+              <p className="mt-2 text-sm text-[var(--secondary-text)]">Every worker is personally verified and trained by Manepalli Dilip Kumar.</p>
             </div>
             <Link to="/services" className="btn-primary shrink-0">Book a Service <ArrowRight size={17} /></Link>
           </div>
           {loadingTeam ? (
             <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="card p-5 text-center">
-                  <div className="mx-auto h-20 w-20 animate-pulse rounded-full bg-gray-200" />
-                  <div className="mx-auto mt-3 h-4 w-24 animate-pulse rounded bg-gray-200" />
+                <div key={index} className="card p-5 text-center animate-pulse">
+                  <div className="mx-auto h-20 w-20 rounded-full bg-zinc-800" />
+                  <div className="mx-auto mt-3 h-4 w-24 rounded bg-zinc-800" />
                 </div>
               ))}
             </div>
           ) : workers.length === 0 ? (
-            <p className="mt-8 rounded-3xl border border-dashed border-surface-border bg-white p-8 text-center text-sm text-gray-400">
+            <p className="mt-8 rounded-3xl border border-dashed border-[var(--card-border)] bg-[var(--card-bg)] p-8 text-center text-sm text-[var(--secondary-text)]">
               Team information coming soon.
             </p>
           ) : (
@@ -316,16 +316,16 @@ export default function About() {
                       height="80"
                     />
                   ) : (
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-2xl font-extrabold text-white">
+                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--primary-accent)] text-2xl font-extrabold text-white">
                       {worker.name?.charAt(0)?.toUpperCase() || 'W'}
                     </div>
                   )}
-                  <h3 className="mt-3 text-sm font-semibold text-navy">{worker.name}</h3>
-                  <span className="mt-1 inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
+                  <h3 className="mt-3 text-sm font-semibold text-[var(--primary-text)]">{worker.name}</h3>
+                  <span className="mt-1 inline-block rounded-full border border-[var(--primary-accent)]/20 bg-[var(--primary-accent)]/10 px-2.5 py-0.5 text-[10px] font-bold text-[var(--primary-accent)]">
                     {worker.specialization || 'Electrical services'}
                   </span>
-                  <p className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
-                    <Star size={11} fill="currentColor" className="text-amber-400" />
+                  <p className="mt-2 flex items-center justify-center gap-1 text-xs text-[var(--secondary-text)]">
+                    <Star size={11} fill="currentColor" className="text-[var(--primary-accent)]" />
                     {Number(worker.rating || 4.8).toFixed(1)}
                   </p>
                 </motion.article>
@@ -335,16 +335,16 @@ export default function About() {
         </section>
 
         <section className="px-4 pb-16 sm:px-6">
-          <div className="mx-auto max-w-7xl rounded-3xl bg-primary p-10 text-center shadow-amber">
+          <div className="mx-auto max-w-7xl rounded-3xl bg-[var(--primary-accent)] p-10 text-center shadow-amber">
             <h2 className="font-display text-2xl font-extrabold text-white sm:text-3xl">
               Ready for safe, reliable electrical service?
             </h2>
             <p className="mt-2 text-sm text-white/85">Same-day service in Tuni. 3 months service warranty on eligible work.</p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/services" className="rounded-2xl bg-white px-8 py-3.5 text-sm font-bold text-navy shadow transition hover:bg-amber-50 active:scale-[0.97]">
+              <Link to="/services" className="rounded-2xl bg-white px-8 py-3.5 text-sm font-bold text-[var(--page-bg)] shadow transition hover:bg-red-50 active:scale-[0.97]">
                 Book a Service <ArrowRight size={16} className="inline" />
               </Link>
-              <a href={`tel:${COMPANY.phone}`} className="rounded-2xl border-2 border-white/60 px-8 py-3.5 text-sm font-bold text-white transition hover:bg-white hover:text-navy active:scale-[0.97]">
+              <a href={`tel:${COMPANY.phone}`} className="rounded-2xl border-2 border-white/60 px-8 py-3.5 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--page-bg)]">
                 Call {COMPANY.phone}
               </a>
             </div>
@@ -357,8 +357,8 @@ export default function About() {
 
 function Info({ icon: Icon, children }) {
   return (
-    <div className="flex items-start gap-3 text-sm text-gray-600">
-      <Icon className="mt-0.5 shrink-0 text-amber-500" size={16} />
+    <div className="flex items-start gap-3 text-sm text-[var(--secondary-text)]">
+      <Icon className="mt-0.5 shrink-0 text-[var(--primary-accent)]" size={16} />
       <span>{children}</span>
     </div>
   )
@@ -387,15 +387,15 @@ function CountUpStat({ value, suffix, label }) {
 
   return (
     <div ref={ref} className="card p-6 text-center">
-      <p className="font-display text-4xl font-extrabold text-navy">{display}{suffix}</p>
-      <p className="mt-2 text-sm leading-5 text-gray-500">{label}</p>
+      <p className="font-display text-4xl font-extrabold text-[var(--primary-text)]">{display}{suffix}</p>
+      <p className="mt-2 text-sm leading-5 text-[var(--secondary-text)]">{label}</p>
     </div>
   )
 }
 
-function Section({ eyebrow, title, children, white = false }) {
+function Section({ eyebrow, title, children }) {
   return (
-    <section className={`${white ? 'bg-white' : ''} px-4 py-14 sm:px-6`}>
+    <section className="px-4 py-14 sm:px-6">
       <div className="mx-auto max-w-7xl">
         <div className="text-center">
           <p className="eyebrow">{eyebrow}</p>
