@@ -10,6 +10,7 @@
   --card-bg: #161616;
   --primary-text: #FFFFFF;
   --secondary-text: #9CA3AF;
+  --heading-text: #FFFFFF;
   --card-border: #27272A;
   --nav-bg: #0A0A0A;
   --nav-text: #FFFFFF;
@@ -254,13 +255,13 @@ textarea:focus {
 }
 
 .section-title {
-  @apply font-display text-2xl font-extrabold text-white sm:text-3xl;
+  @apply font-display text-2xl font-extrabold text-[var(--heading-text)] sm:text-3xl;
 }
 
 .premium-card {
-  border: 1px solid #27272A;
+  border: 1px solid var(--card-border);
   border-radius: 16px;
-  background: #161616;
+  background: var(--card-bg);
   box-shadow: 0 1px 3px rgba(15, 39, 68, 0.06), 0 1px 2px rgba(15, 39, 68, 0.04);
   transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -80,6 +80,7 @@ export default function App() {
           'card-bg',
           'primary-text',
           'secondary-text',
+          'heading-text',
           'card-border',
           'nav-bg',
           'nav-text',

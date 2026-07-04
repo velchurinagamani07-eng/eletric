@@ -151,7 +151,7 @@ export default function Home() {
           <aside className="hidden h-[calc(100vh-96px)] overflow-y-auto lg:sticky lg:top-20 lg:block">
             <div className="space-y-5 pr-2">
               <section>
-                <h1 className="font-display text-2xl font-extrabold leading-tight text-white">{settings.companyName}</h1>
+                <h1 className="font-display text-2xl font-extrabold leading-tight text-[var(--heading-text)]">{settings.companyName}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
                   <span className="inline-flex items-center gap-1 text-gray-200">
                     <Star size={14} fill="currentColor" className="text-amber-400" />
@@ -179,7 +179,7 @@ export default function Home() {
           <section className="min-w-0 w-full">
             {/* Mobile Hero Header */}
             <section className="mb-4 px-4 lg:hidden">
-              <h1 className="font-display text-2xl font-extrabold leading-tight text-white">{settings.companyName}</h1>
+              <h1 className="font-display text-2xl font-extrabold leading-tight text-[var(--heading-text)]">{settings.companyName}</h1>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
                 <span className="inline-flex items-center gap-1 text-gray-200">
                   <Star size={14} fill="currentColor" className="text-amber-400" />
@@ -203,8 +203,8 @@ export default function Home() {
 
             {/* Select a Service (appears AFTER the banner on mobile) */}
             <section className="mt-6 px-4 lg:hidden">
-              <h2 className="mb-4 text-lg font-bold text-white">Select a service</h2>
-              <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} isDark />
+              <h2 className="mb-4 text-lg font-bold text-[var(--heading-text)]">Select a service</h2>
+              <CategoryGrid categories={validCategories} onOpen={openCategory} onMore={() => navigate('/services')} />
             </section>
 
             {/* Recommended for You */}
@@ -309,20 +309,20 @@ export default function Home() {
   )
 }
 
-function CategoryGrid({ categories, onOpen, onMore, isDark }) {
+function CategoryGrid({ categories, onOpen, onMore }) {
   return (
     <div className="grid w-full grid-cols-3 gap-x-2 gap-y-4">
       {categories.map((category) => (
-        <CategoryTile key={category.id} category={category} onClick={() => onOpen(category)} isDark={isDark} />
+        <CategoryTile key={category.id} category={category} onClick={() => onOpen(category)} />
       ))}
     </div>
   )
 }
 
-function CategoryTile({ category, onClick, isDark }) {
+function CategoryTile({ category, onClick }) {
   return (
     <button type="button" onClick={onClick} className="group flex min-w-0 flex-col items-center gap-1.5 focus:outline-none">
-      <div className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 ${isDark ? 'border-zinc-800 bg-zinc-900' : 'border-surface-border bg-amber-50 shadow-sm'} transition-all group-hover:border-amber-400`}>
+      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm transition-all group-hover:border-[var(--primary-accent)]">
         {category.imageURL || category.iconURL ? (
           <img
             src={category.imageURL || category.iconURL}
@@ -338,7 +338,7 @@ function CategoryTile({ category, onClick, isDark }) {
           <CategoryIcon category={category} />
         )}
       </div>
-      <span className={`line-clamp-2 w-full text-center text-[11px] font-medium leading-tight ${isDark ? 'text-gray-300' : 'text-gray-700'} group-hover:text-amber-600`}>
+      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-[var(--secondary-text)] group-hover:text-[var(--primary-accent)]">
         {category.name}
       </span>
     </button>
@@ -348,7 +348,7 @@ function CategoryTile({ category, onClick, isDark }) {
 function CategoryIcon({ category }) {
   const Icon = getCategoryIcon(category)
   return (
-    <div className="flex h-full w-full items-center justify-center bg-amber-50 text-amber-600">
+    <div className="flex h-full w-full items-center justify-center bg-[var(--card-bg)] text-[var(--primary-accent)]">
       {createElement(Icon, { size: 26, strokeWidth: 2.3 })}
     </div>
   )
@@ -582,8 +582,8 @@ function ConstructionMovingSection() {
     >
       <div className="mb-4">
         <p className="eyebrow text-[var(--primary-accent)]">New Offerings</p>
-        <h2 className="text-xl font-extrabold text-white sm:text-2xl mt-1">Construction & Moving Services</h2>
-        <p className="text-sm text-gray-400 mt-1">Upcoming premium verticals. Book preview or enquire interest below.</p>
+        <h2 className="text-xl font-extrabold text-[var(--heading-text)] sm:text-2xl mt-1">Construction & Moving Services</h2>
+        <p className="text-sm text-[var(--secondary-text)] mt-1">Upcoming premium verticals. Book preview or enquire interest below.</p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -600,8 +600,8 @@ function ConstructionMovingSection() {
                 🚀 Launching Soon
               </span>
             </div>
-            <h3 className="mt-4 font-display text-xl font-extrabold text-white">Construction Services</h3>
-            <p className="mt-2 text-xs text-gray-400">Professional renovation, painting, brickwork, and civil contracts.</p>
+            <h3 className="mt-4 font-display text-xl font-extrabold text-[var(--heading-text)]">Construction Services</h3>
+            <p className="mt-2 text-xs text-[var(--secondary-text)]">Professional renovation, painting, brickwork, and civil contracts.</p>
             
             <ul className="mt-4 space-y-2">
               {[
@@ -609,7 +609,7 @@ function ConstructionMovingSection() {
                 "Premium materials & pricing transparency",
                 "Dedicated project manager supervision"
               ].map((feature) => (
-                <li key={feature} className="flex items-center gap-2 text-xs text-gray-300">
+                <li key={feature} className="flex items-center gap-2 text-xs text-[var(--primary-text)]">
                   <CheckCircle2 size={13} className="text-green-500 shrink-0" />
                   <span>{feature}</span>
                 </li>
@@ -640,8 +640,8 @@ function ConstructionMovingSection() {
                 ✨ Premium Quality
               </span>
             </div>
-            <h3 className="mt-4 font-display text-xl font-extrabold text-white">Moving & Packing Services</h3>
-            <p className="mt-2 text-xs text-gray-400">Secure home shifting, commercial moving, and packaging solutions.</p>
+            <h3 className="mt-4 font-display text-xl font-extrabold text-[var(--heading-text)]">Moving & Packing Services</h3>
+            <p className="mt-2 text-xs text-[var(--secondary-text)]">Secure home shifting, commercial moving, and packaging solutions.</p>
             
             <ul className="mt-4 space-y-2">
               {[
@@ -649,7 +649,7 @@ function ConstructionMovingSection() {
                 "On-time packaging and delivery guarantee",
                 "Expert packers with heavy loading gear"
               ].map((feature) => (
-                <li key={feature} className="flex items-center gap-2 text-xs text-gray-300">
+                <li key={feature} className="flex items-center gap-2 text-xs text-[var(--primary-text)]">
                   <CheckCircle2 size={13} className="text-green-500 shrink-0" />
                   <span>{feature}</span>
                 </li>
