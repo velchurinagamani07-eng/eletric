@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore'
 import toast from 'react-hot-toast'
-import { MapPin, MessageCircle, Minus, Phone, Plus, ShoppingCart, Trash2, UserRound } from 'lucide-react'
+import { ClipboardCopy, MapPin, MessageCircle, Minus, Phone, Plus, QrCode, ShoppingCart, Trash2, UserRound } from 'lucide-react'
+import { QRCodeCanvas } from 'qrcode.react'
+import { SiGooglepay, SiPaytm, SiPhonepe } from 'react-icons/si'
 import { useCartStore } from '../store/cartStore'
 import { currency } from '../utils/format'
 import { getServiceImage, handleImageFallback } from '../utils/defaultImages'
 import RecommendedServices from '../components/RecommendedServices'
 import { db, isFirebaseConfigured } from '../firebase/config'
+import { buildAppSpecificUpiUri, buildUpiPaymentUri } from '../utils/upiPayment'
 
 const ADMIN_WHATSAPP = '919642908090'
 
@@ -23,13 +26,19 @@ function cartMessage({ items, total, form }) {
     return `${index + 1}. ${item.name} x ${quantity} - ${currency(price * quantity)}`
   })
 
+  let paymentMethodLabel = 'Cash on Delivery'
+  if (form.paymentMethod === 'online') paymentMethodLabel = 'Paid Online (Razorpay)'
+  if (form.paymentMethod === 'UPI') paymentMethodLabel = 'Direct UPI (PhonePe / GPay / QR)'
+
   return [
-    'New Cart Enquiry - DP Home Electric Services',
+    `New Cart Enquiry (${paymentMethodLabel}) - DP Home Electric Services`,
     `Name: ${form.name}`,
     `Mobile: ${cleanPhone(form.mobile)}`,
     `Address: ${form.address}`,
     form.latitude && form.longitude ? `📍 Exact Location: https://www.google.com/maps/search/?api=1&query=${form.latitude},${form.longitude}` : '',
-    `Payment Method: ${form.paymentMethod === 'online' ? 'Paid Online (Razorpay)' : 'Cash on Delivery'}`,
+    `Payment Method: ${paymentMethodLabel}`,
+    form.paymentMethod === 'UPI' && form.upiId ? `UPI ID: ${form.upiId}` : '',
+    form.paymentMethod === 'UPI' && form.upiUtr ? `Transaction ID / UTR: ${form.upiUtr}` : '',
     `Payment Status: ${form.paymentStatus}`,
     '',
     'Selected Items:',
@@ -54,9 +63,13 @@ export default function Cart() {
   const [paymentConfig, setPaymentConfig] = useState({
     enableCOD: true,
     enableOnline: false,
+    enableUPI: true,
+    upiId: 'dileepmanepalli14@okhdfcbank',
+    upiPayeeName: 'DP Home Electric Services',
     razorpayKeyId: '',
   })
   const [paymentMethod, setPaymentMethod] = useState('COD')
+  const [upiUtr, setUpiUtr] = useState('')
   const [coords, setCoords] = useState(null)
   const [detectingLocation, setDetectingLocation] = useState(false)
 
@@ -65,7 +78,7 @@ export default function Cart() {
     getDoc(doc(db, 'settings', 'payment_public'))
       .then((snap) => {
         if (snap.exists()) {
-          setPaymentConfig(snap.data())
+          setPaymentConfig((prev) => ({ ...prev, ...snap.data() }))
         }
       })
       .catch((err) => console.error('Error fetching payment config:', err))
@@ -303,6 +316,29 @@ export default function Cart() {
       return
     }
 
+    if (paymentMethod === 'UPI') {
+      const upiEnquiry = {
+        ...enquiry,
+        paymentMethod: 'UPI',
+        paymentStatus: 'UPI Payment — Pending Verification',
+        upiUtr: upiUtr.trim() || null,
+        upiId: paymentConfig.upiId || 'dileepmanepalli14@okhdfcbank',
+      }
+      try {
+        await saveBookingToDatabase(upiEnquiry)
+        const upiMessage = cartMessage({ items, total, form: upiEnquiry })
+        window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(upiMessage)}`, '_blank', 'noopener,noreferrer')
+        await clear().catch(() => {})
+        toast.success('UPI Checkout submitted! WhatsApp message prepared.')
+      } catch (err) {
+        console.error('[Cart UPI Error]', err)
+        toast.error('Submission failed.')
+      } finally {
+        setSubmitting(false)
+      }
+      return
+    }
+
     try {
       await saveBookingToDatabase(enquiry)
       const codMessage = cartMessage({ items, total, form: enquiry })
@@ -427,42 +463,187 @@ export default function Cart() {
                   </label>
 
                   {/* Payment Method Selector */}
-                  {paymentConfig.enableOnline && (
+                  {(paymentConfig.enableOnline || paymentConfig.enableUPI !== false) && (
                     <div className="mt-3 border-t border-zinc-100 pt-3">
                       <span className="mb-2 block text-xs font-bold text-[#334155]">Payment Method</span>
-                      <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('COD')}
-                          className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
-                            paymentMethod === 'COD'
-                              ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
-                              : 'border-zinc-200 bg-white'
-                          }`}
-                        >
-                          <div>
-                            <span className="block font-bold text-[#0F172A]">COD</span>
-                            <span className="block text-[10px] text-gray-400">Cash on delivery</span>
-                          </div>
-                          <span>💵</span>
-                        </button>
+                      <div className={`grid grid-cols-[minmax(0,1fr)] gap-2 ${paymentConfig.enableOnline ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                        {paymentConfig.enableCOD !== false && (
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('COD')}
+                            className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
+                              paymentMethod === 'COD'
+                                ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
+                                : 'border-zinc-200 bg-white'
+                            }`}
+                          >
+                            <div>
+                              <span className="block font-bold text-[#0F172A]">COD</span>
+                              <span className="block text-[10px] text-gray-400">Cash on delivery</span>
+                            </div>
+                            <span>💵</span>
+                          </button>
+                        )}
 
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('online')}
-                          className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
-                            paymentMethod === 'online'
-                              ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
-                              : 'border-zinc-200 bg-white'
-                          }`}
-                        >
-                          <div>
-                            <span className="block font-bold text-[#0F172A]">Pay Online</span>
-                            <span className="block text-[10px] text-gray-400">Razorpay</span>
-                          </div>
-                          <span>💳</span>
-                        </button>
+                        {paymentConfig.enableUPI !== false && (
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('UPI')}
+                            className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
+                              paymentMethod === 'UPI'
+                                ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
+                                : 'border-zinc-200 bg-white'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="block font-bold text-[#0F172A]">UPI / QR</span>
+                                <span className="rounded bg-emerald-100 px-1 text-[9px] font-black text-emerald-800">0%</span>
+                              </div>
+                              <span className="block text-[10px] text-gray-400">PhonePe, GPay</span>
+                            </div>
+                            <span>📱</span>
+                          </button>
+                        )}
+
+                        {paymentConfig.enableOnline && (
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('online')}
+                            className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-all ${
+                              paymentMethod === 'online'
+                                ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/20'
+                                : 'border-zinc-200 bg-white'
+                            }`}
+                          >
+                            <div>
+                              <span className="block font-bold text-[#0F172A]">Pay Online</span>
+                              <span className="block text-[10px] text-gray-400">Razorpay</span>
+                            </div>
+                            <span>💳</span>
+                          </button>
+                        )}
                       </div>
+
+                      {/* Direct UPI / QR Section for Cart */}
+                      {paymentMethod === 'UPI' && (
+                        <div className="mt-3 rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50/70 to-orange-50/40 p-3">
+                          <div className="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
+                              Instant UPI Payment
+                            </span>
+                            <span className="text-xs font-black text-amber-900">
+                              {currency(total)}
+                            </span>
+                          </div>
+
+                          {/* App Buttons */}
+                          <div className="mt-2.5">
+                            <span className="mb-1.5 block text-[11px] font-bold text-gray-700">
+                              Tap to pay with UPI app:
+                            </span>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <a
+                                href={buildAppSpecificUpiUri('phonepe', {
+                                  upiId: paymentConfig.upiId,
+                                  amount: total,
+                                  customerName: form.name,
+                                  payeeName: paymentConfig.upiPayeeName,
+                                })}
+                                className="flex items-center justify-center gap-1.5 rounded-lg bg-[#5f259f] px-2.5 py-2 text-[11px] font-bold text-white shadow-sm transition hover:opacity-95"
+                              >
+                                <SiPhonepe size={14} /> PhonePe
+                              </a>
+                              <a
+                                href={buildAppSpecificUpiUri('gpay', {
+                                  upiId: paymentConfig.upiId,
+                                  amount: total,
+                                  customerName: form.name,
+                                  payeeName: paymentConfig.upiPayeeName,
+                                })}
+                                className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[11px] font-bold text-gray-800 shadow-sm transition hover:bg-gray-50"
+                              >
+                                <SiGooglepay size={18} className="text-blue-600" /> GPay
+                              </a>
+                              <a
+                                href={buildAppSpecificUpiUri('paytm', {
+                                  upiId: paymentConfig.upiId,
+                                  amount: total,
+                                  customerName: form.name,
+                                  payeeName: paymentConfig.upiPayeeName,
+                                })}
+                                className="flex items-center justify-center gap-1.5 rounded-lg bg-[#002970] px-2.5 py-2 text-[11px] font-bold text-white shadow-sm transition hover:opacity-95"
+                              >
+                                <SiPaytm size={18} /> Paytm
+                              </a>
+                              <a
+                                href={buildUpiPaymentUri({
+                                  upiId: paymentConfig.upiId,
+                                  amount: total,
+                                  customerName: form.name,
+                                  payeeName: paymentConfig.upiPayeeName,
+                                })}
+                                className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-2.5 py-2 text-[11px] font-bold text-white shadow-sm transition hover:bg-amber-700"
+                              >
+                                <QrCode size={14} /> Any UPI
+                              </a>
+                            </div>
+                          </div>
+
+                          {/* QR Code & UPI ID */}
+                          <div className="mt-2.5 flex items-center gap-3 rounded border border-amber-200/80 bg-white p-2">
+                            <div className="shrink-0 bg-white p-1">
+                              <QRCodeCanvas
+                                id="cart-upi-qr"
+                                value={buildUpiPaymentUri({
+                                  upiId: paymentConfig.upiId,
+                                  amount: total,
+                                  customerName: form.name,
+                                  payeeName: paymentConfig.upiPayeeName,
+                                })}
+                                size={80}
+                                includeMargin
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1 space-y-1 text-[11px]">
+                              <p className="font-semibold text-gray-900">Scan QR code</p>
+                              <div className="flex items-center gap-1.5">
+                                <span className="break-all font-mono text-[10px] text-gray-800 font-bold">
+                                  {paymentConfig.upiId || 'dileepmanepalli14@okhdfcbank'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(paymentConfig.upiId || 'dileepmanepalli14@okhdfcbank')
+                                    toast.success('UPI ID copied!')
+                                  }}
+                                  className="rounded p-0.5 text-gray-500 hover:bg-gray-100 shrink-0"
+                                  title="Copy UPI ID"
+                                >
+                                  <ClipboardCopy size={12} />
+                                </button>
+                              </div>
+                              <p className="text-[10px] text-gray-500">
+                                {paymentConfig.upiPayeeName || 'DP Home Electric Services'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Optional UTR input */}
+                          <div className="mt-2">
+                            <label className="mb-0.5 block text-[10px] font-bold text-gray-700">
+                              UPI UTR / Ref Number <span className="font-normal text-gray-400">(Optional)</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="field min-h-9 text-xs"
+                              placeholder="e.g. 12-digit UTR after paying"
+                              value={upiUtr}
+                              onChange={(event) => setUpiUtr(event.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

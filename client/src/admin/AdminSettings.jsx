@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
-import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock, CheckCircle2, Loader2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Database, Edit3, Eye, ImageIcon, Save, Trash2, CreditCard, Lock, CheckCircle2, Loader2, X, QrCode } from 'lucide-react'
+import { QRCodeCanvas } from 'qrcode.react'
 import { defaultHero, settings } from '../data/catalog'
 import { auth, db, isFirebaseConfigured } from '../firebase/config'
 import { useAuthStore } from '../store/authStore'
@@ -193,6 +194,9 @@ export default function AdminSettings({ initialSection = 'company' }) {
   const [paymentForm, setPaymentForm] = useState({
     enableCOD: true,
     enableOnline: false,
+    enableUPI: true,
+    upiId: 'dileepmanepalli14@okhdfcbank',
+    upiPayeeName: 'DP Home Electric Services',
     razorpayKeyId: '',
     razorpayKeySecret: '',
     testMode: true,
@@ -694,6 +698,9 @@ export default function AdminSettings({ initialSection = 'company' }) {
         // Write public settings
         await setDoc(doc(db, 'settings', 'payment_public'), {
           enableCOD: paymentForm.enableCOD !== false,
+          enableUPI: paymentForm.enableUPI !== false,
+          upiId: (paymentForm.upiId || 'dileepmanepalli14@okhdfcbank').trim(),
+          upiPayeeName: (paymentForm.upiPayeeName || 'DP Home Electric Services').trim(),
           enableOnline: paymentForm.enableOnline === true && paymentForm.razorpayKeyId !== '' && paymentForm.razorpayKeySecret !== '',
           razorpayKeyId: paymentForm.razorpayKeyId,
           testMode: paymentForm.testMode !== false,
@@ -1049,7 +1056,7 @@ export default function AdminSettings({ initialSection = 'company' }) {
 
           <div className="mt-5 space-y-6">
             {/* Payment Toggles */}
-            <div className="grid gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">
+            <div className="grid gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-3">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1060,6 +1067,19 @@ export default function AdminSettings({ initialSection = 'company' }) {
                 <div>
                   <span className="block text-sm font-bold text-white">Enable Cash on Delivery (COD)</span>
                   <span className="block text-xs text-gray-400">Allow customers to book now and pay cash to worker.</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded accent-amber-500"
+                  checked={paymentForm.enableUPI !== false}
+                  onChange={(event) => updatePayment('enableUPI', event.target.checked)}
+                />
+                <div>
+                  <span className="block text-sm font-bold text-white">Enable Direct UPI & QR Code</span>
+                  <span className="block text-xs text-gray-400">Accept PhonePe, Google Pay, Paytm & QR Code.</span>
                 </div>
               </label>
 
@@ -1078,10 +1098,84 @@ export default function AdminSettings({ initialSection = 'company' }) {
                   }}
                 />
                 <div>
-                  <span className="block text-sm font-bold text-white">Enable Online Payment (Razorpay)</span>
-                  <span className="block text-xs text-gray-400">Accept credit/debit cards, UPI, and wallets.</span>
+                  <span className="block text-sm font-bold text-white">Enable Razorpay Online Gateway</span>
+                  <span className="block text-xs text-gray-400">Accept credit/debit cards and netbanking.</span>
                 </div>
               </label>
+            </div>
+
+            {/* Direct UPI & QR Code Configuration */}
+            <div className="space-y-4 rounded-xl border border-zinc-800 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <QrCode size={16} className="text-amber-500" /> Direct UPI & QR Code Payment (PhonePe, GPay, Paytm, BHIM)
+                </h3>
+                <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-500/20">
+                  Zero Gateway Fees (0%)
+                </span>
+              </div>
+              <p className="text-xs text-gray-400">
+                Customers can scan the dynamic QR code or tap direct app buttons (PhonePe, Google Pay, Paytm, BHIM). Money directly credits your bank account without gateway charges.
+              </p>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">
+                    UPI ID / VPA <span className="text-amber-400">*</span>
+                  </span>
+                  <input
+                    className="field"
+                    placeholder="e.g. dileepmanepalli14@okhdfcbank or 9876543210@ybl"
+                    value={paymentForm.upiId || ''}
+                    onChange={(event) => updatePayment('upiId', event.target.value)}
+                  />
+                  <span className="mt-1 block text-[11px] text-gray-500">
+                    Your UPI ID from PhonePe, Google Pay, Paytm or Bank (e.g. yourname@okhdfcbank)
+                  </span>
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">
+                    Payee Name / Business Name
+                  </span>
+                  <input
+                    className="field"
+                    placeholder="DP Home Electric Services"
+                    value={paymentForm.upiPayeeName || ''}
+                    onChange={(event) => updatePayment('upiPayeeName', event.target.value)}
+                  />
+                  <span className="mt-1 block text-[11px] text-gray-500">
+                    The name displayed on the customer's UPI payment screen
+                  </span>
+                </label>
+              </div>
+
+              {/* Live Preview of Customer UPI QR */}
+              {paymentForm.upiId && (
+                <div className="mt-3 rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Live Customer QR Preview</span>
+                  <div className="mt-3 flex flex-col sm:flex-row items-center gap-5">
+                    <div className="rounded-lg bg-white p-3 shadow-inner">
+                      <QRCodeCanvas
+                        value={`upi://pay?pa=${encodeURIComponent((paymentForm.upiId || '').trim())}&pn=${encodeURIComponent((paymentForm.upiPayeeName || 'DP Home Electric Services').trim())}&cu=INR`}
+                        size={120}
+                        includeMargin
+                      />
+                    </div>
+                    <div className="space-y-1.5 text-xs text-gray-300">
+                      <p><strong className="text-white">Active UPI ID:</strong> <span className="font-mono text-amber-300 font-semibold">{paymentForm.upiId}</span></p>
+                      <p><strong className="text-white">Payee Name:</strong> {paymentForm.upiPayeeName || 'DP Home Electric Services'}</p>
+                      <p className="text-gray-400">Customers will be able to scan this QR code or tap to pay via any UPI app during booking or cart checkout.</p>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        <span className="rounded bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-300">PhonePe</span>
+                        <span className="rounded bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-300">Google Pay</span>
+                        <span className="rounded bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold text-sky-300">Paytm</span>
+                        <span className="rounded bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold text-orange-300">BHIM UPI</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Razorpay Credentials */}

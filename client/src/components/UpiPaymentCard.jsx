@@ -6,17 +6,19 @@ import { CheckCircle2, ClipboardCopy, Download, Landmark, QrCode, UploadCloud } 
 import ImageUploader from './ImageUploader'
 import { settings } from '../data/catalog'
 import { currency } from '../utils/format'
-import { buildUpiPaymentUri, UPI_ID } from '../utils/upiPayment'
+import { buildAppSpecificUpiUri, buildUpiPaymentUri, UPI_ID } from '../utils/upiPayment'
 
 const paymentApps = [
-  { name: 'Google Pay', Icon: SiGooglepay, color: 'text-blue-600', bg: 'bg-blue-50' },
-  { name: 'PhonePe', Icon: SiPhonepe, color: 'text-purple-700', bg: 'bg-purple-50' },
-  { name: 'Paytm', Icon: SiPaytm, color: 'text-sky-600', bg: 'bg-sky-50' },
-  { name: 'BHIM UPI', Icon: BhimMark, color: 'text-orange-600', bg: 'bg-orange-50' },
+  { id: 'phonepe', name: 'PhonePe', Icon: SiPhonepe, color: 'text-purple-700', bg: 'bg-purple-50' },
+  { id: 'gpay', name: 'Google Pay', Icon: SiGooglepay, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { id: 'paytm', name: 'Paytm', Icon: SiPaytm, color: 'text-sky-600', bg: 'bg-sky-50' },
+  { id: 'bhim', name: 'BHIM UPI', Icon: BhimMark, color: 'text-orange-600', bg: 'bg-orange-50' },
 ]
 
 export default function UpiPaymentCard({
   booking,
+  upiId: propUpiId,
+  payeeName: propPayeeName,
   screenshotURL,
   submitting = false,
   onScreenshotUpload,
@@ -25,15 +27,24 @@ export default function UpiPaymentCard({
   const bookingId = booking?.bookingId || booking?.id
   const customerName = booking?.customer || booking?.customerName || 'Customer'
   const amount = Number(booking?.totalAmount ?? booking?.amount ?? 0)
+  const activeUpiId = (propUpiId || UPI_ID || 'dileepmanepalli14@okhdfcbank').trim()
+  const activePayeeName = (propPayeeName || settings.companyName || 'DP Home Electric Services').trim()
+
   const upiUri = useMemo(
-    () => buildUpiPaymentUri({ amount, bookingId, customerName, payeeName: settings.companyName }),
-    [amount, bookingId, customerName],
+    () => buildUpiPaymentUri({
+      upiId: activeUpiId,
+      amount,
+      bookingId,
+      customerName,
+      payeeName: activePayeeName,
+    }),
+    [activeUpiId, amount, bookingId, customerName, activePayeeName],
   )
   const qrId = `upi-qr-${bookingId || 'booking'}`
 
   const copyUpi = async () => {
     try {
-      await navigator.clipboard.writeText(UPI_ID)
+      await navigator.clipboard.writeText(activeUpiId)
       toast.success('UPI ID copied.')
     } catch {
       toast.error('Could not copy UPI ID.')
@@ -103,7 +114,7 @@ export default function UpiPaymentCard({
           <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/10">
             <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-200">UPI ID</p>
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="break-all font-mono text-lg font-black text-gray-950 dark:text-white">{UPI_ID}</p>
+              <p className="break-all font-mono text-lg font-black text-gray-950 dark:text-white">{activeUpiId}</p>
               <button type="button" className="btn-secondary shrink-0" onClick={copyUpi}>
                 <ClipboardCopy size={17} /> Copy UPI
               </button>
