@@ -112,6 +112,11 @@ textarea {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -120,10 +125,14 @@ textarea {
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
 }
 
 .swipe-momentum {
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
 }
 
 .animated-underline {

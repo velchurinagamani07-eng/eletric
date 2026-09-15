@@ -25,6 +25,7 @@ import { getCategoryIcon } from '../utils/categoryIcons'
 import WishlistButton from '../components/WishlistButton'
 import ProductCard from '../components/ProductCard'
 import RecommendedServices from '../components/RecommendedServices'
+import ScrollRow from '../components/ScrollRow'
 import { getRecentServiceHistory } from '../utils/recommendations'
 
 const fallbackSlides = [
@@ -234,14 +235,14 @@ export default function Home() {
                 >
                   <div className="mb-4 flex items-end justify-between gap-3">
                     <div>
-                      <h2 className="font-display text-xl font-extrabold text-[var(--primary-text)] sm:text-2xl">{category.name}</h2>
+                      <h2 className="font-display text-xl font-extrabold text-[var(--heading-text)] sm:text-2xl">{category.name}</h2>
                       <p className="mt-1 text-sm text-[var(--secondary-text)]">Doorstep service by verified electricians</p>
                     </div>
-                    <Link to={`/services?category=${category.slug || category.id}`} className="hidden items-center gap-1 text-sm font-bold text-primary sm:inline-flex">
-                      See all <ArrowRight size={15} />
+                    <Link to={`/services?category=${category.slug || category.id}`} className="items-center gap-1 text-xs sm:text-sm font-bold text-primary inline-flex shrink-0">
+                      See all <ArrowRight size={14} />
                     </Link>
                   </div>
-                  <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                  <ScrollRow>
                     {category.services.map((service) => (
                       <UrbanServiceCard
                         key={service.id}
@@ -251,7 +252,7 @@ export default function Home() {
                         onRemove={() => decrementItem(service.id)}
                       />
                     ))}
-                  </div>
+                  </ScrollRow>
                 </section>
               ))}
 
@@ -260,7 +261,7 @@ export default function Home() {
                   <h2 className="font-display text-lg font-extrabold text-[var(--primary-text)]">
                     Based on Fan Installation, customers also buy:
                   </h2>
-                  <div className="mt-4 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                  <ScrollRow className="mt-4" scrollAmount={220}>
                     {recommendedProducts.map((product) => (
                       <button
                         type="button"
@@ -276,7 +277,7 @@ export default function Home() {
                         {product.name} <span className="text-[var(--primary-accent)]">{currency(productPrice(product))}</span>
                       </button>
                     ))}
-                  </div>
+                  </ScrollRow>
                 </section>
               )}
 
@@ -291,14 +292,14 @@ export default function Home() {
                       See all <ArrowRight size={15} />
                     </Link>
                   </div>
-                  <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                  <ScrollRow>
                     {products.slice(0, 10).map((product) => (
                       <ProductCard
                         key={product.id}
                         product={product}
                       />
                     ))}
-                  </div>
+                  </ScrollRow>
                 </section>
               )}
             </div>
@@ -460,9 +461,11 @@ function PromoSlider({ slides, activeSlide, setActiveSlide }) {
 function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
   const hasDiscount = Number(service.salePrice || 0) > 0 && Number(service.salePrice) < Number(service.basePrice)
   const price = hasDiscount ? Number(service.salePrice) : Number(service.basePrice)
+  const featureList = (service.includes || service.inclusions || []).slice(0, 2)
+
   return (
-    <article className="w-[190px] shrink-0 overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] shadow-card sm:w-[230px]">
-      <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-[4/3] overflow-hidden bg-[var(--card-bg)]">
+    <article className="w-[190px] shrink-0 snap-start flex flex-col justify-between overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] shadow-card sm:w-[230px] select-none" draggable={false}>
+      <Link to={`/services/${service.slug || service.id}`} draggable={false} className="relative block h-36 w-full sm:h-40 shrink-0 overflow-hidden bg-[var(--card-bg)] select-none">
         <img
           src={getServiceImage(service)}
           alt={service.name}
@@ -470,47 +473,54 @@ function UrbanServiceCard({ service, quantity, onAdd, onRemove }) {
           height="173"
           loading="lazy"
           decoding="async"
+          draggable={false}
           onError={(event) => handleImageFallback(event, getDefaultImage(service.category))}
-          className="h-full w-full object-cover transition duration-300 hover:scale-105"
+          className="h-full w-full object-cover transition duration-300 hover:scale-105 pointer-events-none select-none"
         />
         {hasDiscount && (
-          <span className="absolute left-3 top-3 rounded-full bg-[var(--primary-accent)] px-2 py-1 text-[10px] font-black text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-[var(--primary-accent)] px-2 py-1 text-[10px] font-black text-white shadow">
             Offer
           </span>
         )}
         <WishlistButton service={service} className="absolute right-2 top-2" />
       </Link>
-      <div className="p-4">
-        <h3 className="truncate text-sm font-bold text-[var(--primary-text)]">{service.name}</h3>
-        <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[var(--secondary-text)]">
-          <Star size={12} fill="currentColor" className="text-[var(--primary-accent)]" /> 4.8 <span>|</span> {service.duration}
-        </p>
-        <p className="mt-2 text-sm font-extrabold text-[var(--primary-accent)]">
-          {currency(price)}
-          {hasDiscount && <span className="ml-2 text-xs font-semibold text-[var(--secondary-text)] line-through">{currency(service.basePrice)}</span>}
-        </p>
-        <ul className="mt-2 space-y-1">
-          {(service.includes || []).slice(0, 2).map((item) => (
-            <li key={item} className="flex items-start gap-1 text-xs text-[var(--secondary-text)]">
-              <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-500" size={12} /> {item}
-            </li>
-          ))}
-        </ul>
-        {quantity > 0 ? (
-          <div className="mt-4 grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-lg border border-[var(--primary-accent)] bg-[var(--primary-accent)]/10 text-sm font-extrabold text-[var(--primary-text)]">
-            <button type="button" onClick={onRemove} className="grid h-10 place-items-center" aria-label={`Remove ${service.name}`}>
-              <Minus size={15} />
+
+      <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between">
+        <div>
+          <h3 className="truncate text-sm font-bold text-[var(--primary-text)]">{service.name}</h3>
+          <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[var(--secondary-text)]">
+            <Star size={12} fill="currentColor" className="text-[var(--primary-accent)]" /> 4.8 <span>|</span> {service.duration}
+          </p>
+          <p className="mt-2 text-sm font-extrabold text-[var(--primary-accent)]">
+            {currency(price)}
+            {hasDiscount && <span className="ml-2 text-xs font-semibold text-[var(--secondary-text)] line-through">{currency(service.basePrice)}</span>}
+          </p>
+          <ul className="mt-2 min-h-[38px] space-y-1">
+            {featureList.map((item) => (
+              <li key={item} className="flex items-start gap-1 text-xs text-[var(--secondary-text)] truncate">
+                <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-500" size={12} /> {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-3">
+          {quantity > 0 ? (
+            <div className="grid grid-cols-[36px_1fr_36px] overflow-hidden rounded-lg border border-[var(--primary-accent)] bg-[var(--primary-accent)]/10 text-sm font-extrabold text-[var(--primary-text)]">
+              <button type="button" onClick={onRemove} className="grid h-10 place-items-center" aria-label={`Remove ${service.name}`}>
+                <Minus size={15} />
+              </button>
+              <span className="grid place-items-center">{quantity}</span>
+              <button type="button" onClick={onAdd} className="grid h-10 place-items-center" aria-label={`Add ${service.name}`}>
+                <Plus size={15} />
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="btn-secondary h-10 w-full px-4 py-2" onClick={onAdd}>
+              Add
             </button>
-            <span className="grid place-items-center">{quantity}</span>
-            <button type="button" onClick={onAdd} className="grid h-10 place-items-center" aria-label={`Add ${service.name}`}>
-              <Plus size={15} />
-            </button>
-          </div>
-        ) : (
-          <button type="button" className="btn-secondary mt-4 h-10 w-full px-4 py-2" onClick={onAdd}>
-            Add
-          </button>
-        )}
+          )}
+        </div>
       </div>
     </article>
   )

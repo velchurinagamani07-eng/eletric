@@ -34,8 +34,8 @@ export default function ProductCard({ product }) {
   const imageSrc = product.imageURL || product.images?.[0] || ''
 
   return (
-    <article className="w-[190px] shrink-0 overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--primary-text)] shadow-card sm:w-[230px] transition hover:-translate-y-1 hover:border-red-900/50 hover:shadow-xl group">
-      <Link to={`/products/${product.slug || product.id}`} className="relative block aspect-[4/3] overflow-hidden bg-zinc-800">
+    <article className="w-[190px] shrink-0 snap-start flex flex-col justify-between overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--primary-text)] shadow-card sm:w-[230px] transition hover:-translate-y-1 hover:border-red-900/50 hover:shadow-xl group select-none" draggable={false}>
+      <Link to={`/products/${product.slug || product.id}`} draggable={false} className="relative block h-36 w-full sm:h-40 shrink-0 overflow-hidden bg-zinc-800 select-none">
         {imageSrc ? (
           <img
             src={imageSrc}
@@ -43,7 +43,8 @@ export default function ProductCard({ product }) {
             width="230"
             height="173"
             loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            draggable={false}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105 pointer-events-none select-none"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-zinc-800 text-gray-400">

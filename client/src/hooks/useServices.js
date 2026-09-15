@@ -54,7 +54,9 @@ export function normalizeService(service = {}) {
     images,
     includes: Array.isArray(service.includes) && service.includes.length
       ? service.includes
-      : ['Fault diagnosis', 'Safe workmanship', 'Post-service testing'],
+      : Array.isArray(service.inclusions) && service.inclusions.length
+        ? service.inclusions
+        : ['Fault diagnosis', 'Safe workmanship', 'Post-service testing'],
     labor: Number(service.labor || basePrice || 0),
     partsEstimate: Number(service.partsEstimate || 0),
     popularity: Number(service.popularity || 0),

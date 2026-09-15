@@ -8,6 +8,7 @@ import { currency } from '../utils/format'
 import { getDefaultImage, getServiceImage, handleImageFallback } from '../utils/defaultImages'
 import { getRecommendedServices } from '../utils/recommendations'
 import WishlistButton from './WishlistButton'
+import ScrollRow from './ScrollRow'
 
 export default function RecommendedServices({
   currentService = null,
@@ -29,28 +30,29 @@ export default function RecommendedServices({
   if (!items.length) return null
 
   return (
-    <section className={`mt-8 ${className}`}>
-      <div className="mb-4 flex items-end justify-between gap-3">
+    <section className={`py-6 ${className}`}>
+      <div className="mb-4 flex items-end justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-[var(--primary-text)] md:text-xl">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm text-[var(--secondary-text)]">{subtitle}</p>}
+          <h2 className="font-display text-lg font-extrabold text-[var(--primary-text)] sm:text-xl">{title}</h2>
+          {subtitle ? <p className="text-xs text-[var(--secondary-text)]">{subtitle}</p> : null}
         </div>
-        <Link to="/services" className="hidden text-sm font-bold text-[var(--primary-accent)] hover:underline sm:inline-flex">
+        <Link to="/services" className="text-xs font-bold text-[var(--primary-accent)] hover:underline">
           View all
         </Link>
       </div>
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 no-scrollbar sm:mx-0 sm:px-0">
+      <ScrollRow className="-mx-4 px-4 sm:mx-0 sm:px-0">
         {items.map((service) => {
           const price = Number(service.salePrice || service.basePrice || service.price || 0)
           return (
-            <article key={service.id || service.slug} className="w-[168px] shrink-0 overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] sm:w-[210px]">
-              <Link to={`/services/${service.slug || service.id}`} className="relative block aspect-square overflow-hidden bg-[var(--card-bg)]">
+            <article key={service.id || service.slug} className="w-[168px] shrink-0 snap-start flex flex-col justify-between overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] sm:w-[210px] select-none" draggable={false}>
+              <Link to={`/services/${service.slug || service.id}`} draggable={false} className="relative block aspect-square overflow-hidden bg-[var(--card-bg)] select-none">
                 <img
                   src={getServiceImage(service)}
                   alt={service.name}
                   loading="lazy"
+                  draggable={false}
                   onError={(event) => handleImageFallback(event, getDefaultImage(service.category))}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover pointer-events-none select-none"
                 />
                 <WishlistButton service={service} className="absolute right-2 top-2" />
               </Link>
@@ -77,7 +79,7 @@ export default function RecommendedServices({
             </article>
           )
         })}
-      </div>
+      </ScrollRow>
     </section>
   )
 }
