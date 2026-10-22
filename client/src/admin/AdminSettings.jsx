@@ -26,19 +26,20 @@ const emptyPromoSlide = {
 }
 
 const defaultCategories = [
-  { id: 'fans', name: 'Fan Services', icon: 'Fan', slug: 'fan-services', startingPrice: 149, isActive: true, order: 1 },
-  { id: 'wiring', name: 'Wiring & Circuits', icon: 'Zap', slug: 'wiring-circuits', startingPrice: 299, isActive: true, order: 2 },
-  { id: 'ac', name: 'AC Services', icon: 'AC', slug: 'ac-services', startingPrice: 499, isActive: true, order: 3 },
-  { id: 'cooler', name: 'Cooler Services', icon: 'Cooler', slug: 'cooler-services', startingPrice: 199, isActive: true, order: 4 },
-  { id: 'lights', name: 'Lights', icon: 'Light', slug: 'lights', startingPrice: 149, isActive: true, order: 5 },
-  { id: 'switches', name: 'Switches & Sockets', icon: 'Plug', slug: 'switches-sockets', startingPrice: 149, isActive: true, order: 6 },
-  { id: 'mcb', name: 'MCB & DB Box', icon: 'MCB', slug: 'mcb-db-box', startingPrice: 199, isActive: true, order: 7 },
-  { id: 'inverter', name: 'Inverter & Battery', icon: 'Battery', slug: 'inverter-battery', startingPrice: 299, isActive: true, order: 8 },
-  { id: 'geyser', name: 'Geyser & Heater', icon: 'Geyser', slug: 'geyser-heater', startingPrice: 299, isActive: true, order: 9 },
+  { id: 'lights', name: 'Lights', icon: 'Light', slug: 'lights', startingPrice: 149, isActive: true, order: 1 },
+  { id: 'fans', name: 'Fan Services', icon: 'Fan', slug: 'fan-services', startingPrice: 149, isActive: true, order: 2 },
+  { id: 'wiring', name: 'Wiring & Circuits', icon: 'Zap', slug: 'wiring-circuits', startingPrice: 149, isActive: true, order: 3 },
+  { id: 'mcb', name: 'MCB & DB Box', icon: 'MCB', slug: 'mcb-db-box', startingPrice: 199, isActive: true, order: 4 },
+  { id: 'inverter', name: 'Inverter & Battery', icon: 'Battery', slug: 'inverter-battery', startingPrice: 299, isActive: true, order: 5 },
+  { id: 'cooler', name: 'Cooler Services', icon: 'Cooler', slug: 'cooler-services', startingPrice: 199, isActive: true, order: 6 },
+  { id: 'ac', name: 'AC Services', icon: 'AC', slug: 'ac-services', startingPrice: 499, isActive: true, order: 7 },
+  { id: 'geyser', name: 'Geyser & Heater', icon: 'Geyser', slug: 'geyser-heater', startingPrice: 299, isActive: true, order: 8 },
+  { id: 'motor', name: 'Motor & Pump', icon: 'Pump', slug: 'motor-pump', startingPrice: 399, isActive: true, order: 9 },
   { id: 'appliances', name: 'Home Appliances', icon: 'Home', slug: 'home-appliances', startingPrice: 349, isActive: true, order: 10 },
   { id: 'cctv', name: 'CCTV & Security', icon: 'CCTV', slug: 'cctv-security', startingPrice: 999, isActive: true, order: 11 },
-  { id: 'motor', name: 'Motor & Pump', icon: 'Pump', slug: 'motor-pump', startingPrice: 399, isActive: true, order: 12 },
-  { id: 'doorbell', name: 'Doorbell & Intercom', icon: 'Bell', slug: 'doorbell-intercom', startingPrice: 199, isActive: true, order: 13 },
+  { id: 'automation', name: 'Home Automation', icon: 'Cpu', slug: 'home-automation', startingPrice: 299, isActive: true, order: 12 },
+  { id: 'plumbing', name: 'Plumbing Services', icon: 'Wrench', slug: 'plumbing-services', startingPrice: 149, isActive: true, order: 13 },
+  { id: 'others', name: 'Others', icon: 'Sparkles', slug: 'others', startingPrice: 99, isActive: true, order: 14 },
 ]
 
 const defaultServices = [
@@ -67,8 +68,11 @@ const defaultServices = [
   ['CCTV Installation (2 Cam)', 'cctv', 'cctv-installation-2-cam', 2499, 1999, '3-4 hrs', ['2 cameras', 'DVR setup', 'Cable routing']],
   ['CCTV Repair / Replacement', 'cctv', 'cctv-repair', 749, 599, '1-2 hrs', ['Camera check', 'Cable test', 'DVR config']],
   ['Motor Pump Installation', 'motor', 'motor-pump-installation', 699, 499, '2-3 hrs', ['Pump mount', 'Starter wiring', 'Test run']],
-  ['Motor Pump Repair', 'motor', 'motor-pump-repair', 499, 399, '1-2 hrs', ['Motor rewind', 'Capacitor replace', 'Bearing change']],
   ['Video Doorbell Installation', 'doorbell', 'video-doorbell-installation', 499, 399, '1 hr', ['Wiring', 'App setup', 'Test call']],
+  ['Tap Repair & Installation', 'plumbing', 'tap-repair-installation', 199, 149, '30 mins', ['Fix leaks', 'Washer/spindle replace', 'Pressure test']],
+  ['Washbasin & Sink Repair', 'plumbing', 'washbasin-sink-leakage-repair', 349, 249, '45 mins', ['Waste pipe fix', 'Trap cleaning', 'Leak seal']],
+  ['Flush Tank Repair', 'plumbing', 'toilet-flush-tank-repair', 399, 299, '45 mins', ['Valve repair', 'Float adjustment', 'Siphon replacement']],
+  ['Water Tank & Pipeline Repair', 'plumbing', 'water-tank-pipeline-repair', 549, 399, '1 hr', ['Cracked pipe fix', 'Ball valve fitting', 'Joint sealing']],
 ].map(([name, category, slug, basePrice, salePrice, duration, inclusions]) => ({
   name,
   category,
@@ -996,11 +1000,11 @@ export default function AdminSettings({ initialSection = 'company' }) {
               </div>
               <label>
                 <span className="mb-2 block text-sm font-medium text-gray-300">Tap-to-call phone</span>
-                <input className="field" placeholder="9398724704" value={announcementForm.phone} onChange={(event) => updateAnnouncement('phone', event.target.value)} />
+                <input className="field" placeholder="9493745479" value={announcementForm.phone} onChange={(event) => updateAnnouncement('phone', event.target.value)} />
               </label>
               <label>
                 <span className="mb-2 block text-sm font-medium text-gray-300">Optional link</span>
-                <input className="field" placeholder="tel:9398724704 or /services" value={announcementForm.href} onChange={(event) => updateAnnouncement('href', event.target.value)} />
+                <input className="field" placeholder="tel:9493745479 or /services" value={announcementForm.href} onChange={(event) => updateAnnouncement('href', event.target.value)} />
               </label>
               <label>
                 <span className="mb-2 block text-sm font-medium text-gray-300">Sort order</span>

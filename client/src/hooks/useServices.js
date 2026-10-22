@@ -30,7 +30,7 @@ function normalizeCategory(category = {}) {
     id,
     slug,
     name: category.name || 'Untitled category',
-    isActive: category.isActive !== false,
+    isActive: category.isActive !== false && category.active !== false,
   }
 }
 
@@ -94,7 +94,7 @@ export function useServiceCategories({ includeAll = false, onlyActive = true } =
       if (looksLikeWorkerRecord(category)) return false
       if (!category.slug && category.id !== 'all') return false
       if (!category.name || category.name === 'Untitled category') return false
-      if (onlyActive && category.isActive === false) return false
+      if (onlyActive && (category.isActive === false || category.active === false)) return false
       return true
     }).map(normalizeCategory)
     const hasAll = filtered.some((category) => category.id === 'all')

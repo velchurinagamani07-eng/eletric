@@ -3,12 +3,14 @@ import {
   Bell,
   Cable,
   Camera,
+  Cpu,
   Droplets,
   Fan,
   Home as HomeIcon,
   Lightbulb,
   PlugZap,
   Snowflake,
+  Sparkles,
   ToggleLeft,
   Wind,
   Wrench,
@@ -47,6 +49,15 @@ export const CATEGORY_ICON_MAP = {
   motor: Droplets,
   'doorbell-intercom': Bell,
   doorbell: Bell,
+  'plumbing-services': Wrench,
+  plumbing: Wrench,
+  wrench: Wrench,
+  'home-automation': Cpu,
+  automation: Cpu,
+  cpu: Cpu,
+  others: Sparkles,
+  'other-services': Sparkles,
+  sparkles: Sparkles,
 }
 
 export function getCategoryIcon(category = {}) {
@@ -64,7 +75,7 @@ export function getCategoryIcon(category = {}) {
   if (name.includes('socket') || name.includes('plug')) return PlugZap
   if (name.includes('ac') || name.includes('air')) return Snowflake
   if (name.includes('cool')) return Wind
-  if (name.includes('light') || name.includes('switch')) return Lightbulb
+  if (name.includes('light') || name.includes('bulb')) return Lightbulb
   if (name.includes('mcb') || name.includes('breaker') || name.includes('db box')) return ToggleLeft
   if (name.includes('inverter') || name.includes('battery') || name.includes('backup')) return BatteryCharging
   if (name.includes('geyser') || name.includes('heater') || name.includes('water')) return Droplets
@@ -72,6 +83,9 @@ export function getCategoryIcon(category = {}) {
   if (name.includes('cctv') || name.includes('camera') || name.includes('security')) return Camera
   if (name.includes('motor') || name.includes('pump')) return Droplets
   if (name.includes('bell') || name.includes('intercom') || name.includes('door')) return Bell
+  if (name.includes('automat') || name.includes('smart') || name.includes('iot')) return Cpu
+  if (name.includes('plumb') || name.includes('pipe') || name.includes('basin') || name.includes('tap') || name.includes('leak')) return Wrench
+  if (name.includes('other')) return Sparkles
   if (name.includes('repair') || name.includes('service')) return Wrench
 
   return Zap

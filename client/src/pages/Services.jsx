@@ -18,13 +18,19 @@ export default function Services() {
   const { categories } = useServiceCategories({ includeAll: true })
   const hasActiveFilters = category !== 'all' || Number(maxPrice) < 1200 || sort !== 'popularity'
 
+  const activeCategoryDoc = useMemo(
+    () => categories.find((c) => c.id === category || c.slug === category),
+    [categories, category]
+  )
+
   const filteredServices = useMemo(() => {
     const normalized = query.trim().toLowerCase()
     const results = services.filter((service) => {
       const categoryMatch =
         category === 'all' ||
         service.categorySlug === category ||
-        service.category === category
+        service.category === category ||
+        (activeCategoryDoc && (service.category === activeCategoryDoc.id || service.categorySlug === activeCategoryDoc.slug))
       const priceMatch = service.basePrice <= Number(maxPrice)
       const queryMatch =
         !normalized ||
@@ -38,7 +44,7 @@ export default function Services() {
       if (sort === 'newest') return String(b.createdAt || b.id).localeCompare(String(a.createdAt || a.id))
       return b.popularity - a.popularity
     })
-  }, [category, maxPrice, query, services, sort])
+  }, [category, maxPrice, query, services, sort, activeCategoryDoc])
 
   const selectCategory = (nextCategory) => {
     setCategory(nextCategory)
@@ -87,20 +93,27 @@ export default function Services() {
               />
             </div>
             <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 no-scrollbar">
-              {categories.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => selectCategory(item.id)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                    category === item.id
-                      ? 'bg-[var(--primary-accent)] text-white shadow-amber'
-                      : 'border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--secondary-text)]'
-                  }`}
-                >
-                  {item.name}
-                </button>
-              ))}
+              {categories.map((item) => {
+                const targetKey = item.slug || item.id
+                const isSelected =
+                  category === item.id ||
+                  category === item.slug ||
+                  (category === 'all' && (item.id === 'all' || item.slug === 'all'))
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => selectCategory(targetKey)}
+                    className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'bg-[var(--primary-accent)] text-white shadow-amber'
+                        : 'border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--secondary-text)]'
+                    }`}
+                  >
+                    {item.name}
+                  </button>
+                )
+              })}
             </div>
             <div className="flex items-center justify-between py-1">
               <p className="text-sm font-semibold text-[var(--secondary-text)]">{filteredServices.length} services found</p>
@@ -123,20 +136,27 @@ export default function Services() {
               <div className="mt-5">
                 <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Category</p>
                 <div className="mt-3 grid gap-2">
-                  {categories.map((item) => (
-                    <button
-                      key={item.slug || item.id}
-                      type="button"
-                      onClick={() => selectCategory(item.slug || item.id)}
-                      className={`rounded-lg px-3 py-2 text-left text-sm font-semibold transition ${
-                        category === (item.slug || item.id)
-                          ? 'bg-[var(--primary-accent)]/20 text-[var(--primary-accent)]'
-                          : 'text-[var(--secondary-text)] hover:bg-[var(--page-bg)]'
-                      }`}
-                    >
-                      {item.name}
-                    </button>
-                  ))}
+                  {categories.map((item) => {
+                    const targetKey = item.slug || item.id
+                    const isSelected =
+                      category === item.id ||
+                      category === item.slug ||
+                      (category === 'all' && (item.id === 'all' || item.slug === 'all'))
+                    return (
+                      <button
+                        key={item.slug || item.id}
+                        type="button"
+                        onClick={() => selectCategory(targetKey)}
+                        className={`rounded-lg px-3 py-2 text-left text-sm font-semibold transition ${
+                          isSelected
+                            ? 'bg-[var(--primary-accent)]/20 text-[var(--primary-accent)]'
+                            : 'text-[var(--secondary-text)] hover:bg-[var(--page-bg)]'
+                        }`}
+                      >
+                        {item.name}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 

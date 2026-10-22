@@ -94,10 +94,19 @@ export default function Home() {
 
   const servicesByCategory = useMemo(
     () =>
-      categories.map((category) => ({
-        ...category,
-        services: services.filter((service) => service.category === category.id),
-      })).filter((category) => category.services.length),
+      [...categories]
+        .sort((a, b) => Number(a.order ?? 999) - Number(b.order ?? 999))
+        .map((category) => ({
+          ...category,
+          services: services.filter(
+            (service) =>
+              service.category === category.id ||
+              service.category === category.slug ||
+              service.categorySlug === category.slug ||
+              service.categorySlug === category.id
+          ),
+        }))
+        .filter((category) => category.services.length),
     [categories, services],
   )
 
@@ -109,7 +118,10 @@ export default function Home() {
     return services.find((service) => service.id === recent?.id || service.slug === recent?.id) || null
   }, [services])
   const validCategories = useMemo(
-    () => categories.filter((category) => category.slug && !('specialization' in category) && !('photoURL' in category)),
+    () =>
+      [...categories]
+        .filter((category) => category.slug && !('specialization' in category) && !('photoURL' in category))
+        .sort((a, b) => Number(a.order ?? 999) - Number(b.order ?? 999)),
     [categories],
   )
 
@@ -628,7 +640,7 @@ function ConstructionMovingSection() {
           </div>
 
           <a
-            href="https://wa.me/919398724704?text=Hi! I am interested in your Construction/Renovation services."
+            href={`https://wa.me/91${settings.whatsapp || settings.phone || '9493745479'}?text=Hi! I am interested in your Construction/Renovation services.`}
             target="_blank"
             rel="noreferrer"
             className="btn-secondary mt-6 w-full text-center py-2.5 font-bold hover:bg-[var(--primary-accent)] hover:text-white transition duration-200"
@@ -668,7 +680,7 @@ function ConstructionMovingSection() {
           </div>
 
           <a
-            href="https://wa.me/919398724704?text=Hi! I am interested in your Moving & Packing services."
+            href={`https://wa.me/91${settings.whatsapp || settings.phone || '9493745479'}?text=Hi! I am interested in your Moving & Packing services.`}
             target="_blank"
             rel="noreferrer"
             className="btn-secondary mt-6 w-full text-center py-2.5 font-bold hover:bg-[var(--primary-accent)] hover:text-white transition duration-200"

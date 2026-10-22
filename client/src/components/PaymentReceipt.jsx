@@ -169,7 +169,7 @@ export default function PaymentReceipt({ booking }) {
 
         <footer className="flex flex-col gap-2 bg-slate-100 px-6 py-4 text-xs font-semibold text-gray-600 sm:flex-row sm:items-center sm:justify-between">
           <span>{settings.companyName} | homeelectricservices.in | +91 {settings.phone}</span>
-          <span>{settings.gst || 'GST: Not available'} | Built by WayzenTech - 9398724704</span>
+          <span>{settings.gst || 'GST: Not available'} | Built by WayzenTech</span>
         </footer>
       </article>
     </section>

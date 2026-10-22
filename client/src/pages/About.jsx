@@ -27,7 +27,7 @@ const COMPANY = {
   phone: '+91 9493745479',
   whatsapp: '919493745479',
   founded: '2020',
-  builtBy: 'WayzenTech - 9398724704',
+  builtBy: 'WayzenTech',
 }
 
 const FOUNDER = {

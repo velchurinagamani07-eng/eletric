@@ -153,7 +153,7 @@ export default function ManageBanners() {
               <span className="mt-5 inline-flex rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-navy-900 shadow-lg">
                 {splashForm.ctaLabel || 'Continue to Website'}
               </span>
-              <p className="mt-4 text-[11px] text-white/60">Website made by WayzenTech Contact 9398724704</p>
+              <p className="mt-4 text-[11px] text-white/60">Website made by WayzenTech</p>
             </div>
           </div>
         ) : (

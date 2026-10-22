@@ -71,16 +71,16 @@ export default function MobileNavbar() {
               transition={{ type: 'spring', stiffness: 310, damping: 32 }}
               onClick={(event) => event.stopPropagation()}
             >
-              <header className="flex items-center justify-between border-b border-surface-border px-4 py-4">
+              <header className="flex items-center justify-between border-b border-gray-100 px-4 py-4 dark:border-white/10">
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
                   onClick={() => setDrawerOpen(false)}
                   aria-label="Close menu"
                 >
                   <X size={20} />
                 </button>
-                <Link to="/" onClick={() => setDrawerOpen(false)} className="flex items-center gap-2 font-display text-sm font-extrabold text-navy">
+                <Link to="/" onClick={() => setDrawerOpen(false)} className="flex items-center gap-2 font-display text-sm font-extrabold text-[#0F172A] dark:text-white">
                   <span className="relative shrink-0">
                     <img
                       src="/logo.webp"
@@ -102,42 +102,62 @@ export default function MobileNavbar() {
                 </Link>
               </header>
 
-              <section className="border-b border-surface-border px-4 py-5">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">DP Home Electric Services</p>
-                <p className="mt-2 text-sm font-semibold leading-6 text-gray-600">Call +91 {settings.phone} or book any service through WhatsApp.</p>
+              <section className="border-b border-gray-100 px-4 py-5 bg-slate-50/70 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-red-600 dark:text-red-400">DP Home Electric Services</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">Call +91 {settings.phone} or book any service through WhatsApp.</p>
               </section>
 
-              <DrawerSection title="Browse" links={browseLinks} onGo={closeAndGo} />
+              <DrawerSection title="Browse" links={browseLinks} currentPath={location.pathname} onGo={closeAndGo} />
 
               {isStaff && (
-                <section className="border-t border-surface-border px-4 py-4">
-                  {user?.role === 'admin' || user?.role === 'superadmin' ? (
-                    <button type="button" className="drawer-link" onClick={() => closeAndGo('/admin/dashboard')}>
-                      <CircleUserRound size={18} /> Admin Panel
+                <section className="border-t border-gray-100 px-4 py-4 dark:border-white/10">
+                  <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Staff Portal</p>
+                  <div className="grid gap-1.5">
+                    {user?.role === 'admin' || user?.role === 'superadmin' ? (
+                      <button
+                        type="button"
+                        className="flex min-h-12 w-full items-center gap-3.5 rounded-2xl px-3.5 text-left text-sm font-bold text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-white/10"
+                        onClick={() => closeAndGo('/admin/dashboard')}
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                          <CircleUserRound size={18} />
+                        </span>
+                        <span className="flex-1 text-[15px] font-bold">Admin Panel</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="flex min-h-12 w-full items-center gap-3.5 rounded-2xl px-3.5 text-left text-sm font-bold text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-white/10"
+                        onClick={() => closeAndGo('/worker/jobs')}
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                          <BriefcaseBusiness size={18} />
+                        </span>
+                        <span className="flex-1 text-[15px] font-bold">My Jobs</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="flex min-h-12 w-full items-center gap-3.5 rounded-2xl px-3.5 text-left text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      onClick={() => {
+                        setDrawerOpen(false)
+                        setConfirmLogout(true)
+                      }}
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400">
+                        <LogOut size={18} />
+                      </span>
+                      <span className="flex-1 text-[15px] font-bold">Logout</span>
                     </button>
-                  ) : (
-                    <button type="button" className="drawer-link" onClick={() => closeAndGo('/worker/jobs')}>
-                      <BriefcaseBusiness size={18} /> My Jobs
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="drawer-link text-red-600"
-                    onClick={() => {
-                      setDrawerOpen(false)
-                      setConfirmLogout(true)
-                    }}
-                  >
-                    <LogOut size={18} /> Logout
-                  </button>
+                  </div>
                 </section>
               )}
 
-              <div className="mt-auto border-t border-surface-border p-4">
+              <div className="mt-auto border-t border-gray-100 p-4 dark:border-white/10">
                 <a className="btn-primary w-full" href={`tel:+91${settings.phone}`}>
                   <Phone size={17} /> Call Now
                 </a>
-                <p className="mt-4 text-center text-xs font-semibold text-gray-400">Website by WayzenTech 9398724704</p>
+                <p className="mt-4 text-center text-xs font-semibold text-slate-400">Website by WayzenTech</p>
               </div>
             </motion.aside>
           </motion.div>
@@ -269,17 +289,42 @@ function MobileTab({ to, icon: Icon, label, badge = 0 }) {
   )
 }
 
-function DrawerSection({ title, links, onGo }) {
+function DrawerSection({ title, links, currentPath, onGo }) {
   return (
-    <section className="border-t border-surface-border px-4 py-4">
-      <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-gray-400">{title}</p>
-      <div className="grid gap-1">
-        {links.map(({ label, to, icon: Icon }) => (
-          <button key={label} type="button" className="drawer-link" onClick={() => onGo(to)}>
-            <Icon size={18} /> {label}
-          </button>
-        ))}
+    <section className="border-t border-gray-100 px-4 py-4 dark:border-white/10">
+      <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{title}</p>
+      <div className="grid gap-1.5">
+        {links.map(({ label, to, icon: Icon }) => {
+          const isActive = to === '/' ? currentPath === '/' : currentPath.startsWith(to)
+          return (
+            <button
+              key={label}
+              type="button"
+              className={`flex min-h-12 w-full items-center gap-3.5 rounded-2xl px-3.5 text-left text-sm font-bold transition-all ${
+                isActive
+                  ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-900/50'
+                  : 'text-slate-800 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-100 dark:hover:bg-white/10 dark:hover:text-white'
+              }`}
+              onClick={() => onGo(to)}
+            >
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                  isActive
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200'
+                }`}
+              >
+                <Icon size={18} strokeWidth={2.4} />
+              </span>
+              <span className="flex-1 text-[15px] font-bold tracking-tight">{label}</span>
+              {isActive && (
+                <span className="h-2 w-2 rounded-full bg-red-600 dark:bg-red-400" />
+              )}
+            </button>
+          )
+        })}
       </div>
     </section>
   )
 }
+

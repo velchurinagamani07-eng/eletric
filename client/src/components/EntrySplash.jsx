@@ -102,7 +102,7 @@ export default function EntrySplash() {
               <button type="button" className="btn-primary mt-5 w-full" onClick={continueToCta}>
                 {splash.ctaLabel || splash.ctaText || 'Continue to Website'} <ArrowRight size={17} />
               </button>
-              <p className="mt-4 text-[11px] font-semibold text-gray-400">Website made by WayzenTech Contact 9398724704</p>
+              <p className="mt-4 text-[11px] font-semibold text-gray-400">Website made by WayzenTech</p>
             </div>
           </motion.article>
         </motion.div>

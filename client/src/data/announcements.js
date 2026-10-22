@@ -10,9 +10,9 @@ export const defaultAnnouncements = [
   {
     id: 'urgent-service-call',
     icon: '📞',
-    text: '📞 Urgent service? Call us directly: 9398724704',
-    phone: '9398724704',
-    href: 'tel:9398724704',
+    text: '📞 Urgent service? Call us directly: 9493745479',
+    phone: '9493745479',
+    href: 'tel:9493745479',
     order: 2,
     isActive: true,
   },

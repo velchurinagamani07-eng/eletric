@@ -36,6 +36,7 @@ const ManageBookings = lazy(() => import('./admin/ManageBookings'))
 const ManagePayments = lazy(() => import('./admin/ManagePayments'))
 const ManageEnquiries = lazy(() => import('./admin/ManageEnquiries'))
 const ManageWorkers = lazy(() => import('./admin/ManageWorkers'))
+const ManageCategories = lazy(() => import('./admin/ManageCategories'))
 const ManageServices = lazy(() => import('./admin/ManageServices'))
 const ManageCoupons = lazy(() => import('./admin/ManageCoupons'))
 const ManageBanners = lazy(() => import('./admin/ManageBanners'))
@@ -146,6 +147,7 @@ export default function App() {
                 <Route path="payments" element={<ManagePayments />} />
                 <Route path="enquiries" element={<ManageEnquiries />} />
                 <Route path="workers" element={<ManageWorkers />} />
+                <Route path="categories" element={<ManageCategories />} />
                 <Route path="services" element={<ManageServices />} />
                 <Route path="coupons" element={<ManageCoupons />} />
                 <Route path="products" element={<ManageProducts />} />

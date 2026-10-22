@@ -23,7 +23,7 @@ npm run dev
 Copy `client/.env.example` to `client/.env` and `server/.env.example` to `server/.env`, then set Firebase, ImgBB, UPI, Anthropic, and deployment URLs. Authentication is Firebase-only.
 
 Primary contact number: `+91 9493745479`.
-Build credit: `WayzenTech 9398724704`.
+Build credit: `WayzenTech`.
 
 ## Key Features
 
